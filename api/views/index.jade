@@ -4,3 +4,10 @@ block content
 	.row
 		.col-md-12
 			h1 Mummy Workouts
+
+			if apiKey
+				p #{apiKey}
+			if sessionId
+				p #{sessionId}
+			if token
+				p #{token}

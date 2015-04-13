@@ -1,3 +1,4 @@
+var fs 		= require('fs');
 var Bell 	= require('bell');
 var Path 	= require('path');
 // var Joi 	= require('joi');
@@ -51,7 +52,17 @@ module.exports = {
 	homeView: {
 		auth: {mode: 'optional'},
 		handler: function (request, reply ){
-			return reply.view('index');
+			fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, data){
+				if (err) {
+					console.error(err);
+					return reply.view('index');
+				}
+				else {
+					console.log(data);
+					var token = opentok.generateToken(data);
+					return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token});
+				}
+			});
 		}
 	},
 };

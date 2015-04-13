@@ -1,3 +1,4 @@
+var fs 			= require('fs');
 var server 		= require('./api/server');
 var opentok 	= require('./api/opentok');
 
@@ -16,11 +17,18 @@ server.start(function () {
 	// 	});
 	// });
 
+
 	opentok.createSession({mediaMode:"routed"}, function(err, session) {
 		if (err) return console.error(err);
-		if (session) console.dir(session);
+		if (session) {
+			fs.writeFile('sessionId.txt', session.sessionId, function(err){
+				if (err) console.error(err);
+			});
+			console.dir(session);
+		}
 	});
 
 
 	console.log('Server running at:', server.info.uri);
 });
+
