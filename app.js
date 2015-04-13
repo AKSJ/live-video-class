@@ -1,4 +1,5 @@
 var server 		= require('./api/server');
+var opentok 	= require('./api/opentok');
 
 // var mongoose 	= require("mongoose");
 // var config 		= require("./api/config").db;
@@ -14,6 +15,12 @@ server.start(function () {
 	// 		console.log("database connection successful");
 	// 	});
 	// });
+
+	opentok.createSession({mediaMode:"routed"}, function(err, session) {
+		if (err) return console.error(err);
+		if (session) console.dir(session);
+	});
+
 
 	console.log('Server running at:', server.info.uri);
 });

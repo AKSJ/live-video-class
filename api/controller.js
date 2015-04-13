@@ -3,6 +3,7 @@ var Path 	= require('path');
 // var Joi 	= require('joi');
 // var mongoose = require('mongoose');
 var config 	= require('./config');
+var opentok = require('./opentok');
 
 module.exports = {
 
@@ -53,18 +54,4 @@ module.exports = {
 			return reply.view('index');
 		}
 	},
-
-	signupView: {
-		auth: {mode: 'optional'},
-		handler: function (request, reply ){
-			return reply.redirect('/');
-		}
-	},
-
-	signupSubmit: {
-		auth: {mode: 'required'},
-		handler: function (request, reply ){
-		 return reply.redirect('/');
-		}
-	}
 };
