@@ -5,6 +5,7 @@ var Path 	= require('path');
 // var mongoose = require('mongoose');
 var config 	= require('./config');
 var opentok = require('./opentok');
+var members = require('./models/members.js');
 
 module.exports = {
 
@@ -30,11 +31,23 @@ module.exports = {
 					email 		: gPlus.profile.email,
 					picture 	: gPlus.profile.raw.picture,
 				};
-
-				request.auth.session.clear();
-				request.auth.session.set(profile);
-
-				return reply.redirect('/');
+				console.log( "Profile: " + JSON.stringify( profile ) );
+				// look up in database
+				members.search( { query: {"email": profile.email }}, function( error, member ){
+					if( error ) {
+						console.log( error );
+						request.auth.session.clear();
+						reply.redirect( '/login' );
+					}
+					else {
+						console.log( 'Found member: ' + member.email );
+						profile.permissions = member.permissions;
+						request.auth.session.clear();
+						request.auth.session.set(profile);
+						return reply.redirect('/');
+					}
+				});
+				return reply.redirect('/login');
 			}
 			else {
 				return reply.redirect('/');
@@ -60,7 +73,8 @@ module.exports = {
 				else {
 					console.log(data);
 					var token = opentok.generateToken(data);
-					return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token});
+					var permissions = request.auth.credentials.permissions;
+					return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token, permissions: creds.permissions });
 				}
 			});
 		}
