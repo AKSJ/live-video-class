@@ -1,13 +1,22 @@
 extends ./layouts/default.jade
 
+append head
+	script(type='text/javascript').
+		var apiKey = '#{apiKey}'
+		var sessionId = '#{sessionId}'
+		var token = '#{token}'
+	script(src='/scripts/test.js')
+
 block content
 	.row
 		.col-md-12
-			h1 Mummy Workouts
+			#publisher
+			#subscribers
+			//- if apiKey
+			//- 	p #{apiKey}
+			//- if sessionId
+			//- 	p #{sessionId}
+			//- if token
+			//- 	p #{token}
 
-			if apiKey
-				p #{apiKey}
-			if sessionId
-				p #{sessionId}
-			if token
-				p #{token}
+
