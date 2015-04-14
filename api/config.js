@@ -1,9 +1,9 @@
 module.exports = {
-	// db : {
-	// 			dbuser 	: process.env.DBUSER 	|| require('./creds.json').database.dbuser,
-	// 			dbpwd  	: process.env.DBPWD 	|| require('./creds.json').database.dbpwd,
-	// 			dburl  	: process.env.DBURL 	|| require('./creds.json').database.dburl,
-	// },
+	db : {
+				dbuser 	: process.env.DBUSER 	|| require('./creds.json').database.dbuser,
+				dbpwd  	: process.env.DBPWD 	|| require('./creds.json').database.dbpwd,
+				dburl  	: process.env.DBURL 	|| require('./creds.json').database.dburl,
+	},
 	openTok: {
 				key 	: process.env.OPENTOKKEY 		|| require('./creds.json').openTok.key,
 				secret 	: process.env.OPENTOKSECRET 	|| require('./creds.json').openTok.secret
