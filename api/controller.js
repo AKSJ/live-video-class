@@ -5,6 +5,7 @@ var Path 	= require('path');
 // var mongoose = require('mongoose');
 var config 	= require('./config');
 var opentok = require('./opentok');
+var members = require('./models/members.js');
 
 module.exports = {
 
@@ -30,11 +31,22 @@ module.exports = {
 					email 		: gPlus.profile.email,
 					picture 	: gPlus.profile.raw.picture,
 				};
-
-				request.auth.session.clear();
-				request.auth.session.set(profile);
-
-				return reply.redirect('/');
+				console.log( "Profile: " + JSON.stringify( profile ) );
+				// look up in database
+				members.search( { query: {"email": profile.email }}, function( error, member ){
+					if( error ) {
+						console.log( error );
+						request.auth.session.clear();
+						return reply.redirect( '/login' );
+					}
+					else {
+						console.log( 'Found member: ' + JSON.stringify( member ));
+						profile.permissions = member.permissions;
+						request.auth.session.clear();
+						request.auth.session.set(profile);
+						return reply.redirect('/');
+					}
+				});
 			}
 			else {
 				return reply.redirect('/');
@@ -60,7 +72,15 @@ module.exports = {
 				else {
 					console.log(data);
 					var token = opentok.generateToken(data);
-					return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token});
+					var gPlus = request.auth.credentials;
+					if( gPlus ) {
+						var permissions = gPlus.permissions;
+						console.log( "Permissions: " + permissions);
+						return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token, permissions: permissions });
+					}
+					else {
+						return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token, permissions: "invalid" });
+					}
 				}
 			});
 		}
