@@ -2,20 +2,12 @@ var Hapi 	= require('hapi');
 var Bell 	= require('bell');
 var Cookie 	= require('hapi-auth-cookie');
 var Path 	= require('path');
-var routes 	= require('./routes.js');
-var config 	= require('./config.js');
+var routes 	= require('./routes');
+var config 	= require('./config');
 
 var host = 'localhost';
 if (process.env.PORT) host = '0.0.0.0';
 var serverOptions 	= {port: (process.env.PORT || 3000 ), host: host };
-
-var goodOptions = {
-	opsInterval: 1000,
-	reporters: [{
-		reporter: require('good-console'),
-		args:[{ log: '*', error: '*'}]
-	}]
-};
 
 var server = new Hapi.Server({
 	connections: {
@@ -64,6 +56,15 @@ server.register([Bell, Cookie], function (err) {
 	server.auth.default('session');
 	server.route(routes);
 });
+
+// GOOD error reporting
+var goodOptions = {
+	opsInterval: 60 * 1000,
+	reporters: [{
+		reporter: require('good-console'),
+		events: {ops: '*', log: '*', error: '*', response: '*'}
+	}]
+};
 
 server.register({
 	register: require('good'),
