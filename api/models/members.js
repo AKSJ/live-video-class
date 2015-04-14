@@ -8,7 +8,7 @@ var Member		= schema.Member;
 exports.search = function(params, onComplete) {
 
 	if (params.filter) {
-		Member.find(params.query, params.filter, function(err, result){
+		Member.findOne(params.query, params.filter, function(err, result){
 			if (err) {
 				return onComplete(err);
 			}
@@ -16,7 +16,7 @@ exports.search = function(params, onComplete) {
 		});
 	}
 	else {
-		Member.find(params.query, function(err, result){
+		Member.findOne(params.query, function(err, result){
 			if (err) {
 				return onComplete(err);
 			}

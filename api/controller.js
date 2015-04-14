@@ -37,17 +37,16 @@ module.exports = {
 					if( error ) {
 						console.log( error );
 						request.auth.session.clear();
-						reply.redirect( '/login' );
+						return reply.redirect( '/login' );
 					}
 					else {
-						console.log( 'Found member: ' + member.email );
+						console.log( 'Found member: ' + JSON.stringify( member ));
 						profile.permissions = member.permissions;
 						request.auth.session.clear();
 						request.auth.session.set(profile);
 						return reply.redirect('/');
 					}
 				});
-				return reply.redirect('/login');
 			}
 			else {
 				return reply.redirect('/');
@@ -73,8 +72,15 @@ module.exports = {
 				else {
 					console.log(data);
 					var token = opentok.generateToken(data);
-					var permissions = request.auth.credentials.permissions;
-					return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token, permissions: creds.permissions });
+					var gPlus = request.auth.credentials;
+					if( gPlus ) {
+						var permissions = gPlus.permissions;
+						console.log( "Permissions: " + permissions);
+						return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token, permissions: permissions });
+					}
+					else {
+						return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token, permissions: "invalid" });
+					}
 				}
 			});
 		}
