@@ -7,7 +7,7 @@ var config 	= require('./config');
 
 var host = 'localhost';
 if (process.env.PORT) host = '0.0.0.0';
-var serverOptions 	= {port: (process.env.PORT || 3000 ), host: host };
+var serverOptions 	= {port: (process.env.PORT || 3000 ), host: '0.0.0.0' }; //host: host
 
 var server = new Hapi.Server({
 	connections: {

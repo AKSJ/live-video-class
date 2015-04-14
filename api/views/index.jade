@@ -11,14 +11,13 @@ append head
 
 block content
 	.row
-		.col-md-12
-			#publisher
-			#subscribers
-			//- if apiKey
-			//- 	p #{apiKey}
-			//- if sessionId
-			//- 	p #{sessionId}
-			//- if token
-			//- 	p #{token}
-
-
+		.col-md-3#publisher
+		.col-md-3#subscriber1
+		.col-md-3#subscriber2
+	.row
+		.col-md-3#subscriber3
+		.col-md-3#subscriber4
+		.col-md-3#subscriber5
+	.row
+		button.btn#stopStream Stop Stream
+		button.btn#startStream Start Stream
