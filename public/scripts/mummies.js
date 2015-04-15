@@ -36,44 +36,11 @@ session.on({
 
 	// This function runs when another client publishes a stream (eg. session.publish())
 	streamCreated: function(event) {
-		// Create a container for a new Subscriber, assign it an id using the streamId, put it inside
-		// the element with id="subscriber"+count.
-		// If 5 streams active, put streamId in inactiveStreams array
-		// TODO: refactor to jquery for consistency
-		console.log(event);
-		var stream = event.stream;
-		var streamId = event.stream.streamId;
-		var subContainer = document.createElement('div');
-		if (streamCount < 5) {
-			streamCount++;
-			activeStreams.push(stream);
-			activeStreamIds.push(streamId);
-			subContainer.id = 'stream-' + streamId;
-			document.getElementById('subscriber' + streamCount).appendChild(subContainer);
-			// Subscribe to the stream that caused this event, put it inside the container we just made
-			subscribers[streamId] = session.subscribe(event.stream, subContainer, {width: 400, height: 300});
-		}
-		else {
-			inactiveStreams.push(stream);
-			inactiveStreamIds.push(streamId);
-		}
+
 	},
 
 	streamDestroyed: function(event) {
-		//Check if stream is currently displayed, if so remove from DOM and adjust count/activeStreams
-		// Not currently unsubscribing, as default behaviour should handle that.
-		var subscribers = session.getSubscribersForStream(event.stream);
-		console.log(subscribers);
-		var streamId = event.stream.streamId;
-		var streamIndex = activeStreams.indexOf(streamId);
-		console.log('streamId: '+streamId, 'streamIndex: '+streamIndex);
-		if (streamIndex !== -1) {
-			$('#stream-'+streamId).remove();
-			streamCount--;
-			activeStreams.splice(streamIndex,1);
-			console.log(streamCount, activeStreams);
-		}
-	}
+
 });
 
 // TODO set interval, if < 5 active streams, check for inactive streams and subscribe
@@ -115,10 +82,14 @@ $('#getSubscribers').click(function(){
 			console.log(session.getSubscribersForStream(stream));
 		});
 	}
+	else {
+		console.log('No active streams');
+	}
 });
 
 $('#kill').click(function(){
-	var connectionToKill = $('#connedtionId').val();
+	var connectionToKill = $('#connectionId').val();
+	console.log(connectionToKill);
 	session.forceDisconnect(connectionToKill, function(err){
 		if (err) {
 			console.log('Failed to kill conection');
