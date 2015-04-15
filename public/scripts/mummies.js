@@ -17,7 +17,7 @@ var inactiveStreamIds = [];
 var subscribers = {};
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-publisher = OT.initPublisher( /*apiKey,*/ 'streamModerator', {insertMode: "append","name": username, width: 200, height: 150, style: {nameDisplayMode: "on"}});
+publisher = OT.initPublisher( /*apiKey,*/ 'publisher', {"name": username, width: 200, height: 150, style: {nameDisplayMode: "on"}});
 
 
 // Attach event handlers
@@ -50,7 +50,8 @@ session.on({
 		if( streamData.permissions === 'moderator' ){
 			console.log( 'New stream is for a moderator');
 			var streamId = event.stream.streamId;
-			// $('<div/>').attr("id", "streamModerator").appendTo('#window');
+			$('#publisher').wrap('<div id="streamModerator"></div>');
+			//$('<div/>').attr("id", "streamModerator").wrap('#publisher');
 			// $('#window').append('<div></div>').attr("id", "streamModerator");
 			subscribers[streamId] = session.subscribe(event.stream, 'streamModerator', {width: 800, height: 700});
 
