@@ -5,10 +5,11 @@
 var session = TB.initSession(/*apiKey,*/sessionId);
 console.log("Token: " + token );
 console.log("SessionId: " + sessionId );
+console.log("Username: " + username );
+console.log("Permissions: " + permissions );
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-var publisher = TB.initPublisher( apiKey, 'publisher', {width: 400, height: 300});//, {"name": token.});
-
+var publisher = TB.initPublisher( apiKey, 'publisher', {"name": username, width: 400, height: 300, style: {nameDisplayMode: "on"}});
 
 var streamCount = 0;
 var activeStreams = [];
@@ -16,8 +17,6 @@ var activeStreamIds = [];
 var inactiveStreams = [];
 var inactiveStreamIds = [];
 var subscribers = {};
-
-console.log( "Member permissions: " + permissions);
 
 // Attach event handlers
 session.on({
@@ -27,8 +26,11 @@ session.on({
 		// Publish the publisher (this will trigger 'streamCreated' on other
 		// clients)
 		console.log(event);
-		console.log('Session Connection data: ');
+		console.log('Session Connection data:');
 		console.log(session.connection);
+		console.log('Publisher properties:');
+		console.log(publisher);
+
 		session.publish(publisher);
 	},
 
