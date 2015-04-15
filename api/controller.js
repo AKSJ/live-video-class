@@ -31,7 +31,8 @@ module.exports = {
 					email 		: gPlus.profile.email,
 					picture 	: gPlus.profile.raw.picture,
 				};
-				console.log( "Profile: " + JSON.stringify( profile ) );
+				console.log('Profile:');
+				console.dir(profile);
 				// look up in database
 				members.search( { query: {"email": profile.email }}, function( error, member ){
 					if( error ) {
@@ -40,7 +41,8 @@ module.exports = {
 						return reply.redirect( '/login' );
 					}
 					else {
-						console.log( 'Found member: ' + JSON.stringify( member ));
+						console.log('Found member:');
+						console.dir(member);
 						profile.permissions = member.permissions;
 						request.auth.session.clear();
 						request.auth.session.set(profile);
@@ -64,22 +66,22 @@ module.exports = {
 	homeView: {
 		auth: {mode: 'optional'},
 		handler: function (request, reply ){
-			fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, data){
+			fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, sessionId){
 				if (err) {
 					console.error(err);
-					return reply.view('index');
+					return reply.view('index', {error:err});
 				}
 				else {
-					console.log(data);
-					var token = opentok.generateToken(data);
+					var token = opentok.generateToken(sessionId);
+					console.log('Token: ', token);
 					var gPlus = request.auth.credentials;
 					if( gPlus ) {
 						var permissions = gPlus.permissions;
 						console.log( "Permissions: " + permissions);
-						return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token, permissions: permissions });
+						return reply.view('index', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions });
 					}
 					else {
-						return reply.view('index', {apiKey: config.openTok.key, sessionId: data, token: token, permissions: "invalid" });
+						return reply.view('index', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: "invalid" });
 					}
 				}
 			});
