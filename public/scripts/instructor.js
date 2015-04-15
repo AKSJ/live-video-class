@@ -43,15 +43,16 @@ session.on({
 		console.log(event);
 		var stream = event.stream;
 		var streamId = event.stream.streamId;
-		var subContainer = document.createElement('div');
+		// var subContainer = document.createElement('div');
 		if (streamCount < 5) {
 			streamCount++;
 			activeStreams.push(stream);
 			activeStreamIds.push(streamId);
-			subContainer.id = 'stream-' + streamId;
-			document.getElementById('subscriber' + streamCount).appendChild(subContainer);
+			subContainerId = 'stream-' + streamId;
+			// document.getElementById('subscriber' + streamCount).appendChild(subContainer);
+			$('<div/>').attr('id',subContainerId).appendTo('#subscriber' + streamCount);
 			// Subscribe to the stream that caused this event, put it inside the container we just made
-			subscribers[streamId] = session.subscribe(event.stream, subContainer, {width: 400, height: 300});
+			subscribers[streamId] = session.subscribe(event.stream, subContainerId, {width: 400, height: 300});
 		}
 		else {
 			inactiveStreams.push(stream);
@@ -62,8 +63,6 @@ session.on({
 	streamDestroyed: function(event) {
 		//Check if stream is currently displayed, if so remove from DOM and adjust count/activeStreams
 		// Not currently unsubscribing, as default behaviour should handle that.
-		var subscribers = session.getSubscribersForStream(event.stream);
-		console.log(subscribers);
 		var streamId = event.stream.streamId;
 		var streamIndex = activeStreamIds.indexOf(streamId);
 		console.log('activeStreamIds:');
@@ -78,7 +77,17 @@ session.on({
 	}
 });
 
-// TODO set interval, if < 5 active streams, check for inactive streams and subscribe
+// if < 5 active streams, check for inactive streams and subscribe
+setInterval(function(){
+	if (streamCount < 5 && inactiveStreams.length > 0) {
+		var newStream = inactiveStreams.pop();
+		var newStreamId = newStream.streamId;
+		streamCount++;
+		activeStreams.push(newStream);
+		activeStreamIds.push(newStreamId);
+
+	}
+},500);
 
 publisher.on({
 	streamDestroyed: function(event) {
