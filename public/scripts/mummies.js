@@ -41,6 +41,7 @@ session.on({
 
 	streamDestroyed: function(event) {
 
+	}
 });
 
 // TODO set interval, if < 5 active streams, check for inactive streams and subscribe
