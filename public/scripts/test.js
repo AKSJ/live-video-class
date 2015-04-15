@@ -7,7 +7,7 @@ console.log("Token: " + token );
 console.log("SessionId: " + sessionId );
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-var publisher = TB.initPublisher( apiKey, 'publisher');//, {"name": token.});
+var publisher = TB.initPublisher( apiKey, 'publisher', {width: 400, height: 300});//, {"name": token.});
 
 
 var streamCount = 0;
@@ -15,6 +15,7 @@ var activeStreams = [];
 var activeStreamIds = [];
 var inactiveStreams = [];
 var inactiveStreamIds = [];
+var subscribers = {};
 
 console.log( "Member permissions: " + permissions);
 
@@ -26,7 +27,8 @@ session.on({
 		// Publish the publisher (this will trigger 'streamCreated' on other
 		// clients)
 		console.log(event);
-		console.log( 'Session Connection data: ' + session.connection);
+		console.log('Session Connection data: ');
+		console.log(session.connection);
 		session.publish(publisher);
 	},
 
@@ -47,7 +49,7 @@ session.on({
 			subContainer.id = 'stream-' + streamId;
 			document.getElementById('subscriber' + streamCount).appendChild(subContainer);
 			// Subscribe to the stream that caused this event, put it inside the container we just made
-			session.subscribe(event.stream, subContainer);
+			subscribers[streamId] = session.subscribe(event.stream, subContainer, {width: 400, height: 300});
 		}
 		else {
 			inactiveStreams.push(stream);
@@ -79,8 +81,6 @@ publisher.on({
 		// Check if stream is our own. We want to leave it in place if so.
 		console.log('Publisher Event:');
 		console.log(event);
-		var subscribers = session.getSubscribersForStream(event.stream);
-		console.log(subscribers);
 		if (event.stream.connection.connectionId === session.connection.connectionId) {
 			console.log('ConnectionId match');
 			event.preventDefault();
@@ -105,5 +105,25 @@ $('#startStream').click(function(){
 	session.publish(publisher);
 	// publisher.publishVideo(true);
 	// publisher.publishAudio(true);
+});
+
+$('#getSubscribers').click(function(){
+	if (activeStreams) {
+		activeStreams.forEach(function(stream, index){
+			console.log(session.getSubscribersForStream(stream));
+		});
+	}
+});
+
+$('#kill').click(function(){
+	var connectionToKill = $('#connedtionId').val();
+	session.forceDisconnect(connectionToKill, function(err){
+		if (err) {
+			console.log('Failed to kill conection');
+		}
+		else {
+			console.log('Killed '+ connectionToKill);
+		}
+	});
 });
 
