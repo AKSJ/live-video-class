@@ -6,6 +6,7 @@ var config 	= require('./config');
 var opentok = require('./opentok');
 var members = require('./models/members.js');
 
+var permissions = [ 'moderator', 'publisher' ];
 module.exports = {
 
 	serveFile: {
@@ -63,29 +64,38 @@ module.exports = {
 	},
 
 	homeView: {
-		auth: {mode: 'optional'},
 		handler: function (request, reply ){
+			var error;
 			fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, sessionId){
 				if (err) {
 					console.error(err);
-					return reply.view('index', {error:err});
+					return reply.view('invalidSession', {error:err});
 				}
 				else {
 					var gPlus = request.auth.credentials;
-					var token = opentok.generateToken(sessionId,({
-					  role :       gPlus.permissions,
-					  expireTime : (new Date().getTime() / 1000)+ 60*60, // in one hour
-					  data :       JSON.stringify( { "username" : gPlus.username, "permissions" : gPlus.permissions } )
-					}));
-					console.log('Token: ', token);
+
 					if( gPlus ) {
-						var permissions = gPlus.permissions;
-						console.log( "Permissions: " + permissions);
-						return reply.view('instructor', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: gPlus.username });
+						var userPermissions = gPlus.permissions;
+						console.log( "Permissions: " + userPermissions);
+						if( permissions.indexOf( userPermissions ) === -1 ){
+							return reply.view('invalidUser', { error: "You do not have valid permissions" });
+						}
+
+						var token = opentok.generateToken(sessionId,({
+						  role :       userPermissions,
+						  expireTime : (new Date().getTime() / 1000)+ 60*60, // in one hour
+						  data :       JSON.stringify( { "username" : gPlus.username, "permissions" : gPlus.permissions } )
+						}));
+						console.log('Token: ', token);
+
+						if( userPermissions === 'moderator' ) {
+							return reply.view('instructor', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: gPlus.username });
+						}
+						else if( userPermissions === 'publisher'){
+							return reply.view('mummys', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: gPlus.username });
+						}
 					}
-					else {
-						return reply.view('instructor', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: "invalid" });
-					}
+					return reply.view('invalidUser', { error: "You are not an authorized user" });
 				}
 			});
 		}
