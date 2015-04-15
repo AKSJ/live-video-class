@@ -2,14 +2,10 @@
 // This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
 
 // Initialize an OpenTok Session object
-var session = OT.initSession(apiKey, sessionId);
-
+var session = TB.initSession(sessionId);
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-var publisher = OT.initPublisher('publisher');
-
-console.log(OT);
-console.log(TB);
+var publisher = TB.initPublisher(apiKey, 'publisher');
 
 
 var streamCount = 0;
