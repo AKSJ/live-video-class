@@ -2,14 +2,14 @@
 // This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
 
 // Initialize an OpenTok Session object
-var session = TB.initSession(/*apiKey,*/sessionId);
+var session = OT.initSession(apiKey,sessionId);
 console.log("Token: " + token );
 console.log("SessionId: " + sessionId );
 console.log("Username: " + username );
 console.log("Permissions: " + permissions );
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-var publisher = TB.initPublisher( apiKey, 'publisher', {"name": username, width: 400, height: 300, style: {nameDisplayMode: "on"}});
+var publisher = OT.initPublisher( /*apiKey,*/ 'publisher', {"name": username, width: 400, height: 300, style: {nameDisplayMode: "on"}});
 
 var streamCount = 0;
 var activeStreams = [];
@@ -93,7 +93,7 @@ publisher.on({
 });
 
 // Connect to the Session using the 'apiKey' of the application and a 'token' for permission
-session.connect(apiKey, token);
+session.connect(/*apiKey,*/ token);
 
 
 // NB - unpublish is currently working, you still see yourself locally, but other clients don't (tested over network)
