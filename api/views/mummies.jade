@@ -2,6 +2,7 @@ extends ./layouts/default.jade
 
 //- NB- The full stop on line 5 is VERY IMPORTANT
 append head
+	link(href='/css/mummies.css', rel='stylesheet' type='text/css')
 	script(type='text/javascript').
 		var apiKey = '#{apiKey}'
 		var sessionId = '#{sessionId}'
@@ -13,5 +14,10 @@ append head
 
 block content
 	.row
-		.col-md-3#publisher
-		.col-md-3#subscriber
+		.col-md-12#window
+			#streamModerator
+				//- #publisher
+	.row
+		.col-md-3
+			button.btn#stopStream Stop Stream
+			button.btn#startStream Start Stream

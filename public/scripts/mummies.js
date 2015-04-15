@@ -2,21 +2,23 @@
 // This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
 
 // Initialize an OpenTok Session object
-var session = TB.initSession(/*apiKey,*/sessionId);
+var session = OT.initSession(apiKey,sessionId);
 console.log("Token: " + token );
 console.log("SessionId: " + sessionId );
 console.log("Username: " + username );
 console.log("Permissions: " + permissions );
 
-// Initialize a Publisher, and place it into the element with id="publisher"
-var publisher = TB.initPublisher( apiKey, 'publisher', {"name": username, width: 400, height: 300, style: {nameDisplayMode: "on"}});
-
+var publisher;
 var streamCount = 0;
 var activeStreams = [];
 var activeStreamIds = [];
 var inactiveStreams = [];
 var inactiveStreamIds = [];
 var subscribers = {};
+
+// Initialize a Publisher, and place it into the element with id="publisher"
+publisher = OT.initPublisher( /*apiKey,*/ 'streamModerator', {insertMode: "append","name": username, width: 200, height: 150, style: {nameDisplayMode: "on"}});
+
 
 // Attach event handlers
 session.on({
@@ -36,7 +38,26 @@ session.on({
 
 	// This function runs when another client publishes a stream (eg. session.publish())
 	streamCreated: function(event) {
+		// if the event is from a moderator then subscribe, otherwise ignore
+		console.log( "New Event: " );
+		console.log( event );
+		// var permission
+		console.log( 'New Event data: ' );
+		var streamData = JSON.parse( event.stream.connection.data );
+		console.log( streamData );
 
+
+		if( streamData.permissions === 'moderator' ){
+			console.log( 'New stream is for a moderator');
+			var streamId = event.stream.streamId;
+			// $('<div/>').attr("id", "streamModerator").appendTo('#window');
+			// $('#window').append('<div></div>').attr("id", "streamModerator");
+			subscribers[streamId] = session.subscribe(event.stream, 'streamModerator', {width: 800, height: 700});
+
+		}
+		else {
+			console.log( 'New stream is for a publisher so ignore');
+		}
 	},
 
 	streamDestroyed: function(event) {
@@ -59,7 +80,7 @@ publisher.on({
 });
 
 // Connect to the Session using the 'apiKey' of the application and a 'token' for permission
-session.connect(apiKey, token);
+session.connect( token);
 
 
 // NB - unpublish is currently working, you still see yourself locally, but other clients don't (tested over network)
@@ -77,27 +98,4 @@ $('#startStream').click(function(){
 	// publisher.publishAudio(true);
 });
 
-$('#getSubscribers').click(function(){
-	if (activeStreams) {
-		activeStreams.forEach(function(stream, index){
-			console.log(session.getSubscribersForStream(stream));
-		});
-	}
-	else {
-		console.log('No active streams');
-	}
-});
-
-$('#kill').click(function(){
-	var connectionToKill = $('#connectionId').val();
-	console.log(connectionToKill);
-	session.forceDisconnect(connectionToKill, function(err){
-		if (err) {
-			console.log('Failed to kill conection');
-		}
-		else {
-			console.log('Killed '+ connectionToKill);
-		}
-	});
-});
 
