@@ -36,22 +36,20 @@ session.on({
 
 	// This function runs when another client publishes a stream (eg. session.publish())
 	streamCreated: function(event) {
-		// Create a container for a new Subscriber, assign it an id using the streamId, put it inside
-		// the element with id="subscriber"+count.
-		// If 5 streams active, put streamId in inactiveStreams array
-		// TODO: refactor to jquery for consistency
+		// Create a container for a new Subscriber, assign it an id using the streamId, put it inside the element with id="subscriber"+count.
+		// If 5 streams active, put stream and streamIds in inactive arrays
 		console.log(event);
 		var stream = event.stream;
 		var streamId = event.stream.streamId;
-		var subContainer = document.createElement('div');
+		// var subContainer = document.createElement('div');
 		if (streamCount < 5) {
 			streamCount++;
 			activeStreams.push(stream);
 			activeStreamIds.push(streamId);
-			subContainer.id = 'stream-' + streamId;
-			document.getElementById('subscriber' + streamCount).appendChild(subContainer);
+			subContainerId = 'stream-' + streamId;
+			$('<div/>').attr('id',subContainerId).appendTo('#subscriber' + streamCount);
 			// Subscribe to the stream that caused this event, put it inside the container we just made
-			subscribers[streamId] = session.subscribe(event.stream, subContainer, {width: 400, height: 300});
+			subscribers[streamId] = session.subscribe(event.stream, subContainerId, {width: 400, height: 300});
 		}
 		else {
 			inactiveStreams.push(stream);
@@ -60,25 +58,61 @@ session.on({
 	},
 
 	streamDestroyed: function(event) {
-		//Check if stream is currently displayed, if so remove from DOM and adjust count/activeStreams
+		// Check if stream registered as active/inactive, and remove from releveant indexes
+		// Check for subscriber object and remove
 		// Not currently unsubscribing, as default behaviour should handle that.
-		var subscribers = session.getSubscribersForStream(event.stream);
-		console.log(subscribers);
-		var streamId = event.stream.streamId;
-		var streamIndex = activeStreamIds.indexOf(streamId);
-		console.log('activeStreamIds:');
-		console.log(activeStreamIds);
-		console.log('streamId: '+streamId, 'streamIndex: '+streamIndex);
-		if (streamIndex !== -1) {
-			$('#stream-'+streamId).remove();
+		var destroyedStreamId = event.stream.streamId;
+		var activeStreamIndex = activeStreamIds.indexOf(destroyedStreamId);
+		var inactiveStreamIndex = inactiveStreamIds.indexOf(destroyedStreamId);
+
+		if (activeStreamIndex !== -1) {
+			console.log('activeStreamIds:');
+			console.log(activeStreamIds);
+			console.log('destroyedStreamId: '+destroyedStreamId, 'activeStreamIndex: '+activeStreamIndex);
+			$('#stream-'+destroyedStreamId).remove();
 			streamCount--;
-			activeStreams.splice(streamIndex,1);
-			console.log(streamCount, activeStreams);
+			activeStreamIds.splice(activeStreamIndex,1);
+			activeStreams.forEach(function(stream, index){
+				if (stream.streamId === destroyedStreamId) {
+					activeStreams.splice(index,1);
+				}
+			});
+			console.log('Stream count should === activeStreams.length ',streamCount, activeStreams.length);
+		}
+		if (inactiveStreamIndex !== -1) {
+			inactiveStreamIds.splice(inactiveStreamIndex,1);
+			inactiveStreams.forEach(function(stream, index){
+				if (stream.streamId === destroyedStreamId) {
+					activeStreams.splice(index,1);
+				}
+			});
+		}
+		if (subscribers[destroyedStreamId]) {
+			delete subscribers[destroyedStreamId];
+			console.log('subscribers (should same num props as stream count), streamCount: ', streamCount, 'Subecribers: ');
+			console.log(subscribers);
 		}
 	}
 });
 
-// TODO set interval, if < 5 active streams, check for inactive streams and subscribe
+// if < 5 active streams, check for inactive streams and subscribe
+setInterval(function(){
+	if (streamCount < 5 && inactiveStreams.length > 0) {
+		var newStream = inactiveStreams.pop();
+		var newStreamId = newStream.streamId;
+		inactiveStreamIds.forEach(function(streamId, index){
+			if (streamId === newStreamId) {
+				inactiveStreamIds.splice(index,1);
+			}
+		});
+		streamCount++;
+		activeStreams.push(newStream);
+		activeStreamIds.push(newStreamId);
+		subContainerId = 'stream-' + newStreamId;
+		$('<div/>').attr('id',subContainerId).appendTo('#subscriber' + streamCount);
+		subscribers[newStreamId] = session.subscribe(newStream, subContainerId, {width: 400, height: 300});
+	}
+},500);
 
 publisher.on({
 	streamDestroyed: function(event) {
