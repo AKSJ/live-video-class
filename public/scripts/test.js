@@ -10,6 +10,9 @@ var publisher = TB.initPublisher(apiKey, 'publisher');
 
 var streamCount = 0;
 var activeStreams = [];
+var activeStreamIds = [];
+var inactiveStreams = [];
+var inactiveStreamIds = [];
 
 console.log( "Member permissions: " + permissions);
 
@@ -28,22 +31,30 @@ session.on({
 	streamCreated: function(event) {
 		// Create a container for a new Subscriber, assign it an id using the streamId, put it inside
 		// the element with id="subscriber"+count.
-		// Ignore 6th or subsequent streams (for now) TODO: Stick the ids in an array to switch to later?
+		// If 5 streams active, put streamId in inactiveStreams array
+		// TODO: refactor to jquery for consistency
 		console.log(event);
+		var stream = event.stream;
+		var streamId = event.stream.streamId;
 		var subContainer = document.createElement('div');
 		if (streamCount < 5) {
 			streamCount++;
-			activeStreams.push(event.stream.streamId);
-			subContainer.id = 'stream-' + event.stream.streamId;
+			activeStreams.push(stream);
+			activeStreamIds.push(streamId);
+			subContainer.id = 'stream-' + streamId;
 			document.getElementById('subscriber' + streamCount).appendChild(subContainer);
+			// Subscribe to the stream that caused this event, put it inside the container we just made
+			session.subscribe(event.stream, subContainer);
 		}
-		// Subscribe to the stream that caused this event, put it inside the container we just made
-		session.subscribe(event.stream, subContainer);
+		else {
+			inactiveStreams.push(stream);
+			inactiveStreamIds.push(streamId);
+		}
 	},
 
 	streamDestroyed: function(event) {
 		//Check if stream is currently displayed, if so remove from DOM and adjust count/activeStreams
-		// Not currently unsubscribing, as defualt behaviour should handle that.
+		// Not currently unsubscribing, as default behaviour should handle that.
 		var subscribers = session.getSubscribersForStream(event.stream);
 		console.log(subscribers);
 		var streamId = event.stream.streamId;
@@ -58,6 +69,8 @@ session.on({
 	}
 
 });
+
+// TODO set interval, if < 5 active streams, check for inactive streams and subscribe
 
 publisher.on({
 	streamDestroyed: function(event) {
