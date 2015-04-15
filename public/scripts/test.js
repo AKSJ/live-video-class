@@ -3,11 +3,13 @@
 
 // Initialize an OpenTok Session object
 var session = TB.initSession(/*apiKey,*/sessionId);
-console.log("Token: " + token );
-console.log("SessionId: " + sessionId );
+// console.log("Token: " + token );
+// console.log("SessionId: " + sessionId );
+var session = TB.initSession(sessionId);
 
 // Initialize a Publisher, and place it into the element with id="publisher"
 var publisher = TB.initPublisher( apiKey, 'publisher');//, {"name": token.});
+
 
 var streamCount = 0;
 var activeStreams = [];
@@ -69,7 +71,6 @@ session.on({
 			console.log(streamCount, activeStreams);
 		}
 	}
-
 });
 
 // TODO set interval, if < 5 active streams, check for inactive streams and subscribe

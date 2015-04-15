@@ -24,6 +24,7 @@ server.start(function () {
 			fs.writeFile('sessionId.txt', session.sessionId, function(err){
 				if (err) console.error(err);
 			});
+			console.log('Session:');
 			console.dir(session);
 		}
 	});
