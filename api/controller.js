@@ -2,7 +2,6 @@ var fs 		= require('fs');
 var Bell 	= require('bell');
 var Path 	= require('path');
 // var Joi 	= require('joi');
-// var mongoose = require('mongoose');
 var config 	= require('./config');
 var opentok = require('./opentok');
 var members = require('./models/members.js');
@@ -72,9 +71,13 @@ module.exports = {
 					return reply.view('index', {error:err});
 				}
 				else {
-					var token = opentok.generateToken(sessionId);
-					console.log('Token: ', token);
 					var gPlus = request.auth.credentials;
+					var token = opentok.generateToken(data,({
+					  role :       gPlus.permissions,
+					  expireTime : (new Date().getTime() / 1000)+60, // in one hour
+					  data :       'name=' + gPlus.username
+					}));
+					console.log('Token: ', token);
 					if( gPlus ) {
 						var permissions = gPlus.permissions;
 						console.log( "Permissions: " + permissions);
