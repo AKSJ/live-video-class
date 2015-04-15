@@ -2,11 +2,12 @@
 // This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
 
 // Initialize an OpenTok Session object
-var session = TB.initSession(sessionId);
-
+var session = TB.initSession(/*apiKey,*/sessionId);
+console.log("Token: " + token );
+console.log("SessionId: " + sessionId );
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-var publisher = TB.initPublisher(apiKey, 'publisher');
+var publisher = TB.initPublisher( apiKey, 'publisher');//, {"name": token.});
 
 var streamCount = 0;
 var activeStreams = [];
@@ -24,6 +25,7 @@ session.on({
 		// Publish the publisher (this will trigger 'streamCreated' on other
 		// clients)
 		console.log(event);
+		console.log( 'Session Connection data: ' + session.connection);
 		session.publish(publisher);
 	},
 
