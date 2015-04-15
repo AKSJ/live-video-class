@@ -1,0 +1,24 @@
+extends ./layouts/default.jade
+
+//- NB- The full stop on line 5 is VERY IMPORTANT
+append head
+	script(type='text/javascript').
+		var apiKey = '#{apiKey}'
+		var sessionId = '#{sessionId}'
+		var token = '#{token}'
+		var permissions = '#{permissions}'
+		var username = '#{username}'
+	script(src='/scripts/test.js')
+
+block content
+	.row
+		.col-md-3#publisher
+		.col-md-3#subscriber1
+		.col-md-3#subscriber2
+	.row
+		.col-md-3#subscriber3
+		.col-md-3#subscriber4
+		.col-md-3#subscriber5
+	.row
+		button.btn#stopStream Stop Stream
+		button.btn#startStream Start Stream

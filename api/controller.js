@@ -81,10 +81,10 @@ module.exports = {
 					if( gPlus ) {
 						var permissions = gPlus.permissions;
 						console.log( "Permissions: " + permissions);
-						return reply.view('index', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: gPlus.username });
+						return reply.view('instructor', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: gPlus.username });
 					}
 					else {
-						return reply.view('index', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: "invalid" });
+						return reply.view('instructor', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: "invalid" });
 					}
 				}
 			});
