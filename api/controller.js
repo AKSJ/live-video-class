@@ -72,7 +72,7 @@ module.exports = {
 				}
 				else {
 					var gPlus = request.auth.credentials;
-					var token = opentok.generateToken(data,({
+					var token = opentok.generateToken(sessionId,({
 					  role :       gPlus.permissions,
 					  expireTime : (new Date().getTime() / 1000)+60, // in one hour
 					  data :       'name=' + gPlus.username
