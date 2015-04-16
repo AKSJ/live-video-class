@@ -130,24 +130,34 @@ $('#startStream').click(function(){
 });
 
 $('#nextFive').click(function(){
-	// 0. Check for inactive streams. If 0, end. If < 5, keep some active
 	var inactiveCount = inactiveStreams.length;
+	var tempStreams = [];
+	// 0. Check for inactive streams. If 0, end. If < 5, keep some active
 	if (inactiveCount === 0) {
 		console.log('No inactive streams found');
 	}
-	else if (inactiveCount < 5 ) {
+	else {
 		console.log(inactiveCount+ 'inactive streams found');
-		// Temp array to be sure we don't recylce streams. Could just use push/pop vs shift/unshift
-		var tempStreams = [];
+		// Temp array to be sure we don't recycle streams. Could just use push/pop vs shift/unshift
+		if (inactiveCount > 5) inactiveCount = 5;
 		for (var i=0; i<inactiveCount; i++) {
 			var tempStream = inactiveStreams.pop();
 			tempStreams.push(tempStream);
 		}
+		// 1. Clear deactivated subscribers. Move deactiavted streams to inactive and unsubscribe
+		tempStreams.forEach(function(tempStream, index){
+			// unshft should remove subscriber1 in DOM first, gives impression of scrolling in <5 deactivated
+			var streamToKill = activeStreams.unshift();
+			var streamToKillId = streamToKill.streamId;
+			if (subscribers[streamToKillId]) {
+				session.unsubscribe(subscribers[streamToKillId]); // unsubscribe takes a subscriber object. Knew i kept them for a reason :D
+				delete subscribers[streamToKillId];
+			}
+
+		});
 	}
-	else if (inactiveCount >= 5) {
-		console.log('5+ inactive steams found');
-	}
-	// 1. Clear inactive subscribers. Move active streams to inactive
+
+
 	// 2. Get up to 5 inactive streams, make active, subscribe
 });
 
