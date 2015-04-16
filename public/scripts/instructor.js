@@ -9,11 +9,20 @@ console.log("Username: " + username );
 console.log("Permissions: " + permissions );
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-var publisher = OT.initPublisher( 'publisher', {"name": username, width: '33.33%', height: '50%', style: {nameDisplayMode: "on"}});
+var publisher = OT.initPublisher('publisher', {"name": username, width: '100%', height: '100%', style: {nameDisplayMode: "on"}});
 
 var activeStreams = [];
 var inactiveStreams = [];
 var subscribers = {};
+
+function activateStream(stream) {
+	var streamId = stream.streamId;
+	activeStreams.push(stream);
+	var subContainerId = 'stream-' + streamId;
+	$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty'));
+	subscribers[streamId] = session.subscribe(stream, subContainerId, {width: '100%', height: '100%', style: {nameDisplayMode: 'on'}});
+}
+
 
 // Attach event handlers
 session.on({
@@ -34,17 +43,14 @@ session.on({
 		// Create a container for a new Subscriber, assign it an id using the streamId, put it inside the element with id="subscriber"+count.
 		// If 5 streams active, put stream in inactive array
 		console.log(event);
-		var stream = event.stream;
-		var streamId = event.stream.streamId;
-		var activeStreamCount = activeStreams.length;
-		if (activeStreamCount < 5) {
-			activeStreams.push(stream);
-			var subContainerId = 'stream-' + streamId;
-			$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty'));
-			subscribers[streamId] = session.subscribe(event.stream, subContainerId, {width: 400, height: 300, style: {nameDisplayMode: 'on'}});
+		var newStream = event.stream;
+		if (activeStreams.length < 5) {
+			console.log('Activating new Stream');
+			activateStream(newStream);
 		}
 		else {
-			inactiveStreams.push(stream);
+			console.log('Pushing new stream to inactive');
+			inactiveStreams.push(newStream);
 		}
 	},
 
@@ -78,6 +84,11 @@ session.on({
 			delete subscribers[destroyedStreamId];
 			console.log('subscribers should have same num props as activeStream.length, activeStreams.length: ', activeStreams.length, 'Subscribers length: '+ Object.keys(subscribers).length);
 		}
+		// Add subscribe to a new stream, if space and inactive streams available
+		if (activeStreams.length < 5 && inactiveStreams.length > 0) {
+			var streamToActivate = inactiveStreams.pop();
+			activateStream(streamToActivate);
+		}
 	}
 });
 
@@ -97,19 +108,14 @@ session.connect(token);
 
 // if < 5 active streams, check for inactive streams and subscribe
 setInterval(function(){
-	var activeStreamCount = activeStreams.length;
-	var streamsToAddCount = 5 - activeStreamCount;
-	if (activeStreamCount < 5 && inactiveStreams.length > 0) {
+	var streamsToAddCount = 5 - activeStreams.length;
+	if (activeStreams.length < 5 && inactiveStreams.length > 0) {
 		for (var i=0; i<streamsToAddCount; i++) {
 			var newStream = inactiveStreams.pop();
-			var newStreamId = newStream.streamId;
-			activeStreams.push(newStream);
-			var subContainerId = 'stream-' + newStreamId;
-			$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty'));
-			subscribers[newStreamId] = session.subscribe(newStream, subContainerId, {width: 400, height: 300, style: {nameDisplayMode: 'on'}});
+			if (newStream) activateStream(newStream);
 		}
 	}
-},500);
+},1000);
 
 // NB - unpublish is currently working, you still see yourself locally, but other clients don't (tested over network)
 // Thought that would be better than losing the local video/publisher object
@@ -128,7 +134,8 @@ $('#startStream').click(function(){
 
 $('#nextFive').click(function(){
 	var inactiveCount = inactiveStreams.length;
-	var tempStreams = [];
+	var streamsToActivate = [];
+	var streamsToDeactivate = [];
 	// 0. Check for inactive streams. If 0, end. If < 5, keep some active
 	if (inactiveCount === 0) {
 		console.log('No inactive streams found');
@@ -138,11 +145,11 @@ $('#nextFive').click(function(){
 		// Temp array to be sure we don't recycle streams. Could just use push/pop vs shift/unshift
 		if (inactiveCount > 5) inactiveCount = 5;
 		for (var i=0; i<inactiveCount; i++) {
-			var tempStream = inactiveStreams.pop();
-			tempStreams.push(tempStream);
+			var streamToActivate = inactiveStreams.pop();
+			streamsToActivate.push(streamToActivate);
 		}
 		// 1. Clear deactivated subscribers, and unsubscribe
-		tempStreams.forEach(function(tempStream, index){
+		streamsToActivate.forEach(function(streamToActivate, index){
 			// unshft should remove subscriber1 in DOM first, gives impression of scrolling in <5 deactivated
 			var streamToKill = activeStreams.unshift();
 			var streamToKillId = streamToKill.streamId;
@@ -151,17 +158,15 @@ $('#nextFive').click(function(){
 				delete subscribers[streamToKillId];
 			}
 			$('#stream-'+ streamToKillId).remove();
+			streamsToDeactivate.push(streamToKill);
 		// 2. Get up to 5 inactive streams, make active, subscribe
 		});
-		tempStreams.forEach(function(tempStream, index){
-			var streamToActivate = inactiveStreams.pop();
+		streamsToActivate.forEach(function(streamToActivate, index){
 			activeStreams.push(streamToActivate);
-			var subContainerId = 'stream-' + streamId;
-			$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty'));
-			subscribers[streamId] = session.subscribe(event.stream, subContainerId, {width: 400, height: 300,  style: {nameDisplayMode: 'on'}});
+			activateStream(streamToActivate);
 		});
-		tempStreams.forEach(function(tempStream, index){
-			inactiveStreams.push(tempStream);
+		streamsToDeactivate.forEach(function(streamToDeactivate, index){
+			inactiveStreams.push(streamToDeactivate);
 		});
 	}
 
