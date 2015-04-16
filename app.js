@@ -18,6 +18,7 @@ server.start(function () {
 	});
 
 	// Commented out as I don't think we need to create a new session every time we run the server
+	// TODO: if we stick with this, put sessionId in creds. Leave commented out code for other users to generate ID?
 	// opentok.createSession({mediaMode:"routed"}, function(err, session) {
 	// 	if (err) return console.error(err);
 	// 	if (session) {

@@ -11,11 +11,10 @@ console.log("Permissions: " + permissions );
 // Initialize a Publisher, and place it into the element with id="publisher"
 var publisher = TB.initPublisher( apiKey, 'publisher', {"name": username, width: 400, height: 300, style: {nameDisplayMode: "on"}});
 
+// TODO?: remove streamCount and use activeStreams.length? or subscribers.keys.length?
 var streamCount = 0;
 var activeStreams = [];
-var activeStreamIds = [];
 var inactiveStreams = [];
-var inactiveStreamIds = [];
 var subscribers = {};
 
 // Attach event handlers
@@ -23,37 +22,31 @@ session.on({
 
 	// This function runs when session.connect() asynchronously completes
 	sessionConnected: function(event) {
-		// Publish the publisher (this will trigger 'streamCreated' on other
-		// clients)
+		// Publish the publisher (this will trigger 'streamCreated' on other clients)
 		console.log(event);
 		console.log('Session Connection data:');
 		console.log(session.connection);
 		console.log('Publisher properties:');
 		console.log(publisher);
-
 		session.publish(publisher);
 	},
 
 	// This function runs when another client publishes a stream (eg. session.publish())
 	streamCreated: function(event) {
 		// Create a container for a new Subscriber, assign it an id using the streamId, put it inside the element with id="subscriber"+count.
-		// If 5 streams active, put stream and streamIds in inactive arrays
+		// If 5 streams active, put stream in inactive array
 		console.log(event);
 		var stream = event.stream;
 		var streamId = event.stream.streamId;
-		// var subContainer = document.createElement('div');
 		if (streamCount < 5) {
 			streamCount++;
 			activeStreams.push(stream);
-			activeStreamIds.push(streamId);
 			subContainerId = 'stream-' + streamId;
 			$('<div/>').attr('id',subContainerId).appendTo('#subscriber' + streamCount);
-			// Subscribe to the stream that caused this event, put it inside the container we just made
 			subscribers[streamId] = session.subscribe(event.stream, subContainerId, {width: 400, height: 300});
 		}
 		else {
 			inactiveStreams.push(stream);
-			inactiveStreamIds.push(streamId);
 		}
 	},
 
@@ -62,35 +55,32 @@ session.on({
 		// Check for subscriber object and remove
 		// Not currently unsubscribing, as default behaviour should handle that.
 		var destroyedStreamId = event.stream.streamId;
-		var activeStreamIndex = activeStreamIds.indexOf(destroyedStreamId);
-		var inactiveStreamIndex = inactiveStreamIds.indexOf(destroyedStreamId);
+		var activeStreamIndex = null;
+		var inactiveStreamIndex = null;
+		activeStreams.forEach(function(activeStream, index){
+			if (activeStream.streamId === destroyedStreamId) {
+				activeStreamIndex = index;
+			}
+		});
+		inactiveStreams.forEach(function(inactiveStream, index){
+			if (inactiveStream.streamId === destroyedStreamId) {
+				inactiveStreamIndex = index;
+			}
+		});
 
-		if (activeStreamIndex !== -1) {
-			console.log('activeStreamIds:');
-			console.log(activeStreamIds);
+		if (activeStreamIndex !== null) {
 			console.log('destroyedStreamId: '+destroyedStreamId, 'activeStreamIndex: '+activeStreamIndex);
 			$('#stream-'+destroyedStreamId).remove();
 			streamCount--;
-			activeStreamIds.splice(activeStreamIndex,1);
-			activeStreams.forEach(function(stream, index){
-				if (stream.streamId === destroyedStreamId) {
-					activeStreams.splice(index,1);
-				}
-			});
+			activeStreams.splice(activeStreamIndex,1);
 			console.log('Stream count should === activeStreams.length ',streamCount, activeStreams.length);
 		}
-		if (inactiveStreamIndex !== -1) {
-			inactiveStreamIds.splice(inactiveStreamIndex,1);
-			inactiveStreams.forEach(function(stream, index){
-				if (stream.streamId === destroyedStreamId) {
-					activeStreams.splice(index,1);
-				}
-			});
+		if (inactiveStreamIndex !== null) {
+			inactiveStreams.splice(inactiveStreamIndex,1);
 		}
 		if (subscribers[destroyedStreamId]) {
 			delete subscribers[destroyedStreamId];
-			console.log('subscribers (should same num props as stream count), streamCount: ', streamCount, 'Subecribers: ');
-			console.log(subscribers);
+			console.log('subscribers should have same num props as stream count, streamCount: ', streamCount, 'Subscribers length: '+ subscribers.keys.length);
 		}
 	}
 });
@@ -100,14 +90,8 @@ setInterval(function(){
 	if (streamCount < 5 && inactiveStreams.length > 0) {
 		var newStream = inactiveStreams.pop();
 		var newStreamId = newStream.streamId;
-		inactiveStreamIds.forEach(function(streamId, index){
-			if (streamId === newStreamId) {
-				inactiveStreamIds.splice(index,1);
-			}
-		});
 		streamCount++;
 		activeStreams.push(newStream);
-		activeStreamIds.push(newStreamId);
 		subContainerId = 'stream-' + newStreamId;
 		$('<div/>').attr('id',subContainerId).appendTo('#subscriber' + streamCount);
 		subscribers[newStreamId] = session.subscribe(newStream, subContainerId, {width: 400, height: 300});
@@ -143,6 +127,28 @@ $('#startStream').click(function(){
 	session.publish(publisher);
 	// publisher.publishVideo(true);
 	// publisher.publishAudio(true);
+});
+
+$('#nextFive').click(function(){
+	// 0. Check for inactive streams. If 0, end. If < 5, keep some active
+	var inactiveCount = inactiveStreams.length;
+	if (inactiveCount === 0) {
+		console.log('No inactive streams found');
+	}
+	else if (inactiveCount < 5 ) {
+		console.log(inactiveCount+ 'inactive streams found');
+		// Temp array to be sure we don't recylce streams. Could just use push/pop vs shift/unshift
+		var tempStreams = [];
+		for (var i=0; i<inactiveCount; i++) {
+			var tempStream = inactiveStreams.pop();
+			tempStreams.push(tempStream);
+		}
+	}
+	else if (inactiveCount >= 5) {
+		console.log('5+ inactive steams found');
+	}
+	// 1. Clear inactive subscribers. Move active streams to inactive
+	// 2. Get up to 5 inactive streams, make active, subscribe
 });
 
 $('#getSubscribers').click(function(){
