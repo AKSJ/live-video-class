@@ -62,25 +62,27 @@ session.on({
 	},
 
 	streamDestroyed: function(event) {
-
+		console.log( "Stream Destroyed reason: " + event.reason);
+		console.log( event );
 	}
 });
-
-// TODO set interval, if < 5 active streams, check for inactive streams and subscribe
 
 publisher.on({
 	streamDestroyed: function(event) {
 		// Check if stream is our own. We want to leave it in place if so.
 		console.log('Publisher Event:');
 		console.log(event);
-		if (event.stream.connection.connectionId === session.connection.connectionId) {
-			console.log('ConnectionId match');
-			event.preventDefault();
+		if ( event.reason != "forceDisconnected" ) {
+			if( event.stream.connection.connectionId === session.connection.connectionId) {
+				console.log('ConnectionId match');
+				event.preventDefault();
+			}
 		}
+		console.log( "Connection has been destroyed.  Allow it!");
 	}
 });
 
-// Connect to the Session using the 'apiKey' of the application and a 'token' for permission
+// Connect to the Session using the 'token' for permission
 session.connect( token);
 
 

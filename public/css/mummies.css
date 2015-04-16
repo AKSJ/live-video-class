@@ -9,7 +9,13 @@ body, html, .container-fluid, .row {
 	height: 100%;
     width: 100%;
 }
-
+.btn{
+	font-size: 10px;
+}
+.btn:hover{
+	color: #F21E1E;
+	text-decoration: none
+}
 #moderator{
 	position:absolute;
 	top:0;

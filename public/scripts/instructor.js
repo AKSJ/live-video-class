@@ -9,7 +9,7 @@ console.log("Username: " + username );
 console.log("Permissions: " + permissions );
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-var publisher = OT.initPublisher( /*apiKey,*/ 'publisher', {"name": username, width: '33.33%', height: '50%', style: {nameDisplayMode: "on"}});
+var publisher = OT.initPublisher( 'publisher', {"name": username, width: '33.33%', height: '50%', style: {nameDisplayMode: "on"}});
 
 var activeStreams = [];
 var inactiveStreams = [];
@@ -93,7 +93,7 @@ publisher.on({
 	}
 });
 
-session.connect(/*apiKey,*/ token);
+session.connect(token);
 
 // if < 5 active streams, check for inactive streams and subscribe
 setInterval(function(){
