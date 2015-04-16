@@ -59,7 +59,7 @@ module.exports = {
 	logout: {
 		handler: function (request, reply ){
 			request.auth.session.clear();
-			return reply.redirect('/');
+			return reply.redirect('/login');
 		}
 	},
 

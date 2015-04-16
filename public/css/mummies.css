@@ -1,0 +1,10 @@
+#subscriber{
+	position:relative;
+	left: 10px;
+}
+
+#publisher {
+	position:absolute;
+	top: 80%;
+	left: 80%;
+}
