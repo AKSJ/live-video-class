@@ -13,10 +13,6 @@ console.log("Permissions: " + permissions );
 // Initialize a Publisher, and place it into the element with id="publisher"
 var publisher = OT.initPublisher('publisher', {"name": username, width: '100%', height: '100%', style: {nameDisplayMode: "on"}});
 
-// var activeStreams = [];
-// var inactiveStreams = [];
-// var subscribers = {};
-
 // store all incoming streams in 'streams'. Add an object with property name of stream id:
 // streamId:{	stream: {},
 // 				status: 'active',
@@ -25,7 +21,6 @@ var publisher = OT.initPublisher('publisher', {"name": username, width: '100%', 
 // 			}
 var streamData = {};
 var maxId = 0;
-var currentPage = 1; //???  current Range? = [1,2,3,4,5]?? curretMax & currentMin?
 
 function findMissingId() {
 	var currentIds = [];
@@ -130,7 +125,7 @@ session.on({
 		if (streamData[destroyedStreamId]) {
 			vacatedId = streamData[destroyedStreamId].id;
 			delete streamData[destroyedStreamId];
-			// Find stream with max id and put it in the hole
+			// Find stream with max id and put it in the hole - this should repostion things nicely in DOM if no inactive streams
 			for (var stream in streamData) {
 				if (stream.id === maxId) { //could actaully check for highest id?
 					stream.id = vacatedId;
@@ -216,7 +211,7 @@ $('#nextFive').click(function(){
 	activeStreams.forEach(function(stream){
 		unsubscribe(stream);
 	});
-	// sunscribe to new streams
+	// subscribe to new streams
 	streamsToLoad.forEach(function(stream){
 		addSubscriber(stream);
 	});
