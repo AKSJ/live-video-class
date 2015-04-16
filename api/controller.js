@@ -65,7 +65,6 @@ module.exports = {
 
 	homeView: {
 		handler: function (request, reply ){
-			var error;
 			fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, sessionId){
 				if (err) {
 					console.error(err);
