@@ -1,0 +1,7 @@
+body, html, .container-fluid, .publisher, .subscriber {
+	height:100%;
+}
+
+.row {
+	height:50%;
+}
