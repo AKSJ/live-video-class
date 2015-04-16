@@ -1,6 +1,8 @@
 // NB - Currently (sometimes) getting a dev console error 'cannnot read property 'videoWidth of null' on unpublish
 // This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
 
+// TODO Create client list (where on page?) with forceDisconnect buttons. Audio Focus?
+
 // Initialize an OpenTok Session object
 var session = OT.initSession(apiKey,sessionId);
 console.log("Token: " + token );
@@ -11,25 +13,92 @@ console.log("Permissions: " + permissions );
 // Initialize a Publisher, and place it into the element with id="publisher"
 var publisher = OT.initPublisher('publisher', {"name": username, width: '100%', height: '100%', style: {nameDisplayMode: "on"}});
 
-var activeStreams = [];
-var inactiveStreams = [];
-var subscribers = {};
+// var activeStreams = [];
+// var inactiveStreams = [];
+// var subscribers = {};
+
+// store all incoming streams in 'streams'. Add an object with property name of stream id:
+// streamId:{	stream: {},
+// 				status: 'active',
+// 				id: 1,
+// 				subscriber: {}
+// 			}
+var streamData = {};
+var maxId = 0;
+var currentPage = 1; //???  current Range? = [1,2,3,4,5]?? curretMax & currentMin?
+
+function findMissingId() {
+	var currentIds = [];
+	var maxRange = [];
+	for (var stream in streamData) {
+		currentIds.push(stream.id);
+	}
+	currentIds.sort();
+	for (var i=1; i<=maxId; i++) {
+		maxRange.push(i);
+	}
+	if (currentIds.length !== maxRange.length) {
+		maxRange.forEach(function(id, index){
+			if (currentIds.indexOf(id) === -1) {
+				return id;
+			}
+		});
+	}
+	else {
+		return false;
+	}
+}
+
+function getAvailableId() {
+	var availableId = findMissingId();
+	if (availableId) {
+		return availableId;
+	}
+	else {
+		maxId++ ;
+		return maxId;
+	}
+}
+// recursive function to patch holes in our ids
+// Not using now :(   Must find a use!
+function rationaliseIds() {
+	var missingId = findMissingId();
+	if (missingId) {
+		for (var stream in streamData) {
+			if (stream.id > missingId) {
+				stream.id = stream.id -1;
+			}
+		}
+		rationaliseIds();
+	}
+}
 
 function activateStream(stream) {
 	var streamId = stream.streamId;
-	activeStreams.push(stream);
+	streamData[streamId].status = 'active';
 	var subContainerId = 'stream-' + streamId;
 	$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty'));
-	subscribers[streamId] = session.subscribe(stream, subContainerId, {width: '100%', height: '100%', style: {nameDisplayMode: 'on'}});
+	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, {width: '100%', height: '100%', style: {nameDisplayMode: 'on'}});
 }
 
 
-// Attach event handlers
+function addSubscriber(stream) {
+	if ($('.subscriber:empty').length > 0) {
+		activateStream(stream);
+	}
+}
+
+function unsubscribe(stream){
+	var streamId = stream.stream.streamId;
+	$('stream-'+ streamId).remove();
+	session.unsubscribe(stream.subscriber);
+	streamData[streamId].subscriber = null;
+	streamData[streamId].status = 'inactive';
+}
+
 session.on({
 
-	// This function runs when session.connect() asynchronously completes
 	sessionConnected: function(event) {
-		// Publish the publisher (this will trigger 'streamCreated' on other clients)
 		console.log(event);
 		console.log('Session Connection data:');
 		console.log(session.connection);
@@ -38,57 +107,39 @@ session.on({
 		session.publish(publisher);
 	},
 
-	// This function runs when another client publishes a stream (eg. session.publish())
+
 	streamCreated: function(event) {
-		// Create a container for a new Subscriber, assign it an id using the streamId, put it inside the element with id="subscriber"+count.
-		// If 5 streams active, put stream in inactive array
 		console.log(event);
 		var newStream = event.stream;
-		if (activeStreams.length < 5) {
-			console.log('Activating new Stream');
-			activateStream(newStream);
-		}
-		else {
-			console.log('Pushing new stream to inactive');
-			inactiveStreams.push(newStream);
-		}
+		var newStreamId = newStream.streamId;
+
+		streamData[newStreamId] = {
+									stream: newStream,
+									status: 'inactive',
+									id: getAvailableId(),
+									subscriber: null
+								};
+		// addSubscriber checks for space in DOM
+		addSubscriber(newStream);
 	},
 
 	streamDestroyed: function(event) {
-		// Check if stream registered as active/inactive, and remove from releveant indexes
-		// Check for subscriber object and remove
 		// Not currently unsubscribing, as default behaviour should handle that.
 		var destroyedStreamId = event.stream.streamId;
-		var activeStreamIndex = null;
-		var inactiveStreamIndex = null;
-		activeStreams.forEach(function(activeStream, index){
-			if (activeStream.streamId === destroyedStreamId) {
-				activeStreamIndex = index;
+		var vacatedId;
+		if (streamData[destroyedStreamId]) {
+			vacatedId = streamData[destroyedStreamId].id;
+			delete streamData[destroyedStreamId];
+			// Find stream with max id and put it in the hole
+			for (var stream in streamData) {
+				if (stream.id === maxId) { //could actaully check for highest id?
+					stream.id = vacatedId;
+					maxId-- ;
+					addSubscriber(stream);
+				}
 			}
-		});
-		inactiveStreams.forEach(function(inactiveStream, index){
-			if (inactiveStream.streamId === destroyedStreamId) {
-				inactiveStreamIndex = index;
-			}
-		});
+		}
 
-		if (activeStreamIndex !== null) {
-			console.log('destroyedStreamId: '+destroyedStreamId, 'activeStreamIndex: '+activeStreamIndex);
-			// $('#stream-'+destroyedStreamId).remove(); // default behaviour should remove the DOM element?
-			activeStreams.splice(activeStreamIndex,1);
-		}
-		if (inactiveStreamIndex !== null) {
-			inactiveStreams.splice(inactiveStreamIndex,1);
-		}
-		if (subscribers[destroyedStreamId]) {
-			delete subscribers[destroyedStreamId];
-			console.log('subscribers should have same num props as activeStream.length, activeStreams.length: ', activeStreams.length, 'Subscribers length: '+ Object.keys(subscribers).length);
-		}
-		// Add subscribe to a new stream, if space and inactive streams available
-		if (activeStreams.length < 5 && inactiveStreams.length > 0) {
-			var streamToActivate = inactiveStreams.pop();
-			activateStream(streamToActivate);
-		}
 	}
 });
 
@@ -106,20 +157,18 @@ publisher.on({
 
 session.connect(token);
 
+// NOT NEEDED?
 // if < 5 active streams, check for inactive streams and subscribe
-setInterval(function(){
-	var streamsToAddCount = 5 - activeStreams.length;
-	if (activeStreams.length < 5 && inactiveStreams.length > 0) {
-		for (var i=0; i<streamsToAddCount; i++) {
-			var newStream = inactiveStreams.pop();
-			if (newStream) activateStream(newStream);
-		}
-	}
-},1000);
+// setInterval(function(){
+// 	var streamsToAddCount = 5 - activeStreams.length;
+// 	if (activeStreams.length < 5 && inactiveStreams.length > 0) {
+// 		for (var i=0; i<streamsToAddCount; i++) {
+// 			var newStream = inactiveStreams.pop();
+// 			if (newStream) activateStream(newStream);
+// 		}
+// 	}
+// },1000);
 
-// NB - unpublish is currently working, you still see yourself locally, but other clients don't (tested over network)
-// Thought that would be better than losing the local video/publisher object
-// ??? - We could just switch off audio and video. Better or worse...?
 $('#stopStream').click(function(){
 	session.unpublish(publisher);
 	// publisher.publishVideo(false);
@@ -133,43 +182,44 @@ $('#startStream').click(function(){
 });
 
 $('#nextFive').click(function(){
-	var inactiveCount = inactiveStreams.length;
-	var streamsToActivate = [];
-	var streamsToDeactivate = [];
-	// 0. Check for inactive streams. If 0, end. If < 5, keep some active
-	if (inactiveCount === 0) {
-		console.log('No inactive streams found');
+	// find higest active id and collect active streams
+	var highestActiveId = 0;
+	var activeStreams = [];
+	var idsToLoad = [];
+	var streamsToLoad = [];
+	for (var stream in streamData) {
+		if (stream.status === 'active') {
+			activeStreams.push(stream);
+		}
+		if (stream.status === 'active' && stream.id > highestActiveId) {
+			highestActiveId = stream.id;
+		}
+	}
+	// Collect ids of streams to load. If fewer than 5 left until max, count back from max
+	if (highestActiveId <= (maxId - 5 ) ) {
+		for (var i=highestActiveId; i < highestActiveId + 5; i++) {
+			idsToLoad.push(i + 1);
+		}
 	}
 	else {
-		console.log(inactiveCount+ 'inactive streams found');
-		// Temp array to be sure we don't recycle streams. Could just use push/pop vs shift/unshift
-		if (inactiveCount > 5) inactiveCount = 5;
-		for (var i=0; i<inactiveCount; i++) {
-			var streamToActivate = inactiveStreams.pop();
-			streamsToActivate.push(streamToActivate);
+		for (var j=maxId; j > maxId - 5; j--) {
+			idsToLoad.unshift(j);
 		}
-		// 1. Clear deactivated subscribers, and unsubscribe
-		streamsToActivate.forEach(function(streamToActivate, index){
-			// unshft should remove subscriber1 in DOM first, gives impression of scrolling in <5 deactivated
-			var streamToKill = activeStreams.unshift();
-			var streamToKillId = streamToKill.streamId;
-			if (subscribers[streamToKillId]) {
-				session.unsubscribe(subscribers[streamToKillId]); // unsubscribe takes a subscriber object. Knew I kept them for a reason :D
-				delete subscribers[streamToKillId];
-			}
-			$('#stream-'+ streamToKillId).remove();
-			streamsToDeactivate.push(streamToKill);
-		// 2. Get up to 5 inactive streams, make active, subscribe
-		});
-		streamsToActivate.forEach(function(streamToActivate, index){
-			activeStreams.push(streamToActivate);
-			activateStream(streamToActivate);
-		});
-		streamsToDeactivate.forEach(function(streamToDeactivate, index){
-			inactiveStreams.push(streamToDeactivate);
-		});
 	}
-
+	// gather stream objects to load
+	for (var stream2 in streamData) {
+		if (idsToLoad.indexOf(stream2.id) !== -1) {
+			streamsToLoad.push(stream2);
+		}
+	}
+	// wipeDOM/unsubscribe
+	activeStreams.forEach(function(stream){
+		unsubscribe(stream);
+	});
+	// sunscribe to new streams
+	streamsToLoad.forEach(function(stream){
+		addSubscriber(stream);
+	});
 });
 
 $('#getSubscribers').click(function(){
