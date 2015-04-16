@@ -2,7 +2,7 @@
 // This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
 
 // Initialize an OpenTok Session object
-var session = OT.initSession(apiKey,sessionId);
+var session = OT.initSession( apiKey,sessionId );
 console.log("Token: " + token );
 console.log("SessionId: " + sessionId );
 console.log("Username: " + username );
@@ -17,7 +17,7 @@ var inactiveStreamIds = [];
 var subscribers = {};
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-publisher = OT.initPublisher( /*apiKey,*/ 'publisher', { width: "15%", height: "20%", style: {nameDisplayMode: "on"}});
+publisher = OT.initPublisher( 'publisher-div', { name: username, width: "100%", height: "100%", style: {nameDisplayMode: "on"}});
 
 
 // Attach event handlers
@@ -51,9 +51,9 @@ session.on({
 			console.log( 'New stream is for a moderator');
 			var streamId = event.stream.streamId;
 			// $('#publisher').wrap('<div id="streamModerator"></div>');
-			// $('<div/>').attr("id", "streamModerator1").appendTo('#streamModerator');
+			//$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
 			// $('#window').append('<div></div>').attr("id", "streamModerator");
-			subscribers[streamId] = session.subscribe(event.stream, 'streamModerator', { width: '100%', height: '100%'});
+			subscribers[streamId] = session.subscribe(event.stream, 'moderator-div', { width: '100%', height: '100%'});
 
 		}
 		else {

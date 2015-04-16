@@ -10,7 +10,7 @@ body, html, .container-fluid, .row {
     width: 100%;
 }
 
-#streamModerator{
+#moderator{
 	position:absolute;
 	top:0;
 	left:0;
@@ -25,6 +25,9 @@ body, html, .container-fluid, .row {
 }
 #publisher {
 	position:absolute;
+	width: 160px;
+	height: 120px;
 	top: 69%;
 	left: 85%;
+	z-index : 10;
 }
