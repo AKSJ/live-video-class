@@ -3,6 +3,7 @@ extends ./layouts/default.jade
 //- NB- The full stop on line 5 is VERY IMPORTANT
 append head
 	link(href='/css/mummies.css', rel='stylesheet' type='text/css')
+	link(href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css", rel="stylesheet")
 	script(type='text/javascript').
 		var apiKey = '#{apiKey}'
 		var sessionId = '#{sessionId}'
@@ -16,9 +17,11 @@ block content
 	.row
 		.col-md-12#window
 			#publisher
-				button.btn#stopStream Stop Stream
-				button.btn#startStream Start Stream
-			#streamModerator
-				#tooearlypic
+				#publisher-div
+				button.btn.button-stop#stopStream
+					i.fa.fa-stop
+				button.btn.button-play#startStream
+					i.fa.fa-play
+			#moderator
+				#moderator-div
 					img(src="http://mummyworkouts.com/wp-content/uploads/2015/03/Home_Image_Large_crop_4-11.jpg" class="img-responsive" )
-
