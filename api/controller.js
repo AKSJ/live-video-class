@@ -65,7 +65,6 @@ module.exports = {
 
 	homeView: {
 		handler: function (request, reply ){
-			var error;
 			fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, sessionId){
 				if (err) {
 					console.error(err);
@@ -95,7 +94,9 @@ module.exports = {
 							return reply.view('mummies', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: gPlus.username });
 						}
 					}
-					return reply.view('invalidUser', { error: "You are not an authorized user" });
+					else{
+						return reply.view('invalidUser', { error: "You are not an authorized user" });
+					}
 				}
 			});
 		}

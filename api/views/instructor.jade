@@ -12,17 +12,18 @@ append head
 
 block content
 	.row
-		.col-md-3#publisher
-		.col-md-3#subscriber1
-		.col-md-3#subscriber2
+		.col-md-4#publisher
+		.col-md-4.subscriber#subscriber1
+		.col-md-4.subscriber#subscriber2
 	.row
-		.col-md-3#subscriber3
-		.col-md-3#subscriber4
-		.col-md-3#subscriber5
+		.col-md-4.subscriber#subscriber3
+		.col-md-4.subscriber#subscriber4
+		.col-md-4.subscriber#subscriber5
 	.row
 		.col-md-3
 			button.btn#stopStream Stop Stream
 			button.btn#startStream Start Stream
+			button.btn#nextFive Next Five
 		.col-md-6
 			button.btn#getSubscribers Log Subscribers
 			button.btn#kill kill
