@@ -12,12 +12,12 @@ append head
 	script(src='/scripts/instructor.js')
 
 block content
-	.row
+	.row.videoRow
 		.col-xs-4.publisher
 			#publisher
 		.col-xs-4.subscriber#subscriber1
 		.col-xs-4.subscriber#subscriber2
-	.row
+	.row.videoRow
 		.col-xs-4.subscriber#subscriber3
 		.col-xs-4.subscriber#subscriber4
 		.col-xs-4.subscriber#subscriber5
@@ -26,7 +26,11 @@ block content
 			button.btn#stopStream Stop Stream
 			button.btn#startStream Start Stream
 			button.btn#nextFive Next Five
+			button.btn#prevFive Prev Five
 		.col-md-6
+			.mummies
+				ul#mummies-list
+		.col-md-3
 			button.btn#getSubscribers Log Subscribers
 			button.btn#kill kill
 			input#connectionId(type='text', placeholder='connectionId to kill')

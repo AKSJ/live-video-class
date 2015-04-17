@@ -2,6 +2,8 @@
 // This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
 
 // TODO Create client list (where on page?) with forceDisconnect buttons. Audio Focus?
+// Show 'active' status by setting class?
+// --keep list ordered by current id...
 
 // Initialize an OpenTok Session object
 var session = OT.initSession(apiKey,sessionId);
@@ -13,7 +15,7 @@ console.log("Permissions: " + permissions );
 // Initialize a Publisher, and place it into the element with id="publisher"
 var publisher = OT.initPublisher('publisher', {"name": username, width: '100%', height: '100%', style: {nameDisplayMode: "on"}});
 
-// store all incoming streams in 'streams'. Add an object with property name of stream id:
+// store all incoming streams in 'streams'. Add an object with property name of streamId:
 // streamId:{	stream: {},
 // 				status: 'active',
 // 				id: 1,
@@ -21,7 +23,9 @@ var publisher = OT.initPublisher('publisher', {"name": username, width: '100%', 
 // 			}
 var streamData = {};
 var maxId = 0;
+// TODO? Replace maxId counter with a maxId() function
 
+// streamData id helpers
 function findMissingId() {
 	var currentIds = [];
 	var maxRange = [];
@@ -54,6 +58,14 @@ function getAvailableId() {
 		return maxId;
 	}
 }
+
+// to pass to array.sort and arrange streamData objects by id
+function sortById(a,b) {
+	if 		(a.id < b.id) 	{ return -1;}
+	else if (a.id > b.id) 	{ return 1; }
+	else 	/* === */		{ return 0; }
+}
+
 // recursive function to patch holes in our ids
 // Not using now :(   Must find a use!
 function rationaliseIds() {
@@ -68,14 +80,55 @@ function rationaliseIds() {
 	}
 }
 
+// mummies-list helpers
+function hyphenate(string) {
+	return string.replace(/\s+/g,'-');
+}
+
+function sortByDataId(a,b) {
+	var aId = $(a).data('id');
+	var bId = $(b).data('id');
+	if 		( aId < bId ) 	{ return -1;}
+	else if ( aId > bId ) 	{ return 1; }
+	else					{ return 0; }
+}
+
+function sortMummies() {
+	var mummiesList = $('#mummies-list');
+	var mummies = mummiesList.children('li');
+	mummies.detach().sort(sortByDataId);
+	mummiesList.append(mummies);
+}
+
+function setMummyActive(stream) {
+	var connectionData = JSON.parse(stream.connection.data);
+	var usernameId = hypenate(connectionData.username);
+	$('#'+usernameId).addClass('active');
+}
+
+function setMummyInactive(stream) {
+	var connectionData = JSON.parse(stream.connection.data);
+	var usernameId = hypenate(connectionData.username);
+	$('#'+usernameId).removeClass('active');
+}
+
+function removeMummy(event) {
+	var connectionData = JSON.parse(event.connection.data);
+	var usernameId = hyphenate(connectionData.username);
+	$('#'+usernameId).remove();
+}
+
+// subscription/DOM helpers
 function activateStream(stream) {
 	var streamId = stream.streamId;
 	streamData[streamId].status = 'active';
 	var subContainerId = 'stream-' + streamId;
 	$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty'));
 	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, {width: '100%', height: '100%', style: {nameDisplayMode: 'on'}});
+	// set mummies-list entry class to active
+	setMummyActive(stream);
+	sortMummies();
 }
-
 
 function addSubscriber(stream) {
 	if ($('.subscriber:empty').length > 0) {
@@ -89,6 +142,8 @@ function unsubscribe(stream){
 	session.unsubscribe(stream.subscriber);
 	streamData[streamId].subscriber = null;
 	streamData[streamId].status = 'inactive';
+	setMummyInactive(stream);
+	sortMummies();
 }
 
 session.on({
@@ -107,14 +162,24 @@ session.on({
 		console.log(event);
 		var newStream = event.stream;
 		var newStreamId = newStream.streamId;
+		var newStreamConnectionData = JSON.parse(newStream.connection.data);
+		var username = newStreamConnectionData.username;
+		usernameId = hyphenate(username);
+		var permissions = newStreamConnectionData.permissions;
+		var availableId = getAvailableId();
 
 		streamData[newStreamId] = {
 									stream: newStream,
 									status: 'inactive',
-									id: getAvailableId(),
+									id: availableId,
 									subscriber: null
 								};
-		// addSubscriber checks for space in DOM
+		// check for mummy li before adding new one - mummies only removed on connectionDestroyed
+		if ( !$('#'+usernameId).length) {
+			var newMummy = $('<li/>').attr({id: usernameId, 'class': permissions, 'data-id': availableId }).text(username);
+			newMummy.appendTo($('#mummies-list'));
+			sortMummies(); //also called in activateStream, but not invoked if 5+ active streams
+		}
 		addSubscriber(newStream);
 	},
 
@@ -125,16 +190,20 @@ session.on({
 		if (streamData[destroyedStreamId]) {
 			vacatedId = streamData[destroyedStreamId].id;
 			delete streamData[destroyedStreamId];
-			// Find stream with max id and put it in the hole - this should repostion things nicely in DOM if no inactive streams
+			// Find stream with max id and put it in the hole - this should reposition things nicely in DOM if no inactive streams
 			for (var stream in streamData) {
-				if (stream.id === maxId) { //could actaully check for highest id?
+				if (stream.id === maxId) {
 					stream.id = vacatedId;
 					maxId-- ;
 					addSubscriber(stream);
 				}
 			}
 		}
+	},
 
+	connectionDestroyed: function(event) {
+		removeMummy(event);
+		sortMummies();
 	}
 });
 
@@ -198,7 +267,7 @@ $('#nextFive').click(function(){
 	}
 	else {
 		for (var j=maxId; j > maxId - 5; j--) {
-			idsToLoad.unshift(j);
+			idsToLoad.unshift(j); //unshift to keep ids in asc order
 		}
 	}
 	// gather stream objects to load
@@ -211,7 +280,50 @@ $('#nextFive').click(function(){
 	activeStreams.forEach(function(stream){
 		unsubscribe(stream);
 	});
-	// subscribe to new streams
+	// subscribe to new streams, first sort into asc id order
+	streamsToLoad.sort(sortById);
+	streamsToLoad.forEach(function(stream){
+		addSubscriber(stream);
+	});
+});
+
+$('#prevFive').click(function(){
+	// find lowest active id and collect active streams
+	var lowestActiveId = 9000;
+	var activeStreams = [];
+	var idsToLoad = [];
+	var streamsToLoad = [];
+	for (var stream in streamData) {
+		if (stream.status === 'active') {
+			activeStreams.push(stream);
+		}
+		if (stream.status === 'active' && stream.id < lowestActiveId) {
+			lowestActiveId = stream.id;
+		}
+	}
+	// Collect ids of streams to load. If fewer than 5 left until max, count back from max
+	if (lowestActiveId >  5 ) {
+		for (var i=lowestActiveId; i > lowestActiveId - 5 ; i--) {
+			idsToLoad.unshift(i - 1); //unshift to keep ids in asc order
+		}
+	}
+	else {
+		for (var j=1; j <  6; j++) {
+			idsToLoad.push(j);
+		}
+	}
+	// gather stream objects to load
+	for (var stream2 in streamData) {
+		if (idsToLoad.indexOf(stream2.id) !== -1) {
+			streamsToLoad.push(stream2);
+		}
+	}
+	// wipeDOM/unsubscribe
+	activeStreams.forEach(function(stream){
+		unsubscribe(stream);
+	});
+	// subscribe to new streams, first sort into asc id order
+	streamsToLoad.sort(sortById);
 	streamsToLoad.forEach(function(stream){
 		addSubscriber(stream);
 	});
