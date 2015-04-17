@@ -25,10 +25,13 @@ body, html, .container-fluid, .row {
 	z-index: -1;
 }
 
-#tooearlypic{
+.image{
 	height: 100%;
 	width: 100%;
-	background-size: 100%
+	/*background-size: 100%*/
+}
+.image img{
+	min-height: 100%;
 }
 
 #publisher {

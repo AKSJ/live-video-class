@@ -5,3 +5,19 @@ body, html, .container-fluid, .publisher, .subscriber {
 .row {
 	height:50%;
 }
+
+.admin,.publisher{
+	height: 100%;
+	padding-right: 1px;
+}
+
+.participants{
+	height: 100%;
+	background-color: black;
+}
+
+.cb-enable, .cb-disable, .cb-enable span, .cb-disable span {
+	background: url(switch.gif) repeat-x;
+	display: block;
+	float: left; }
+}

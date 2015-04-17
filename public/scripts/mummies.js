@@ -9,6 +9,7 @@ console.log("Username: " + username );
 console.log("Permissions: " + permissions );
 
 var publisher;
+var moderator = {};
 var streamCount = 0;
 var activeStreams = [];
 var activeStreamIds = [];
@@ -42,28 +43,40 @@ session.on({
 		console.log( "New Event: " );
 		console.log( event );
 		// var permission
-		console.log( 'New Event data: ' );
+		console.log( "New Event data: " );
 		var streamData = JSON.parse( event.stream.connection.data );
 		console.log( streamData );
 
 
-		if( streamData.permissions === 'moderator' ){
-			console.log( 'New stream is for a moderator');
+		if( streamData.permissions === "moderator" ){
+			console.log( "New stream is for a moderator");
 			var streamId = event.stream.streamId;
 			// $('#publisher').wrap('<div id="streamModerator"></div>');
 			//$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
 			// $('#window').append('<div></div>').attr("id", "streamModerator");
-			subscribers[streamId] = session.subscribe(event.stream, 'moderator-div', { width: '100%', height: '100%'});
-
+			if( !moderatorLive ) {
+				subscribers[streamId] = session.subscribe( event.stream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
+					if( error ) {
+						console.log( "Error subscribing to moderator stream");
+					}
+					else {
+						moderatorLive = true;
+					}
+				});
+			}
 		}
 		else {
-			console.log( 'New stream is for a publisher so ignore');
+			console.log( "New stream is for a publisher so ignore");
 		}
 	},
 
-	streamDestroyed: function(event) {
-		console.log( "Stream Destroyed reason: " + event.reason);
+	streamDestroyed: function (event) {
+		console.log( "Stream Destroyed reason: " + event.reason );
 		console.log( event );
+		var streamData = event.stream.connection.data;
+		if( streamData.permissions === "moderator" ) {
+			moderatorLive = false;
+		}
 	}
 });
 
