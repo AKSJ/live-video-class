@@ -31,14 +31,19 @@ module.exports = {
 					email 		: gPlus.profile.email,
 					picture 	: gPlus.profile.raw.picture,
 				};
+				request.auth.session.clear();
+				request.auth.session.set(profile);
 				console.log('Profile:');
 				console.dir(profile);
 				// look up in database
 				members.search( { query: {"email": profile.email }}, function( error, member ){
-					if( error ) {
+					if ( error ) {
 						console.log( error );
-						request.auth.session.clear();
-						return reply.redirect( '/login' );
+						return reply.redirect( '/displayname' );
+					}
+					else if ( !member.displayName ) {
+						console.log( 'Member needs to provide displayname details' );
+						return reply.redirect( '/displayname' );
 					}
 					else {
 						console.log('Found member:');
@@ -60,6 +65,13 @@ module.exports = {
 		handler: function (request, reply ){
 			request.auth.session.clear();
 			return reply.redirect('/login');
+		}
+	},
+
+	displayname: {
+		handler: function ( request, reply ){
+			var credentials = request.auth.credentials;
+			return reply.view( 'displayname.jade' );
 		}
 	},
 

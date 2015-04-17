@@ -7,7 +7,7 @@ append head
 		var apiKey = '#{apiKey}'
 		var sessionId = '#{sessionId}'
 		var token = '#{token}'
-		var permissions = 'moderator'
+		var permissions = '#{permissions}' // should be moderator
 		var username = '#{username}'
 	script(src='/scripts/instructor.js')
 
@@ -18,11 +18,6 @@ block content
 				#publisher
 			.col-xs-6.participants
 				#participants
-					p Sarah Johnston
-						label(for="radio1" class="cb-enable selected")
-							span Enable
-						label(for="radio2" class="cb-disable")
-							span Disable
 		.col-xs-4.subscriber#subscriber1
 		.col-xs-4.subscriber#subscriber2
 	.row
