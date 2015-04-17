@@ -30,8 +30,8 @@ var selectedMummy;
 function findMissingId() {
 	var currentIds = [];
 	var maxRange = [];
-	for (var stream in streamData) {
-		currentIds.push(stream.id);
+	for (var streamId in streamData) {
+		currentIds.push(streamData[streamId].id);
 	}
 	currentIds.sort();
 	for (var i=1; i<=maxId; i++) {
@@ -72,9 +72,9 @@ function sortById(a,b) {
 function rationaliseIds() {
 	var missingId = findMissingId();
 	if (missingId) {
-		for (var stream in streamData) {
-			if (stream.id > missingId) {
-				stream.id = stream.id -1;
+		for (var streamId in streamData) {
+			if (streamData[streamId].id > missingId) {
+				streamData[streamId].id -= 1;
 			}
 		}
 		rationaliseIds();
@@ -103,13 +103,13 @@ function sortMummies() {
 
 function setMummyActive(stream) {
 	var connectionData = JSON.parse(stream.connection.data);
-	var usernameId = hypenate(connectionData.username);
+	var usernameId = hyphenate(connectionData.username);
 	$('#'+usernameId).addClass('active');
 }
 
 function setMummyInactive(stream) {
 	var connectionData = JSON.parse(stream.connection.data);
-	var usernameId = hypenate(connectionData.username);
+	var usernameId = hyphenate(connectionData.username);
 	$('#'+usernameId).removeClass('active');
 }
 
@@ -193,9 +193,9 @@ session.on({
 			vacatedId = streamData[destroyedStreamId].id;
 			delete streamData[destroyedStreamId];
 			// Find stream with max id and put it in the hole - this should reposition things nicely in DOM if no inactive streams
-			for (var stream in streamData) {
-				if (stream.id === maxId) {
-					stream.id = vacatedId;
+			for (var streamId in streamData) {
+				if (streamData[streamId].id === maxId) {
+					streamData[streamId].id = vacatedId;
 					maxId-- ;
 					addSubscriber(stream);
 				}
@@ -253,12 +253,12 @@ $('#nextFive').click(function(){
 	var activeStreams = [];
 	var idsToLoad = [];
 	var streamsToLoad = [];
-	for (var stream in streamData) {
-		if (stream.status === 'active') {
-			activeStreams.push(stream);
+	for (var streamId in streamData) {
+		if (streamData[streamId].status === 'active') {
+			activeStreams.push(streamData[streamId]);
 		}
-		if (stream.status === 'active' && stream.id > highestActiveId) {
-			highestActiveId = stream.id;
+		if (streamData[streamId].status === 'active' && streamData[streamId].id > highestActiveId) {
+			highestActiveId = streamData[streamId].id;
 		}
 	}
 	// Collect ids of streams to load. If fewer than 5 left until max, count back from max
@@ -273,9 +273,9 @@ $('#nextFive').click(function(){
 		}
 	}
 	// gather stream objects to load
-	for (var stream2 in streamData) {
-		if (idsToLoad.indexOf(stream2.id) !== -1) {
-			streamsToLoad.push(stream2);
+	for (var streamId2 in streamData) {
+		if (idsToLoad.indexOf(streamData[streamId2].id) !== -1) {
+			streamsToLoad.push(streamData[streamId2].stream);
 		}
 	}
 	// wipeDOM/unsubscribe
@@ -295,12 +295,12 @@ $('#prevFive').click(function(){
 	var activeStreams = [];
 	var idsToLoad = [];
 	var streamsToLoad = [];
-	for (var stream in streamData) {
-		if (stream.status === 'active') {
-			activeStreams.push(stream);
+	for (var streamId in streamData) {
+		if (streamData[streamId].status === 'active') {
+			activeStreams.push(streamData[streamId].stream);
 		}
-		if (stream.status === 'active' && stream.id < lowestActiveId) {
-			lowestActiveId = stream.id;
+		if (streamData[streamId].status === 'active' && streamData[streamId].id < lowestActiveId) {
+			lowestActiveId = streamData[streamId].id;
 		}
 	}
 	// Collect ids of streams to load. If fewer than 5 left until max, count back from max
@@ -315,9 +315,9 @@ $('#prevFive').click(function(){
 		}
 	}
 	// gather stream objects to load
-	for (var stream2 in streamData) {
-		if (idsToLoad.indexOf(stream2.id) !== -1) {
-			streamsToLoad.push(stream2);
+	for (var streamId2 in streamData) {
+		if (idsToLoad.indexOf(streamData[streamId2].id) !== -1) {
+			streamsToLoad.push(streamData[streamId2].stream);
 		}
 	}
 	// wipeDOM/unsubscribe
@@ -332,23 +332,15 @@ $('#prevFive').click(function(){
 });
 
 $('#getSubscribers').click(function(){
-	console.log(subscribers);
-	if (activeStreams) {
-		activeStreams.forEach(function(stream, index){
-			console.log(session.getSubscribersForStream(stream));
-		});
-	}
-	else {
-		console.log('No active streams');
-	}
+	console.log(streamData);
 });
 
 $('#kill').click(function(){
 	var mummyIdToKill = $('.selected').data('id');
 	var connectionIdToKill;
-	for (var stream in streamData) {
-		if (stream.id === mummyIdToKill) {
-			connectionIdToKill = stream.stream.connection.connectionId;
+	for (var streamId in streamData) {
+		if (streamData[streamId].id === mummyIdToKill) {
+			connectionIdToKill = streamData[streamId].stream.connection.connectionId;
 		}
 	}
 	session.forceDisconnect(connectionIdToKill, function(err){

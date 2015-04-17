@@ -23,6 +23,10 @@ body, html, .container-fluid, .publisher, .subscriber {
 }
 
 /*Classes to style mummy list entries*/
+.selected {
+	color: white;
+	background-color: black;
+}
 
 .active {
 	color: green;
@@ -34,11 +38,6 @@ body, html, .container-fluid, .publisher, .subscriber {
 
 .moderator.active {
 	color: purple;
-}
-
-.selected {
-	color: white;
-	background-color: black;
 }
 
 .muted {
