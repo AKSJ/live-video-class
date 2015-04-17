@@ -23,6 +23,7 @@ var publisher = OT.initPublisher('publisher', {"name": username, width: '100%', 
 // 			}
 var streamData = {};
 var maxId = 0;
+var selectedMummy;
 // TODO? Replace maxId counter with a maxId() function
 
 // streamData id helpers
@@ -176,7 +177,8 @@ session.on({
 								};
 		// check for mummy li before adding new one - mummies only removed on connectionDestroyed
 		if ( !$('#'+usernameId).length) {
-			var newMummy = $('<li/>').attr({id: usernameId, 'class': permissions, 'data-id': availableId }).text(username);
+			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy', 'data-id': availableId }).text(username);
+			if (permissions === 'moderator') { newMummy.addClass('moderator'); }
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies(); //also called in activateStream, but not invoked if 5+ active streams
 		}
@@ -342,15 +344,25 @@ $('#getSubscribers').click(function(){
 });
 
 $('#kill').click(function(){
-	var connectionToKill = $('#connectionId').val();
-	console.log(connectionToKill);
-	session.forceDisconnect(connectionToKill, function(err){
+	var mummyIdToKill = $('.selected').data('id');
+	var connectionIdToKill;
+	for (var stream in streamData) {
+		if (stream.id === mummyIdToKill) {
+			connectionIdToKill = stream.stream.connection.connectionId;
+		}
+	}
+	session.forceDisconnect(connectionIdToKill, function(err){
 		if (err) {
 			console.log('Failed to kill conection');
 		}
 		else {
-			console.log('Killed '+ connectionToKill);
+			console.log('Killed '+ connectionIdToKill);
 		}
 	});
+});
+
+$(document).on('click', '.mummy', function(){
+	$('.mummy').removeClass('selected');
+	$(this).addClass('selected');
 });
 

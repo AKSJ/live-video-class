@@ -1,6 +1,6 @@
 extends ./layouts/default.jade
 
-//- NB- The full stop on line 5 is VERY IMPORTANT
+//- NB- The full stop on line 6 is VERY IMPORTANT
 append head
 	link(href='/css/instructor.css', rel='stylesheet' type='text/css')
 	script(type='text/javascript').
@@ -29,9 +29,9 @@ block content
 			button.btn#prevFive Prev Five
 		.col-md-6
 			.mummies
+				p Click a name to select
 				ul#mummies-list
+				button.btn#kill Kill Selected
 		.col-md-3
 			button.btn#getSubscribers Log Subscribers
-			button.btn#kill kill
-			input#connectionId(type='text', placeholder='connectionId to kill')
 

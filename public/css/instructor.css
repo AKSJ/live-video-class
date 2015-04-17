@@ -36,6 +36,11 @@ body, html, .container-fluid, .publisher, .subscriber {
 	color: purple;
 }
 
+.selected {
+	color: white;
+	background-color: black;
+}
+
 .muted {
 
 }
