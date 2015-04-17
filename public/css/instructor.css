@@ -2,6 +2,45 @@ body, html, .container-fluid, .publisher, .subscriber {
 	height:100%;
 }
 
+
 .row {
+	height: 20%;
+}
+
+
+.videoRow {
 	height:50%;
+}
+
+
+.mummies {
+	height: 100%;
+	overflow-y: scroll;
+}
+
+#mummies-list {
+	height: 100%;
+}
+
+/*Classes to style mummy list entries*/
+
+.active {
+	color: green;
+}
+
+.moderator {
+	color: red;
+}
+
+.moderator.active {
+	color: purple;
+}
+
+.selected {
+	color: white;
+	background-color: black;
+}
+
+.muted {
+
 }
