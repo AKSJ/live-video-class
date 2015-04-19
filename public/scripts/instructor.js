@@ -63,8 +63,8 @@ function getAvailableId() {
 	}
 }
 
-// to pass to array.sort and arrange streamData objects by id
-function sortById(a,b) {
+// to pass to array.sort and arrange streamRefs by id
+function sortStreamRefsById(a,b) {
 	if 		(a.id < b.id) 	{ return -1;}
 	else if (a.id > b.id) 	{ return 1; }
 	else 	/* === */		{ return 0; }
@@ -287,7 +287,7 @@ $('#nextFive').click(function(){
 		unsubscribe(streamRef.stream);
 	});
 	// subscribe to new streams, first sort into asc id order
-	streamRefsToLoad.sort(sortById);
+	streamRefsToLoad.sort(sortStreamRefsById);
 	streamRefsToLoad.forEach(function(streamRef){
 		addSubscriber(streamRef.stream);
 	});
@@ -328,7 +328,7 @@ $('#prevFive').click(function(){
 		unsubscribe(streamRef.stream);
 	});
 	// subscribe to new streams, first sort into asc id order
-	streamRefsToLoad.sort(sortById);
+	streamRefsToLoad.sort(sortStreamRefsById);
 	streamRefsToLoad.forEach(function(streamRef){
 		addSubscriber(streamRef.stream);
 	});
