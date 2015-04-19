@@ -31,14 +31,15 @@ exports.findMemberByEmail = function(email, callback) {
 		if (err) {
 			return callback(err);
 		}
-		else if (result) {
+		else {
 			return callback(null, result);
 		}
 	});
 };
 
 exports.addMember = function(newMember, callback) {
-	Member.create(newMember, function(err, member){
+	var newMemberObj = new Member(newMember);
+	Member.create(newMemberObj, function(err, member){
 		if (err) {
 			return callback(err);
 		}
