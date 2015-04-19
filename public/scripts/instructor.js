@@ -127,7 +127,7 @@ function activateStream(stream) {
 	var streamId = stream.streamId;
 	streamData[streamId].status = 'active';
 	var subContainerId = 'stream-' + streamId;
-	$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty'));
+	$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty')[0]);
 	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, {width: '100%', height: '100%', style: {nameDisplayMode: 'on'}});
 	// set mummies-list entry class to active
 	setMummyActive(stream);
