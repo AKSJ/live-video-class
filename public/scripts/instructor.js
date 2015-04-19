@@ -1,6 +1,8 @@
 // NB - Currently (sometimes) getting a dev console error 'cannnot read property 'videoWidth of null' on unpublish
 // This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
 
+// TODO: Make mummies mute by default (audio off).
+
 // TODO Create client list (where on page?) with forceDisconnect buttons. Audio Focus?
 // Show 'active' status by setting class?
 // --keep list ordered by current id...
@@ -138,9 +140,9 @@ function addSubscriber(stream) {
 }
 
 function unsubscribe(stream){
-	var streamId = stream.stream.streamId;
+	var streamId = stream.streamId;
+	session.unsubscribe(streamData[streamId].subscriber);
 	$('stream-'+ streamId).remove();
-	session.unsubscribe(stream.subscriber);
 	streamData[streamId].subscriber = null;
 	streamData[streamId].status = 'inactive';
 	setMummyInactive(stream);
@@ -197,7 +199,7 @@ session.on({
 				if (streamData[streamId].id === maxId) {
 					streamData[streamId].id = vacatedId;
 					maxId-- ;
-					addSubscriber(stream);
+					addSubscriber(streamData[streamId].stream);
 				}
 			}
 		}
@@ -250,16 +252,17 @@ $('#startStream').click(function(){
 $('#nextFive').click(function(){
 	// find higest active id and collect active streams
 	var highestActiveId = 0;
-	var activeStreams = [];
+	var activeStreamRefs = [];
 	var idsToLoad = [];
-	var streamsToLoad = [];
+	var streamRefsToLoad = [];
 	for (var streamId in streamData) {
 		if (streamData[streamId].status === 'active') {
-			activeStreams.push(streamData[streamId]);
+			activeStreamRefs.push(streamData[streamId]);
+			if (streamData[streamId].id > highestActiveId) {
+				highestActiveId = streamData[streamId].id;
+			}
 		}
-		if (streamData[streamId].status === 'active' && streamData[streamId].id > highestActiveId) {
-			highestActiveId = streamData[streamId].id;
-		}
+
 	}
 	// Collect ids of streams to load. If fewer than 5 left until max, count back from max
 	if (highestActiveId <= (maxId - 5 ) ) {
@@ -275,64 +278,68 @@ $('#nextFive').click(function(){
 	// gather stream objects to load
 	for (var streamId2 in streamData) {
 		if (idsToLoad.indexOf(streamData[streamId2].id) !== -1) {
-			streamsToLoad.push(streamData[streamId2].stream);
+			streamRefsToLoad.push(streamData[streamId2]);
 		}
 	}
 	// wipeDOM/unsubscribe
-	activeStreams.forEach(function(stream){
-		unsubscribe(stream);
+	activeStreamRefs.forEach(function(streamRef){
+		unsubscribe(streamRef.stream);
 	});
 	// subscribe to new streams, first sort into asc id order
-	streamsToLoad.sort(sortById);
-	streamsToLoad.forEach(function(stream){
-		addSubscriber(stream);
+	streamRefsToLoad.sort(sortById);
+	streamRefsToLoad.forEach(function(streamRef){
+		addSubscriber(streamRef.stream);
 	});
 });
 
 $('#prevFive').click(function(){
 	// find lowest active id and collect active streams
 	var lowestActiveId = 9000;
-	var activeStreams = [];
+	var activeStreamRefs = [];
 	var idsToLoad = [];
-	var streamsToLoad = [];
+	var streamRefsToLoad = [];
 	for (var streamId in streamData) {
 		if (streamData[streamId].status === 'active') {
-			activeStreams.push(streamData[streamId].stream);
+			activeStreams.push(streamData[streamId]);
+			if (streamData[streamId].id < lowestActiveId) {
+				lowestActiveId = streamData[streamId].id;
+			}
 		}
-		if (streamData[streamId].status === 'active' && streamData[streamId].id < lowestActiveId) {
-			lowestActiveId = streamData[streamId].id;
-		}
+
 	}
-	// Collect ids of streams to load. If fewer than 5 left until max, count back from max
+	// Collect ids of streams to load. If >6, count back 5 from lowestId, else 1-5
 	if (lowestActiveId >  5 ) {
 		for (var i=lowestActiveId; i > lowestActiveId - 5 ; i--) {
 			idsToLoad.unshift(i - 1); //unshift to keep ids in asc order
 		}
 	}
 	else {
-		for (var j=1; j <  6; j++) {
-			idsToLoad.push(j);
-		}
+		idsToLoad = [1,2,3,4,5];
 	}
 	// gather stream objects to load
 	for (var streamId2 in streamData) {
 		if (idsToLoad.indexOf(streamData[streamId2].id) !== -1) {
-			streamsToLoad.push(streamData[streamId2].stream);
+			streamRefsToLoad.push(streamData[streamId2]);
 		}
 	}
 	// wipeDOM/unsubscribe
-	activeStreams.forEach(function(stream){
-		unsubscribe(stream);
+	activeStreamRefs.forEach(function(streamRef){
+		unsubscribe(streamRef.stream);
 	});
 	// subscribe to new streams, first sort into asc id order
-	streamsToLoad.sort(sortById);
-	streamsToLoad.forEach(function(stream){
-		addSubscriber(stream);
+	streamRefsToLoad.sort(sortById);
+	streamRefsToLoad.forEach(function(streamRef){
+		addSubscriber(streamRef.stream);
 	});
 });
 
-$('#getSubscribers').click(function(){
+$('#getStreamData').click(function(){
 	console.log(streamData);
+});
+
+$('#getEmptySubscribers').click(function(){
+	console.log($('.subscriber:empty'));
+	console.log('Empty Subscriber Div length: ',$('.subscriber:empty').length);
 });
 
 $('#kill').click(function(){
