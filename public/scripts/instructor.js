@@ -1,11 +1,9 @@
-// NB - Currently (sometimes) getting a dev console error 'cannnot read property 'videoWidth of null' on unpublish
-// This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
-
 // TODO: Make mummies mute by default (audio off).
 
 // TODO Create client list (where on page?) with forceDisconnect buttons. Audio Focus?
 // Show 'active' status by setting class?
-// --keep list ordered by current id...
+
+OT.setLogLevel(OT.DEBUG);
 
 // Initialize an OpenTok Session object
 var session = OT.initSession(apiKey,sessionId);
