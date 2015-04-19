@@ -23,6 +23,7 @@ var publisher = OT.initPublisher('publisher', {"name": username, width: '100%', 
 // 				id: 1,
 // 				subscriber: {}
 // 			}
+// NB -These custom streamData objects are refered to as 'streamRefs', to avoid confusion with the OT stream objects they hold
 var streamData = {};
 var maxId = 0;
 var selectedMummy;
