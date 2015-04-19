@@ -25,3 +25,24 @@ exports.search = function(params, onComplete) {
 	}
 };
 
+// NB if no member found, returns result of null, not error
+exports.findMemberByEmail = function(email, callback) {
+	Member.findOne({email: email}, function(err, result){
+		if (err) {
+			return callback(err);
+		}
+		else if (result) {
+			return callback(null, result);
+		}
+	});
+};
+
+exports.addMember = function(newMember, callback) {
+	Member.create(newMember, function(err){
+		if (err) {
+			return callback(err);
+		}
+		else
+			return callback(null, newMember);
+	});
+};

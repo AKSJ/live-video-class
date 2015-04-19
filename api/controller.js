@@ -34,19 +34,42 @@ module.exports = {
 				console.log('Profile:');
 				console.dir(profile);
 				// look up in database
-				members.search( { query: {"email": profile.email }}, function( error, member ){
+				members.findMemberByEmail( profile.email, function( error, member ){
 					if( error ) {
-						console.log( error );
+						console.error( error );
 						request.auth.session.clear();
 						return reply.redirect( '/login' );
 					}
-					else {
+					else if (member) {
 						console.log('Found member:');
 						console.dir(member);
 						profile.permissions = member.permissions;
 						request.auth.session.clear();
 						request.auth.session.set(profile);
 						return reply.redirect('/');
+					}
+					else {
+						console.log('Member not found, adding to db');
+						var newMember = {
+							username: profile.username,
+							email: profile.email,
+							permissions: 'publisher'
+						};
+						members.addMember(newMember, function(err, member){
+							if (err) {
+								console.error(err);
+								console.log('Failed to add new member');
+								request.auth.session.clear();
+								return reply.redirect( '/login' );
+							}
+							else {
+								console.log('New member added to db');
+								profile.permissions = member.permissions;
+								request.auth.session.clear();
+								request.auth.session.set(profile);
+								return reply.redirect('/');
+							}
+						});
 					}
 				});
 			}
