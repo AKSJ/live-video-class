@@ -38,11 +38,11 @@ exports.findMemberByEmail = function(email, callback) {
 };
 
 exports.addMember = function(newMember, callback) {
-	Member.create(newMember, function(err){
+	Member.create(newMember, function(err, member){
 		if (err) {
 			return callback(err);
 		}
 		else
-			return callback(null, newMember);
+			return callback(null, member);
 	});
 };
