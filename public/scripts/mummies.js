@@ -3,16 +3,16 @@ OT.setLogLevel(OT.DEBUG);
 
 // Initialize an OpenTok Session object
 var session = OT.initSession( apiKey,sessionId );
-console.log("Token: " + token );
-console.log("SessionId: " + sessionId );
-console.log("Username: " + username );
-console.log("Permissions: " + permissions );
+console.log('Token: ' + token );
+console.log('SessionId: ' + sessionId );
+console.log('Username: ' + username );
+console.log('Permissions: ' + permissions );
 
 var publisher;
 var subscribers = {};
 
-// Initialize a Publisher, and place it into the element with id="publisher"
-publisher = OT.initPublisher( 'publisher-div', { name: username, width: "100%", height: "100%", /*publishAudio: false,*/ style: {nameDisplayMode: "on"}});
+// Initialize a Publisher, and place it into the element with id='publisher'
+publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', height: '100%', /*publishAudio: false,*/ style: {nameDisplayMode: 'on'}});
 
 
 // Attach event handlers
@@ -34,7 +34,7 @@ session.on({
 	// This function runs when another client publishes a stream (eg. session.publish())
 	streamCreated: function(event) {
 		// if the event is from a moderator then subscribe, otherwise ignore
-		console.log( "New Event: " );
+		console.log( 'New Event: ' );
 		console.log( event );
 		// var permission
 		console.log( 'New Event data: ' );
@@ -45,9 +45,9 @@ session.on({
 		if( streamData.permissions === 'moderator' ){
 			console.log( 'New stream is for a moderator');
 			var streamId = event.stream.streamId;
-			// $('#publisher').wrap('<div id="streamModerator"></div>');
-			//$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
-			// $('#window').append('<div></div>').attr("id", "streamModerator");
+			// $('#publisher').wrap('<div id='streamModerator'></div>');
+			//$('<div/>').attr('id', 'moderator-div').appendTo('#moderator');
+			// $('#window').append('<div></div>').attr('id', 'streamModerator');
 			subscribers[streamId] = session.subscribe(event.stream, 'moderator-div', { width: '100%', height: '100%'});
 
 		}

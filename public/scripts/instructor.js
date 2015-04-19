@@ -13,7 +13,16 @@ console.log("Username: " + username );
 console.log("Permissions: " + permissions );
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-var publisher = OT.initPublisher('publisher', {"name": username, width: '100%', height: '100%', style: {nameDisplayMode: "on"}});
+var publisherOptions = {
+							name: username,
+							width: '100%',
+							height: '100%',
+							resolution: '1280x720', //max resolution -default 640x480
+							frameRate: 30, //max frame rate
+							style: {nameDisplayMode: 'on', buttonDisplayMode: 'on'}
+						};
+
+var publisher = OT.initPublisher('publisher', publisherOptions );
 
 // store all incoming streams in 'streams'. Add an object with property name of streamId:
 // streamId:{	stream: {},
@@ -176,7 +185,7 @@ session.on({
 									id: availableId,
 									subscriber: null
 								};
-		// check for mummy li before adding new one - mummies only removed on connectionDestroyed
+		// check for mummy li before adding new one - mummies in list only removed on connectionDestroyed
 		if ( !$('#'+usernameId).length) {
 			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy', 'data-id': availableId }).text(username);
 			if (permissions === 'moderator') { newMummy.addClass('moderator'); }
