@@ -9,15 +9,10 @@ console.log("Username: " + username );
 console.log("Permissions: " + permissions );
 
 var publisher;
-var streamCount = 0;
-var activeStreams = [];
-var activeStreamIds = [];
-var inactiveStreams = [];
-var inactiveStreamIds = [];
 var subscribers = {};
 
 // Initialize a Publisher, and place it into the element with id="publisher"
-publisher = OT.initPublisher( 'publisher-div', { name: username, width: "100%", height: "100%", style: {nameDisplayMode: "on"}});
+publisher = OT.initPublisher( 'publisher-div', { name: username, width: "100%", height: "100%", publishAudio: false, style: {nameDisplayMode: "on"}});
 
 
 // Attach event handlers
@@ -62,11 +57,10 @@ session.on({
 	},
 
 	streamDestroyed: function(event) {
-
+		// TODO - clean up subscriber object on streamDestroyed
 	}
 });
 
-// TODO set interval, if < 5 active streams, check for inactive streams and subscribe
 
 publisher.on({
 	streamDestroyed: function(event) {
@@ -84,9 +78,6 @@ publisher.on({
 session.connect( token);
 
 
-// NB - unpublish is currently working, you still see yourself locally, but other clients don't (tested over network)
-// Thought that would be better than losing the local video/publisher object
-// ??? - We could just switch off audio and video. Better or worse...?
 $('#stopStream').click(function(){
 	session.unpublish(publisher);
 	// publisher.publishVideo(false);
