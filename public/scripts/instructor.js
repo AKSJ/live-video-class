@@ -233,29 +233,17 @@ publisher.on({
 
 session.connect(token);
 
-// NOT NEEDED?
-// if < 5 active streams, check for inactive streams and subscribe
-// setInterval(function(){
-// 	var streamsToAddCount = 5 - activeStreams.length;
-// 	if (activeStreams.length < 5 && inactiveStreams.length > 0) {
-// 		for (var i=0; i<streamsToAddCount; i++) {
-// 			var newStream = inactiveStreams.pop();
-// 			if (newStream) activateStream(newStream);
-// 		}
-// 	}
-// },1000);
+// $('#stopStream').click(function(){
+// 	session.unpublish(publisher);
+// 	// publisher.publishVideo(false);
+// 	// publisher.publishAudio(false);
+// });
 
-$('#stopStream').click(function(){
-	session.unpublish(publisher);
-	// publisher.publishVideo(false);
-	// publisher.publishAudio(false);
-});
-
-$('#startStream').click(function(){
-	session.publish(publisher);
-	// publisher.publishVideo(true);
-	// publisher.publishAudio(true);
-});
+// $('#startStream').click(function(){
+// 	session.publish(publisher);
+// 	// publisher.publishVideo(true);
+// 	// publisher.publishAudio(true);
+// });
 
 $('#nextFive').click(function(){
 	// find higest active id and collect active streams
