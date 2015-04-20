@@ -7,8 +7,8 @@ var memberSchema = new Schema({
 	permissions: {type: String, required: true}
 });
 
-var Members 	= mongoose.model("members", memberSchema);
+var Member 	= mongoose.model("Member", memberSchema);
 
 module.exports = {
-	Member 		: Members
+	Member 		: Member
 };

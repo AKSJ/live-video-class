@@ -1,6 +1,6 @@
 extends ./layouts/default.jade
 
-//- NB- The full stop on line 5 is VERY IMPORTANT
+//- NB- The full stop on line 6 is VERY IMPORTANT
 append head
 	link(href='/css/instructor.css', rel='stylesheet' type='text/css')
 	script(type='text/javascript').
@@ -12,15 +12,12 @@ append head
 	script(src='/scripts/instructor.js')
 
 block content
-	.row
-		.col-xs-4.admin
-			.col-xs-6.publisher
-				#publisher
-			.col-xs-6.participants
-				#participants
+	.row.videoRow
+		.col-xs-4.publisher
+			#publisher
 		.col-xs-4.subscriber#subscriber1
 		.col-xs-4.subscriber#subscriber2
-	.row
+	.row.videoRow
 		.col-xs-4.subscriber#subscriber3
 		.col-xs-4.subscriber#subscriber4
 		.col-xs-4.subscriber#subscriber5
@@ -28,9 +25,15 @@ block content
 		.col-md-3
 			button.btn#stopStream Stop Stream
 			button.btn#startStream Start Stream
+			button.btn#prevFive Prev Five
 			button.btn#nextFive Next Five
 		.col-md-6
-			button.btn#getSubscribers Log Subscribers
-			button.btn#kill kill
-			input#connectionId(type='text', placeholder='connectionId to kill')
+			.mummies
+				p Click a name to select
+				ul#mummies-list
+				button.btn#kill Kill Selected
+				button.btn#endClass End Class
+		.col-md-3
+			button.btn#getStreamData Log streamData
+			button.btn#getEmptySubscribers Log Empty Sub divs
 

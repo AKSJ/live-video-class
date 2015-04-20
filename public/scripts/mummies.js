@@ -1,20 +1,20 @@
-// NB - Currently (sometimes) getting a dev console error 'cannnot read property 'videoWidth of null' on unpublish
-// This may be a bug, code seems okay as far as I can tell. See: http://webcache.googleusercontent.com/search?q=cache:EEXBFdO8mQsJ:https://forums.tokbox.com/bugs/cannot-read-property-videowidth-of-null-error-t45250+&cd=1&hl=en&ct=clnk&gl=uk
+
+OT.setLogLevel(OT.DEBUG);
 
 // Initialize an OpenTok Session object
 var session = OT.initSession( apiKey,sessionId );
-console.log("Token: " + token );
-console.log("SessionId: " + sessionId );
-console.log("Username: " + username );
-console.log("Permissions: " + permissions );
+console.log('Token: ' + token );
+console.log('SessionId: ' + sessionId );
+console.log('Username: ' + username );
+console.log('Permissions: ' + permissions );
 
 var publisher;
-var moderatorLive = false;
+var liveModeratorStream = "";
 var moderators = [];
 var subscribers = {};
 
-// Initialize a Publisher, and place it into the element with id="publisher"
-publisher = OT.initPublisher( 'publisher-div', { name: username, width: "100%", height: "100%", style: {nameDisplayMode: "on"}});
+// Initialize a Publisher, and place it into the element with id='publisher'
+publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', height: '100%', /*publishAudio: false,*/ style: {nameDisplayMode: 'on'}});
 
 
 // Attach event handlers
@@ -36,7 +36,7 @@ session.on({
 	// This function runs when another client publishes a stream (eg. session.publish())
 	streamCreated: function(event) {
 		// if the event is from a moderator then subscribe, otherwise ignore
-		console.log( "New Event: " );
+		console.log( 'New Event: ' );
 		console.log( event );
 		// var permission
 		console.log( "New Event data: " );
@@ -50,13 +50,13 @@ session.on({
 			// $('#publisher').wrap('<div id="streamModerator"></div>');
 			//$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
 			// $('#window').append('<div></div>').attr("id", "streamModerator");
-			if( !moderatorLive ) {
+			if( !liveModeratorStream ) {
 				subscribers[streamId] = session.subscribe( event.stream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
 					if( error ) {
 						console.log( "Error subscribing to moderator stream");
 					}
 					else {
-						moderatorLive = true;
+						liveModeratorStream = event.stream;
 					}
 				});
 			}
@@ -72,11 +72,14 @@ session.on({
 	},
 
 	streamDestroyed: function (event) {
+		// TODO - clean up subscriber object on streamDestroyed
+
 		console.log( "Stream Destroyed reason: " + event.reason );
 		console.log( event );
-		var streamData = event.stream.connection.data;
-		if( streamData.permissions === "moderator" ) {
-			moderatorLive = false;
+		var connectionData = event.stream.connection.data;
+		var stream = event.stream;
+		if( connectionData.permissions === "moderator"  && liveModeratorStream === stream.streamId) {
+			liveModeratorStream = "";
 			if( moderators.length ) {
 				var moderatorStream = moderators.shift();
 				$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
@@ -85,7 +88,7 @@ session.on({
 						console.log( "Error subscribing to moderator stream");
 					}
 					else {
-						moderatorLive = true;
+						liveModeratorStream = moderatorStream;
 					}
 				});
 			}
@@ -112,9 +115,6 @@ publisher.on({
 session.connect( token);
 
 
-// NB - unpublish is currently working, you still see yourself locally, but other clients don't (tested over network)
-// Thought that would be better than losing the local video/publisher object
-// ??? - We could just switch off audio and video. Better or worse...?
 $('#stopStream').click(function(){
 	session.unpublish(publisher);
 	// publisher.publishVideo(false);

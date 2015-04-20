@@ -6,7 +6,7 @@ var config 	= require('./config');
 var opentok = require('./opentok');
 var members = require('./models/members.js');
 
-var permissions = [ 'moderator', 'publisher' ];
+var permissions = { "moderator" : "moderator", "publisher":"publisher", "administrator": "moderator" };
 module.exports = {
 
 	serveFile: {
@@ -26,8 +26,10 @@ module.exports = {
 			if (request.auth.isAuthenticated) {
 
 				var gPlus = request.auth.credentials;
+				console.dir(gPlus);
+				var username = gPlus.profile.displayName || gPlus.profile.email.replace(/@.+/,'') + (Math.random()*100).toFixed(0);
 				var profile = {
-					username 	: gPlus.profile.displayName,
+					username 	: username,
 					email 		: gPlus.profile.email,
 					picture 	: gPlus.profile.raw.picture,
 				};
@@ -36,22 +38,44 @@ module.exports = {
 				console.log('Profile:');
 				console.dir(profile);
 				// look up in database
-				members.search( { query: {"email": profile.email }}, function( error, member ){
-					if ( error ) {
-						console.log( error );
-						return reply.redirect( '/displayname' );
+				members.findMemberByEmail( profile.email, function( error, member ){
+					console.log('Looking up member');
+					if( error ) {
+						console.error( error );
+						request.auth.session.clear();
+						return reply.redirect( '/login' );
 					}
-					else if ( !member.displayName ) {
-						console.log( 'Member needs to provide displayname details' );
-						return reply.redirect( '/displayname' );
-					}
-					else {
+					else if (member) {
 						console.log('Found member:');
 						console.dir(member);
 						profile.permissions = member.permissions;
 						request.auth.session.clear();
 						request.auth.session.set(profile);
 						return reply.redirect('/');
+					}
+					else {
+						console.log('Member not found, adding to db');
+						var newMember = {
+							username: profile.username,
+							email: profile.email,
+							permissions: 'publisher'
+						};
+						members.addMember(newMember, function(err, member){
+							if (err) {
+								console.error(err);
+								console.log('Failed to add new member');
+								request.auth.session.clear();
+								return reply.redirect( '/login' );
+							}
+							else {
+								console.log('New member added to db');
+								console.dir(member);
+								profile.permissions = member.permissions;
+								request.auth.session.clear();
+								request.auth.session.set(profile);
+								return reply.redirect('/');
+							}
+						});
 					}
 				});
 			}
@@ -68,13 +92,6 @@ module.exports = {
 		}
 	},
 
-	displayname: {
-		handler: function ( request, reply ){
-			var credentials = request.auth.credentials;
-			return reply.view( 'displayname.jade' );
-		}
-	},
-
 	homeView: {
 		handler: function (request, reply ){
 			fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, sessionId){
@@ -88,14 +105,15 @@ module.exports = {
 					if( gPlus ) {
 						var userPermissions = gPlus.permissions;
 						console.log( "Permissions: " + userPermissions);
-						if( permissions.indexOf( userPermissions ) === -1 ){
+						console.log( "TokBox Role: " + permissions[ userPermissions]);
+						if( permissions[ userPermissions ] === undefined ){
 							return reply.view('invalidUser', { error: "You do not have valid permissions" });
 						}
 
 						var token = opentok.generateToken(sessionId,({
-						  role :       userPermissions,
+						  role :       permissions[userPermissions ],
 						  expireTime : (new Date().getTime() / 1000)+ 60*60, // in one hour
-						  data :       JSON.stringify( { "username" : gPlus.username, "permissions" : gPlus.permissions } )
+						  data :       JSON.stringify( { "username" : gPlus.username, "permissions" : userPermissions } )
 						}));
 						console.log('Token: ', token);
 
@@ -105,6 +123,12 @@ module.exports = {
 						else if( userPermissions === 'publisher'){
 							return reply.view('mummies', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: gPlus.username });
 						}
+						else if( userPermissions === 'administrator' ){
+							members.findAll( function( err, members ) {
+								console.dir( members );
+								return reply.view( 'admin_panel', {apiKey: config.openTok.key, members: members, sessionId: sessionId, token: token, permissions: permissions, username:gPlus.username});
+							});
+						}
 					}
 					else{
 						return reply.view('invalidUser', { error: "You are not an authorized user" });
@@ -113,4 +137,26 @@ module.exports = {
 			});
 		}
 	},
+
+	memberUpdate  : {
+		handler : function( request, reply ) {
+			var alert;
+			console.dir( request.payload );
+			var data = request.payload.data;
+			members.updateMember( { query: { username: data.username, email: data.email },
+									update: {permissions: data.permissions }
+								  }, function( error, result ) {
+										if( error ) {
+											console.log( error );
+											alert =  error;
+										}
+										return reply.view( 'admin_panel', { apiKey: config.openTok.key,
+												members: members,
+												/*sessionId: sessionId,
+												token: token,
+												permissions: permissions,*/
+												username: data.username, alert: alert });
+								  });
+		}
+	}
 };

@@ -2,22 +2,43 @@ body, html, .container-fluid, .publisher, .subscriber {
 	height:100%;
 }
 
+
 .row {
+	height: 30%;
+}
+
+
+.videoRow {
 	height:50%;
 }
 
-.admin,.publisher{
+.mummies {
 	height: 100%;
-	padding-right: 1px;
+	overflow-y: scroll;
 }
 
-.participants{
+#mummies-list {
 	height: 100%;
+}
+
+/*Classes to style mummy list entries*/
+.selected {
+	color: white;
 	background-color: black;
 }
 
-.cb-enable, .cb-disable, .cb-enable span, .cb-disable span {
-	background: url(switch.gif) repeat-x;
-	display: block;
-	float: left; }
+.active {
+	color: green;
+}
+
+.moderator {
+	color: red;
+}
+
+.moderator.active {
+	color: purple;
+}
+
+.muted {
+
 }

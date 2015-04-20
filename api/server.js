@@ -62,7 +62,7 @@ var goodOptions = {
 	opsInterval: 60 * 1000,
 	reporters: [{
 		reporter: require('good-console'),
-		events: {ops: '*', log: '*', error: '*', response: '*'}
+		events: {log: '*', error: '*', response: '*'}
 	}]
 };
 
