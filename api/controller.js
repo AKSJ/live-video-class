@@ -6,7 +6,7 @@ var config 	= require('./config');
 var opentok = require('./opentok');
 var members = require('./models/members.js');
 
-var permissions = [ 'moderator', 'publisher' ];
+var permissions = { "moderator" : "moderator", "publisher":"publisher", "administrator": "moderator" };
 module.exports = {
 
 	serveFile: {
@@ -33,6 +33,8 @@ module.exports = {
 					email 		: gPlus.profile.email,
 					picture 	: gPlus.profile.raw.picture,
 				};
+				request.auth.session.clear();
+				request.auth.session.set(profile);
 				console.log('Profile:');
 				console.dir(profile);
 				// look up in database
@@ -103,14 +105,15 @@ module.exports = {
 					if( gPlus ) {
 						var userPermissions = gPlus.permissions;
 						console.log( "Permissions: " + userPermissions);
-						if( permissions.indexOf( userPermissions ) === -1 ){
+						console.log( "TokBox Role: " + permissions[ userPermissions]);
+						if( permissions[ userPermissions ] === undefined ){
 							return reply.view('invalidUser', { error: "You do not have valid permissions" });
 						}
 
 						var token = opentok.generateToken(sessionId,({
-						  role :       userPermissions,
+						  role :       permissions[userPermissions ],
 						  expireTime : (new Date().getTime() / 1000)+ 60*60, // in one hour
-						  data :       JSON.stringify( { "username" : gPlus.username, "permissions" : gPlus.permissions } )
+						  data :       JSON.stringify( { "username" : gPlus.username, "permissions" : userPermissions } )
 						}));
 						console.log('Token: ', token);
 
@@ -120,6 +123,12 @@ module.exports = {
 						else if( userPermissions === 'publisher'){
 							return reply.view('mummies', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: gPlus.username });
 						}
+						else if( userPermissions === 'administrator' ){
+							members.findAll( function( err, members ) {
+								console.dir( members );
+								return reply.view( 'admin_panel', {apiKey: config.openTok.key, members: members, sessionId: sessionId, token: token, permissions: permissions, username:gPlus.username});
+							});
+						}
 					}
 					else{
 						return reply.view('invalidUser', { error: "You are not an authorized user" });
@@ -128,4 +137,26 @@ module.exports = {
 			});
 		}
 	},
+
+	memberUpdate  : {
+		handler : function( request, reply ) {
+			var alert;
+			console.dir( request.payload );
+			var data = request.payload.data;
+			members.updateMember( { query: { username: data.username, email: data.email },
+									update: {permissions: data.permissions }
+								  }, function( error, result ) {
+										if( error ) {
+											console.log( error );
+											alert =  error;
+										}
+										return reply.view( 'admin_panel', { apiKey: config.openTok.key,
+												members: members,
+												/*sessionId: sessionId,
+												token: token,
+												permissions: permissions,*/
+												username: data.username, alert: alert });
+								  });
+		}
+	}
 };

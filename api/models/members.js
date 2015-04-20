@@ -2,13 +2,23 @@ var mongoose 	= require("mongoose");
 var schema 		= require("./schema.js");
 var Member		= schema.Member;
 
+exports.findAll = function( callback ) {
+	Member.find(function( err, result ) {
+		if( err ) {
+			callback( err );
+		}
+		else {
+			return callback(null, result);
+		}
+	});
+};
 // sample params: 	{ 	query: {'email': 'foo'},
 // 		optional ----->	filter: {'permissions': 1, 'username':1, _id': 0}
 // 					}
-exports.search = function(params, onComplete) {
+exports.search = function(params, callback) {
 	// NB - Probably want find rather than findOne for general search
 	if (params.filter) {
-		Member.findOne(params.query, params.filter, function(err, result){
+		Member.find(params.query, params.filter, function(err, result){
 			if (err) {
 				return onComplete(err);
 			}
@@ -16,7 +26,7 @@ exports.search = function(params, onComplete) {
 		});
 	}
 	else {
-		Member.findOne(params.query, function(err, result){
+		Member.find(params.query, function(err, result){
 			if (err) {
 				return onComplete(err);
 			}
@@ -45,5 +55,17 @@ exports.addMember = function(newMember, callback) {
 		}
 		else
 			return callback(null, member);
+	});
+};
+
+// sample params: 	{ 	query: {'email': 'foo'},
+// 		   				update: {'permissions': 'moderator'}
+//
+exports.updateMember= function( params, callback ) {
+	Member.findOneAndUpdate(params.query, params.update, function(err, result) {
+		if (err) {
+			return callback(err);
+		}
+		return callback(null, result);
 	});
 };

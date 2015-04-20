@@ -1,0 +1,43 @@
+extends ./layouts/default.jade
+
+//- NB- The full stop on line 5 is VERY IMPORTANT
+append head
+	link(href='/css/main.css', rel='stylesheet' type='text/css')
+	script(type='text/javascript').
+		var apiKey = '#{apiKey}'
+		var sessionId = '#{sessionId}'
+		var token = '#{token}'
+		var permissions = '#{permissions}'
+		var username = '#{username}'
+	script(src='/scripts/admin.js')
+
+block navbar
+	include ./includes/admin_navbar.jade
+
+permTypes = ["moderator", "publisher", "administrator"];
+
+block content
+	.container
+			h2 Member Administration Page
+			//- p
+			//- 	The .table-responsive class creates a responsive table which will scroll horizontally on small devices (under 768px). When viewing on anything larger than 768px wide, there is no difference:
+			.table-responsive
+				table.table.table-striped.table-bordered.table-hover.table-condensed
+					thead
+						tr
+							th Username
+							th Email
+							th Permissions
+					tbody
+						each member in members
+							tr
+								td(class=member.id + " username") #{member.username}
+								td.email(class=member.id + " email") #{member.email}
+								td(class=member.id + " permissions")
+									.form-group
+										select.form-control.selectpermissions
+											option(selected="selected") #{member.permissions}
+											//- each perm in permTypes
+											option moderator
+											option publisher
+											option administrator

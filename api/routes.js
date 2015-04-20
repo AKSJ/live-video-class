@@ -6,4 +6,6 @@ module.exports = [
 	{path: '/', 						method: 'GET', 		config: controller.homeView},
 	{path: '/login', 					method: 'GET', 		config: controller.login},
 	{path: '/logout', 					method: 'GET', 		config: controller.logout},
+
+	{path: '/api/memberupdate',			method: 'POST',		config: controller.memberUpdate},
 ];
