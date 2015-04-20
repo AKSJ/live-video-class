@@ -147,15 +147,17 @@ module.exports = {
 								  }, function( error, result ) {
 										if( error ) {
 											console.log( error );
-											alert =  error;
+
+
+											return reply.view( 'admin_panel', { apiKey: config.openTok.key,
+													members: members,
+													/*sessionId: sessionId,
+													token: token,
+													permissions: permissions,*/
+													username: data.username,
+													error : error });
 										}
-										return reply.view( 'admin_panel', { apiKey: config.openTok.key,
-												members: members,
-												/*sessionId: sessionId,
-												token: token,
-												permissions: permissions,*/
-												username: data.username,
-												error : alert });
+										return reply.redirect("/");
 								  });
 		}
 	}
