@@ -191,10 +191,10 @@ module.exports = {
 							data : 			JSON.stringify( { "username" : username, "permissions" : userPermissions, role: tokBoxRole } )
 						}));
 						console.log('Token: ', token);
-						if( permissions === 'moderator' ) {
+						if( userPermissions === 'moderator' ) {
 							return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username });
 						}
-						else if( permissions === 'publisher'){
+						else if( userPermissions === 'publisher'){
 							return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username });
 						}
 						else if( userPermissions === 'administrator' ){
