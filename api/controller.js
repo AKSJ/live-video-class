@@ -27,7 +27,7 @@ module.exports = {
 
 				var gPlus = request.auth.credentials;
 				console.dir(gPlus);
-				var username = gPlus.profile.displayName || gPlus.profile.email.replace(/@.+/,'') + (Math.random()*100).toFixed(0);
+				var username = gPlus.profile.displayName || gPlus.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
 				var profile = {
 					username 	: username,
 					email 		: gPlus.profile.email,
