@@ -40,6 +40,14 @@ server.register([Bell, Cookie], function (err) {
 		clientSecret: config.google.cSecret
 	});
 
+	server.auth.strategy('facebook', 'bell', {
+		provider: 'facebook',
+		password: config.facebook.secret,
+		isSecure: false,
+		clientId: config.facebook.cKey,
+		clientSecret: config.facebook.cSecret
+	});
+
 
 	server.views({
 		engines: {

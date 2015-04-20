@@ -15,6 +15,7 @@ $(function() {
     $.post("/api/memberupdate", {data: payload}, function(result){
         // $("span").html(result);
         console.log( result );
+        window.location.reload(true);
     });
   });
 
