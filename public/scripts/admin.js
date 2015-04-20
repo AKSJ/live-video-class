@@ -16,7 +16,6 @@ $(function() {
         // $("span").html(result);
         console.log( result );
     });
-    // });
   });
 
 });

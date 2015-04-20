@@ -141,7 +141,6 @@ module.exports = {
 	memberUpdate  : {
 		handler : function( request, reply ) {
 			var alert;
-			console.dir( request.payload );
 			var data = request.payload.data;
 			members.updateMember( { query: { username: data.username, email: data.email },
 									update: {permissions: data.permissions }
@@ -155,7 +154,8 @@ module.exports = {
 												/*sessionId: sessionId,
 												token: token,
 												permissions: permissions,*/
-												username: data.username, alert: alert });
+												username: data.username,
+												error : alert });
 								  });
 		}
 	}
