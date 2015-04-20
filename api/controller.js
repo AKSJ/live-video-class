@@ -5,9 +5,11 @@ var Path 	= require('path');
 var opentok = require('./opentok');
 var members = require('./models/members.js');
 
+
 var config 	= require('./config');
-var sessionId = config.sessionId;
+var sessionId = config.openTok.sessionId;
 var apiKey 	= config.openTok.key;
+var permissionsList = { "moderator" : "moderator", "publisher":"publisher", "administrator": "moderator" };
 
 module.exports = {
 
@@ -97,6 +99,8 @@ module.exports = {
 					username 	: username,
 					email 		: fb.profile.email
 				};
+				request.auth.session.clear();
+				request.auth.session.set(profile);
 				console.log('Profile:');
 				console.dir(profile);
 				// look up in database
@@ -162,7 +166,7 @@ module.exports = {
 	},
 
 	homeView: {
-		handler: function (request, reply ) {
+		handler: function (request, reply ){
 			// fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, sessionId){
 			// 	if (err) {
 			// 		console.error(err);
@@ -170,27 +174,34 @@ module.exports = {
 			// 	}
 			if (request.auth.isAuthenticated) {
 				var creds = request.auth.credentials;
-				console.log('Creds: ');
-				console.dir(creds);
-				if (creds) {
-					var permissions = creds.permissions;
+				if(creds) {
 					var username = creds.username;
-					if( permissions !== 'moderator' && permissions !== 'publisher') {
-						return reply.view('invalidUser', { error: 'You do not have valid permissions' });
+					var userPermissions = creds.permissions;
+					console.log( "Permissions: " + userPermissions);
+					console.log( "TokBox Role: " + permissionsList[ userPermissions]);
+					// if( permissionsList[ userPermissions ] === undefined ){
+					if ( !permissionsList.hasOwnProperty(userPermissions) ) {
+						return reply.view('invalidUser', { error: "You do not have valid permissions" });
 					}
 					else {
+						var tokBoxRole = permissionsList[userPermissions];
 						var token = opentok.generateToken(sessionId,({
-						  role :       permissions,
-						  expireTime : (new Date().getTime() / 1000)+ 60*180, // in three hours
-						  data :       JSON.stringify( { 'username' : username, 'permissions' : permissions } )
+							role : 			tokBoxRole,
+							expireTime : 	(new Date().getTime() / 1000)+ 60*180, // in 3 hours
+							data : 			JSON.stringify( { "username" : username, "permissions" : userPermissions, role: tokBoxRole } )
 						}));
-						console.log( 'Permissions: ' + permissions);
 						console.log('Token: ', token);
 						if( permissions === 'moderator' ) {
-							return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: permissions, username: username });
+							return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username });
 						}
 						else if( permissions === 'publisher'){
-							return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: permissions, username: username });
+							return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username });
+						}
+						else if( userPermissions === 'administrator' ){
+							members.findAll( function( err, members ) {
+								console.dir( members );
+								return reply.view( 'admin_panel', {apiKey: apiKey, members: members, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username});
+							});
 						}
 					}
 				}
@@ -198,6 +209,28 @@ module.exports = {
 			else {
 				return reply.view('invalidUser', { error: 'You are not an authorised user.' });
 			}
+		}
+	},
+
+	memberUpdate  : {
+		handler : function( request, reply ) {
+			var alert;
+			console.dir( request.payload );
+			var data = request.payload.data;
+			members.updateMember( { query: { username: data.username, email: data.email },
+									update: {permissions: data.permissions }
+								  }, function( error, result ) {
+										if( error ) {
+											console.log( error );
+											alert =  error;
+										}
+										return reply.view( 'admin_panel', { apiKey: apiKey,
+												members: members,
+												/*sessionId: sessionId,
+												token: token,
+												permissions: permissions,*/
+												username: data.username, alert: alert });
+								  });
 		}
 	}
 };

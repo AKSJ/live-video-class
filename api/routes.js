@@ -7,5 +7,6 @@ module.exports = [
 	{path: '/login/facebook', 			method: 'GET', 		config: controller.loginFacebook},
 	{path: '/login/google', 			method: 'GET', 		config: controller.loginGoogle},
 	{path: '/logout', 					method: 'GET', 		config: controller.logout},
-	{path: '/loggedout',				method: 'GET',		config: controller.loggedoutView}
+	{path: '/loggedout',				method: 'GET',		config: controller.loggedoutView},
+	{path: '/api/memberupdate',			method: 'POST',		config: controller.memberUpdate}
 ];
