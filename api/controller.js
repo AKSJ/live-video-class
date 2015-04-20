@@ -7,6 +7,7 @@ var members = require('./models/members.js');
 
 var config 	= require('./config');
 var sessionId = config.sessionId;
+var apiKey 	= config.openTok.key;
 
 module.exports = {
 
@@ -19,6 +20,7 @@ module.exports = {
 		}
 	},
 
+// TODO remove google auth and route etc. for production.
 	loginGoogle: {
 		 auth: {
 			strategy: 'google'
@@ -30,8 +32,7 @@ module.exports = {
 				var username = gPlus.profile.displayName || gPlus.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
 				var profile = {
 					username 	: username,
-					email 		: gPlus.profile.email,
-					picture 	: gPlus.profile.raw.picture,
+					email 		: gPlus.profile.email
 				};
 				console.log('Profile:');
 				console.dir(profile);
@@ -58,7 +59,7 @@ module.exports = {
 							email: profile.email,
 							permissions: 'publisher'
 						};
-						members.addMember(newMember, function(err, member){
+						members.addMember(newMember, function(err, newMember){
 							if (err) {
 								console.error(err);
 								console.log('Failed to add new member');
@@ -67,8 +68,8 @@ module.exports = {
 							}
 							else {
 								console.log('New member added to db');
-								console.dir(member);
-								profile.permissions = member.permissions;
+								console.dir(newMember);
+								profile.permissions = newMember.permissions;
 								request.auth.session.clear();
 								request.auth.session.set(profile);
 								return reply.redirect('/');
@@ -91,59 +92,58 @@ module.exports = {
 			if (request.auth.isAuthenticated) {
 				var fb = request.auth.credentials;
 				console.dir(fb);
-			// 	var username = fb.profile.displayName || fb.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
-			// 	var profile = {
-			// 		username 	: username,
-			// 		email 		: fb.profile.email,
-			// 		picture 	: fb.profile.raw.picture,
-			// 	};
-			// 	console.log('Profile:');
-			// 	console.dir(profile);
-			// 	// look up in database
-			// 	members.findMemberByEmail( profile.email, function( error, member ){
-			// 		console.log('Looking up member');
-			// 		if( error ) {
-			// 			console.error( error );
-			// 			request.auth.session.clear();
-			// 			return reply.redirect( '/loggedout' );
-			// 		}
-			// 		else if (member) {
-			// 			console.log('Found member:');
-			// 			console.dir(member);
-			// 			profile.permissions = member.permissions;
-			// 			request.auth.session.clear();
-			// 			request.auth.session.set(profile);
-			// 			return reply.redirect('/');
-			// 		}
-			// 		else {
-			// 			console.log('Member not found, adding to db');
-			// 			var newMember = {
-			// 				username: profile.username,
-			// 				email: profile.email,
-			// 				permissions: 'publisher'
-			// 			};
-			// 			members.addMember(newMember, function(err, member){
-			// 				if (err) {
-			// 					console.error(err);
-			// 					console.log('Failed to add new member');
-			// 					request.auth.session.clear();
-			// 					return reply.redirect( '/loggedout' );
-			// 				}
-			// 				else {
-			// 					console.log('New member added to db');
-			// 					console.dir(member);
-			// 					profile.permissions = member.permissions;
-			// 					request.auth.session.clear();
-			// 					request.auth.session.set(profile);
-			// 					return reply.redirect('/');
-			// 				}
-			// 			});
-			// 		}
-			// 	});
-			// }
-			// else {
-			// 	return reply.redirect('/loggedout');
-			// }
+				var username = fb.profile.displayName || fb.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
+				var profile = {
+					username 	: username,
+					email 		: fb.profile.email
+				};
+				console.log('Profile:');
+				console.dir(profile);
+				// look up in database
+				members.findMemberByEmail( profile.email, function( error, member ){
+					console.log('Looking up member');
+					if( error ) {
+						console.error( error );
+						request.auth.session.clear();
+						return reply.redirect( '/loggedout' );
+					}
+					else if (member) {
+						console.log('Found member:');
+						console.dir(member);
+						profile.permissions = member.permissions;
+						request.auth.session.clear();
+						request.auth.session.set(profile);
+						return reply.redirect('/');
+					}
+					else {
+						console.log('Member not found, adding to db');
+						var newMember = {
+							username: profile.username,
+							email: profile.email,
+							permissions: 'publisher'
+						};
+						members.addMember(newMember, function(err, newMember){
+							if (err) {
+								console.error(err);
+								console.log('Failed to add new member');
+								request.auth.session.clear();
+								return reply.redirect( '/loggedout' );
+							}
+							else {
+								console.log('New member added to db');
+								console.dir(newMember);
+								profile.permissions = newMember.permissions;
+								request.auth.session.clear();
+								request.auth.session.set(profile);
+								return reply.redirect('/');
+							}
+						});
+					}
+				});
+			}
+			else {
+				return reply.redirect('/loggedout');
+			}
 		}
 	},
 
@@ -162,7 +162,7 @@ module.exports = {
 	},
 
 	homeView: {
-		handler: function (request, reply ){
+		handler: function (request, reply ) {
 			// fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, sessionId){
 			// 	if (err) {
 			// 		console.error(err);
@@ -170,24 +170,28 @@ module.exports = {
 			// 	}
 			if (request.auth.isAuthenticated) {
 				var creds = request.auth.credentials;
-				if( creds ) {
-					var userPermissions = creds.permissions;
-					if( permissions !== 'moderator' || permissions !== 'publisher'){
+				console.log('Creds: ');
+				console.dir(creds);
+				if (creds) {
+					var permissions = creds.permissions;
+					var username = creds.username;
+					if( permissions !== 'moderator' && permissions !== 'publisher') {
 						return reply.view('invalidUser', { error: 'You do not have valid permissions' });
 					}
-
-					var token = opentok.generateToken(sessionId,({
-					  role :       userPermissions,
-					  expireTime : (new Date().getTime() / 1000)+ 60*180, // in three hours
-					  data :       JSON.stringify( { 'username' : creds.username, 'permissions' : creds.permissions } )
-					}));
-					console.log( 'Permissions: ' + userPermissions);
-					console.log('Token: ', token);
-					if( userPermissions === 'moderator' ) {
-						return reply.view('instructor', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: creds.username });
-					}
-					else if( userPermissions === 'publisher'){
-						return reply.view('mummies', {apiKey: config.openTok.key, sessionId: sessionId, token: token, permissions: permissions, username: creds.username });
+					else {
+						var token = opentok.generateToken(sessionId,({
+						  role :       permissions,
+						  expireTime : (new Date().getTime() / 1000)+ 60*180, // in three hours
+						  data :       JSON.stringify( { 'username' : username, 'permissions' : permissions } )
+						}));
+						console.log( 'Permissions: ' + permissions);
+						console.log('Token: ', token);
+						if( permissions === 'moderator' ) {
+							return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: permissions, username: username });
+						}
+						else if( permissions === 'publisher'){
+							return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: permissions, username: username });
+						}
 					}
 				}
 			}
@@ -195,5 +199,5 @@ module.exports = {
 				return reply.view('invalidUser', { error: 'You are not an authorised user.' });
 			}
 		}
-	},
+	}
 };
