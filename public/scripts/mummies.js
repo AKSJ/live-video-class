@@ -9,12 +9,8 @@ console.log("Username: " + username );
 console.log("Permissions: " + permissions );
 
 var publisher;
-var moderator = {};
-var streamCount = 0;
-var activeStreams = [];
-var activeStreamIds = [];
-var inactiveStreams = [];
-var inactiveStreamIds = [];
+var moderatorLive = false;
+var moderators = [];
 var subscribers = {};
 
 // Initialize a Publisher, and place it into the element with id="publisher"
@@ -64,6 +60,11 @@ session.on({
 					}
 				});
 			}
+			else {
+				// Store any subsequent moderators in case the live moderator stream is destroyed.
+				// These moderators would become the moderator when the current live moderator disconnects.
+				moderators.push( event.stream );
+			}
 		}
 		else {
 			console.log( "New stream is for a publisher so ignore");
@@ -76,6 +77,18 @@ session.on({
 		var streamData = event.stream.connection.data;
 		if( streamData.permissions === "moderator" ) {
 			moderatorLive = false;
+			if( moderators.length ) {
+				var moderatorStream = moderators.shift();
+				$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
+				subscribers[moderatorStream.streamId] = session.subscribe( moderatorStream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
+					if( error ) {
+						console.log( "Error subscribing to moderator stream");
+					}
+					else {
+						moderatorLive = true;
+					}
+				});
+			}
 		}
 	}
 });
