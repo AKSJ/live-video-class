@@ -196,6 +196,7 @@ session.on({
 		addSubscriber(newStream);
 	},
 
+	// TODO: Does default behaviour trigger AFTER callback? refactor if so
 	streamDestroyed: function(event) {
 		// Not currently unsubscribing, as default behaviour should handle that.
 		var destroyedStreamId = event.stream.streamId;
@@ -217,6 +218,11 @@ session.on({
 	connectionDestroyed: function(event) {
 		removeMummy(event);
 		sortMummies();
+	},
+	// TEST - can session listen for subscriber destroyed events?
+	destroyed: function(event) {
+		console.log('Subscriber destroyed:');
+		console.log(event);
 	}
 });
 
@@ -342,19 +348,21 @@ $('#getEmptySubscribers').click(function(){
 $('#kill').click(function(){
 	var mummyIdToKill = $('.selected').data('id');
 	var connectionIdToKill;
-	for (var streamId in streamData) {
-		if (streamData[streamId].id === mummyIdToKill) {
-			connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+	if (mummyIdToKill) {
+		for (var streamId in streamData) {
+			if (streamData[streamId].id === mummyIdToKill) {
+				connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+			}
 		}
+		session.forceDisconnect(connectionIdToKill, function(err){
+			if (err) {
+				console.log('Failed to kill conection');
+			}
+			else {
+				console.log('Killed '+ connectionIdToKill);
+			}
+		});
 	}
-	session.forceDisconnect(connectionIdToKill, function(err){
-		if (err) {
-			console.log('Failed to kill conection');
-		}
-		else {
-			console.log('Killed '+ connectionIdToKill);
-		}
-	});
 });
 
 $('#endClass').click(function(){
