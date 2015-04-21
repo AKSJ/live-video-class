@@ -77,7 +77,8 @@ module.exports = {
 				var username = gPlus.profile.displayName || gPlus.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
 				var profile = {
 					username 	: username,
-					email 		: gPlus.profile.email
+					email 		: gPlus.profile.email,
+					error 		: null
 				};
 				console.log('Profile:');
 				console.dir(profile);
@@ -100,7 +101,8 @@ module.exports = {
 				var username = fb.profile.displayName || fb.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
 				var profile = {
 					username 	: username,
-					email 		: fb.profile.email
+					email 		: fb.profile.email,
+					error 		: null
 				};
 				console.log('Profile:');
 				console.dir(profile);
@@ -160,14 +162,17 @@ module.exports = {
 							members.findAll( function( err, members ) {
 								if (err) {
 									error = (error ? error + '\n'+err : error = err);
+									if (request.auth.credentials.error) request.auth.session.set('error', null);
 									return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
 								}
 								else if (members) {
 									console.dir( members );
+									if (request.auth.credentials.error) request.auth.session.set('error', null);
 									return reply.view( 'admin_panel', { members: members, apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
 								}
 								else {
 									error = ( error ? error + '\nMembers not found' : 'Members not found');
+									if (request.auth.credentials.error) request.auth.session.set('error', null);
 									return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
 								}
 							});

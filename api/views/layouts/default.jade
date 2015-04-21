@@ -22,12 +22,11 @@ html
 			block navbar
 				include ../includes/navbar.jade
 
-			.container-fluid
-				include ../includes/alert.jade
+			include ../includes/alert.jade
 
-				block content
+			block content
 
-				block footer
-					script(src='/lib/bootstrap.min.js')
-					script(src='/scripts/main.js')
-					//- NB -as above, use 'append footer' to add anything page specific
+			block footer
+				script(src='/lib/bootstrap.min.js')
+				script(src='/scripts/main.js')
+				//- NB -as above, use 'append footer' to add anything page specific
