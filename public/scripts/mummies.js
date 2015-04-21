@@ -10,7 +10,7 @@ console.log('Permissions: ' + permissions );
 console.log("Role: " + role );
 
 var publisher;
-var liveModeratorStream = "";
+var liveModeratorStream;
 var moderators = [];
 var subscribers = {};
 
@@ -51,19 +51,24 @@ session.on({
 			// $('#publisher').wrap('<div id="streamModerator"></div>');
 			//$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
 			// $('#window').append('<div></div>').attr("id", "streamModerator");
+			console.dir( liveModeratorStream);
 			if( !liveModeratorStream ) {
+				console.log( 'No live moderator so subscribe to this new stream.');
 				subscribers[streamId] = session.subscribe( event.stream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
 					if( error ) {
 						console.log( "Error subscribing to moderator stream");
 					}
 					else {
+						console.log( 'Subscribing to new moderator');
 						liveModeratorStream = event.stream;
+						console.log( liveModeratorStream );
 					}
 				});
 			}
 			else {
 				// Store any subsequent moderators in case the live moderator stream is destroyed.
 				// These moderators would become the moderator when the current live moderator disconnects.
+				console.log( 'Stream created event for another moderator');
 				moderators.push( event.stream );
 			}
 		}
@@ -76,10 +81,15 @@ session.on({
 		// Default behaviour will unsubscribe by default, if subscribed
 		console.log( "Stream Destroyed reason: " + event.reason );
 		console.log( event );
-		var connectionData = event.stream.connection.data;
+		var connectionData = JSON.parse(event.stream.connection.data);
 		var stream = event.stream;
-		if( connectionData.permissions === "moderator"  && liveModeratorStream === stream.streamId) {
-			liveModeratorStream = "";
+		console.dir( stream );
+		console.log( "Live Moderator Stream: ");
+		console.dir( liveModeratorStream );
+		if( connectionData.permissions === "moderator"  && liveModeratorStream.streamId === stream.streamId) {
+			console.log( 'Lead moderator has disconnected, connect to any other moderators available' );
+			liveModeratorStream = null;
+			console.log( moderators );
 			if( moderators.length ) {
 				var moderatorStream = moderators.shift();
 				$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
@@ -88,9 +98,15 @@ session.on({
 						console.log( "Error subscribing to moderator stream");
 					}
 					else {
+						console.log( 'Subscribed to another moderator');
 						liveModeratorStream = moderatorStream;
+						console.dir( liveModeratorStream );
 					}
 				});
+			}
+			else{
+				console.log( 'No other moderators to connect to.');
+				console.dir( liveModeratorStream );
 			}
 		}
 		// ??? This could be in the if statement above, but put it out here so clean up happens even if something else goes wrong

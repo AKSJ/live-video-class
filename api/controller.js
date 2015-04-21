@@ -130,11 +130,6 @@ module.exports = {
 
 	homeView: {
 		handler: function (request, reply ){
-			// fs.readFile(Path.join(__dirname, '../sessionId.txt'), {encoding: 'utf-8'}, function(err, sessionId){
-			// 	if (err) {
-			// 		console.error(err);
-			// 		return reply.view('invalidSession', {error:err});
-			// 	}
 			if (request.auth.isAuthenticated) {
 				var creds = request.auth.credentials;
 				if(creds) {
@@ -145,7 +140,6 @@ module.exports = {
 					console.log( 'Username: ' + username );
 					console.log( 'Permissions: ' + userPermissions);
 					console.log( 'TokBox Role: ' + permissionsList[ userPermissions]);
-					// if( permissionsList[ userPermissions ] === undefined ){
 					if ( !permissionsList.hasOwnProperty(userPermissions) ) {
 						return reply.view('invalidUser', { error: 'You do not have valid permissions' });
 					}
@@ -157,12 +151,11 @@ module.exports = {
 							data : 			JSON.stringify( { 'username' : username, 'permissions' : userPermissions, role: tokBoxRole } )
 						}));
 						console.log('Token: ', token);
+						request.auth.session.set('error', null);
 						if( userPermissions === 'moderator' ) {
-							request.auth.session.set('error', null);
 							return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 						}
 						else if( userPermissions === 'publisher'){
-							request.auth.session.set('error', null);
 							return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 						}
 						else if( userPermissions === 'administrator' ){
@@ -184,10 +177,15 @@ module.exports = {
 								}
 							});
 						}
+						else{
+							request.auth.session.set( 'error', 'Your user permissions are invalid: ' + userPermissions );
+						}
 					}
 				}
 			}
 			else {
+				console.log( 'You are not authorised');
+
 				return reply.view('invalidUser', { error: 'You are not an authorised user.' });
 			}
 		}
@@ -204,21 +202,11 @@ module.exports = {
 											console.error( error );
 											request.auth.session.set('error', error); //TODO don't pass raw errors to user
 											return request.redirect('/');
-											// return reply.view( 'admin_panel', { apiKey: config.openTok.key,
-											// 		members: members,
-											// 		sessionId: sessionId,
-											// 		token: token,
-											// 		permissions: permissions,
-											// 		username: data.username,
-											// 		error : error });
 										}
 										else {
 											// update credentials if current user has had permissions changed
 											var creds = request.auth.credentials;
 											if( creds.username === data.username ) {
-												// creds.permissions = data.permissions;
-												// request.auth.session.clear();
-												// ??? Better just to change the permissions field?
 												request.auth.session.set('permissions', data.permissions);
 												return reply.redirect('/');
 											}
