@@ -358,11 +358,12 @@ $('#kill').click(function(){
 });
 
 $('#endClass').click(function(){
-	// kick off all mummies
+	// confirmation dialogue
 	var end = confirm('Are you sure you want to end the class?\nEverybody will be disconnected.');
 
 	if (end) {
 		for (var streamId in streamData) {
+			// kick off all mummies
 			var connectionIdToKill = streamData[streamId].stream.connection.connectionId;
 			session.forceDisconnect(connectionIdToKill, function(err){
 				if (err) {
@@ -376,6 +377,10 @@ $('#endClass').click(function(){
 		// disconnect self
 		session.disconnect();
 	}
+});
+
+$('#help').click(function(){
+	$('.help').toggleClass('hidden');
 });
 
 $(document).on('click', '.mummy', function(){
