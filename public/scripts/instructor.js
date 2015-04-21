@@ -214,6 +214,26 @@ session.on({
 			}
 		}
 	},
+	// Version of streamDestroyed with manual unsubscribe - for use if defualt behaviour turns out to execute after callback
+	// streamDestroyed : function(event) {
+	// 	event.preventDefault();
+	// 	var destroyedStream = event.stream;
+	// 	var destroyedStreamId = event.stream.streamId;
+	// 	var vacatedId;
+	// 	if (streamData.hasOwnProperty(destroyedStreamId) ) {
+	// 		vacatedId = streamData[destroyedStreamId].id;
+	// 		unsubscribe(destroyedStream);
+	// 		delete streamData[destroyedStreamId];
+	// 		// Find stream with max id and put it in the hole - this should reposition things nicely in DOM if no inactive streams
+	// 		for (var streamId in streamData) {
+	// 			if (streamData[streamId].id === maxId) {
+	// 				streamData[streamId].id = vacatedId;
+	// 				maxId-- ;
+	// 				addSubscriber(streamData[streamId].stream);
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	connectionDestroyed: function(event) {
 		removeMummy(event);
