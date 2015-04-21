@@ -178,15 +178,13 @@ module.exports = {
 
 	memberUpdate  : {
 		handler : function( request, reply ) {
-			var alert;
+			// var alert;
 			var data = request.payload.data;
 			members.updateMember( { query: { username: data.username, email: data.email },
 									update: {permissions: data.permissions }
 								  }, function( error, result ) {
 										if( error ) {
 											console.log( error );
-
-
 											return reply.view( 'admin_panel', { apiKey: config.openTok.key,
 													members: members,
 													/*sessionId: sessionId,
@@ -195,20 +193,26 @@ module.exports = {
 													username: data.username,
 													error : error });
 										}
-										// update credentials if current user has had permissions changed
-										var creds = request.auth.credentials;
-										if( creds.username === data.username ) {
-											creds.permissions = data.permissions;
-											request.auth.session.clear();
-											request.auth.session.set(creds);
-										}
-										return reply.redirect("/");
+										else {
+											// update credentials if current user has had permissions changed
+											var creds = request.auth.credentials;
+											if( creds.username === data.username ) {
+												// creds.permissions = data.permissions;
+												// request.auth.session.clear();
+												// ??? Better just to change the permissions field?
+												request.auth.session.set('permissions', data.permissions);
+												return reply.redirect("/");
+											}
+											else {
+												return reply.redirect("/");
+											}
 										// return reply.view( 'admin_panel', { apiKey: apiKey,
 										// 		members: members,
 										// 		sessionId: sessionId,
 										// 		token: token,
 										// 		permissions: permissions,
 										// 		username: data.username, alert: alert });
+										}
 								  });
 		}
 	}
