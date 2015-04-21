@@ -11,6 +11,49 @@ var sessionId = config.openTok.sessionId;
 var apiKey 	= config.openTok.key;
 var permissionsList = { "moderator" : "moderator", "publisher":"publisher", "administrator": "moderator" };
 
+findOrAddUser = function( request, reply, profile ) {
+	// look up in database and if not found, then add to the database as a publisher
+	members.findMemberByEmail( profile.email, function( error, member ){
+		console.log('Looking up member');
+		if( error ) {
+			console.error( error );
+			request.auth.session.clear();
+			return reply.redirect( '/loggedout' );
+		}
+		else if (member) {
+			console.log('Found member:');
+			console.dir(member);
+			profile.permissions = member.permissions;
+			request.auth.session.clear();
+			request.auth.session.set(profile);
+			return reply.redirect('/');
+		}
+		else {
+			console.log('Member not found, adding to db');
+			var newMember = {
+				username: profile.username,
+				email: profile.email,
+				permissions: 'publisher'
+			};
+			members.addMember(newMember, function(err, newMember){
+				if (err) {
+					console.error(err);
+					console.log('Failed to add new member');
+					request.auth.session.clear();
+					return reply.redirect( '/loggedout' );
+				}
+				else {
+					console.log('New member added to db');
+					console.dir(newMember);
+					profile.permissions = newMember.permissions;
+					request.auth.session.clear();
+					request.auth.session.set(profile);
+					return reply.redirect('/');
+				}
+			});
+		}
+	});
+};
 module.exports = {
 
 	serveFile: {
@@ -38,47 +81,7 @@ module.exports = {
 				};
 				console.log('Profile:');
 				console.dir(profile);
-				// look up in database
-				members.findMemberByEmail( profile.email, function( error, member ){
-					console.log('Looking up member');
-					if( error ) {
-						console.error( error );
-						request.auth.session.clear();
-						return reply.redirect( '/loggedout' );
-					}
-					else if (member) {
-						console.log('Found member:');
-						console.dir(member);
-						profile.permissions = member.permissions;
-						request.auth.session.clear();
-						request.auth.session.set(profile);
-						return reply.redirect('/');
-					}
-					else {
-						console.log('Member not found, adding to db');
-						var newMember = {
-							username: profile.username,
-							email: profile.email,
-							permissions: 'publisher'
-						};
-						members.addMember(newMember, function(err, newMember){
-							if (err) {
-								console.error(err);
-								console.log('Failed to add new member');
-								request.auth.session.clear();
-								return reply.redirect( '/loggedout' );
-							}
-							else {
-								console.log('New member added to db');
-								console.dir(newMember);
-								profile.permissions = newMember.permissions;
-								request.auth.session.clear();
-								request.auth.session.set(profile);
-								return reply.redirect('/');
-							}
-						});
-					}
-				});
+				return findOrAddUser( request, reply, profile );
 			}
 			else {
 				return reply.redirect('/loggedout');
@@ -103,47 +106,7 @@ module.exports = {
 				request.auth.session.set(profile);
 				console.log('Profile:');
 				console.dir(profile);
-				// look up in database
-				members.findMemberByEmail( profile.email, function( error, member ){
-					console.log('Looking up member');
-					if( error ) {
-						console.error( error );
-						request.auth.session.clear();
-						return reply.redirect( '/loggedout' );
-					}
-					else if (member) {
-						console.log('Found member:');
-						console.dir(member);
-						profile.permissions = member.permissions;
-						request.auth.session.clear();
-						request.auth.session.set(profile);
-						return reply.redirect('/');
-					}
-					else {
-						console.log('Member not found, adding to db');
-						var newMember = {
-							username: profile.username,
-							email: profile.email,
-							permissions: 'publisher'
-						};
-						members.addMember(newMember, function(err, newMember){
-							if (err) {
-								console.error(err);
-								console.log('Failed to add new member');
-								request.auth.session.clear();
-								return reply.redirect( '/loggedout' );
-							}
-							else {
-								console.log('New member added to db');
-								console.dir(newMember);
-								profile.permissions = newMember.permissions;
-								request.auth.session.clear();
-								request.auth.session.set(profile);
-								return reply.redirect('/');
-							}
-						});
-					}
-				});
+				return findOrAddUser( request, reply, profile );
 			}
 			else {
 				return reply.redirect('/loggedout');
@@ -177,6 +140,7 @@ module.exports = {
 				if(creds) {
 					var username = creds.username;
 					var userPermissions = creds.permissions;
+					console.log( "Username: " + username );
 					console.log( "Permissions: " + userPermissions);
 					console.log( "TokBox Role: " + permissionsList[ userPermissions]);
 					// if( permissionsList[ userPermissions ] === undefined ){
@@ -215,21 +179,36 @@ module.exports = {
 	memberUpdate  : {
 		handler : function( request, reply ) {
 			var alert;
-			console.dir( request.payload );
 			var data = request.payload.data;
 			members.updateMember( { query: { username: data.username, email: data.email },
 									update: {permissions: data.permissions }
 								  }, function( error, result ) {
 										if( error ) {
 											console.log( error );
-											alert =  error;
+
+
+											return reply.view( 'admin_panel', { apiKey: config.openTok.key,
+													members: members,
+													/*sessionId: sessionId,
+													token: token,
+													permissions: permissions,*/
+													username: data.username,
+													error : error });
 										}
-										return reply.view( 'admin_panel', { apiKey: apiKey,
-												members: members,
-												/*sessionId: sessionId,
-												token: token,
-												permissions: permissions,*/
-												username: data.username, alert: alert });
+										// update credentials if current user has had permissions changed
+										var creds = request.auth.credentials;
+										if( creds.username === data.username ) {
+											creds.permissions = data.permissions;
+											request.auth.session.clear();
+											request.auth.session.set(creds);
+										}
+										return reply.redirect("/");
+										// return reply.view( 'admin_panel', { apiKey: apiKey,
+										// 		members: members,
+										// 		sessionId: sessionId,
+										// 		token: token,
+										// 		permissions: permissions,
+										// 		username: data.username, alert: alert });
 								  });
 		}
 	}
