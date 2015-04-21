@@ -30,15 +30,16 @@ block content
 							th Email
 							th Permissions
 					tbody
-						each member in members
-							tr
-								td(class=member.id + " username") #{member.username}
-								td.email(class=member.id + " email") #{member.email}
-								td(class=member.id + " permissions")
-									.form-group
-										select.form-control.selectpermissions
-											option(selected="selected") #{member.permissions}
-											//- each perm in permTypes
-											option moderator
-											option publisher
-											option administrator
+						if members
+							each member in members
+								tr
+									td(class=member.id + " username") #{member.username}
+									td.email(class=member.id + " email") #{member.email}
+									td(class=member.id + " permissions")
+										.form-group
+											select.form-control.selectpermissions
+												option(selected="selected") #{member.permissions}
+												//- each perm in permTypes
+												option moderator
+												option publisher
+												option administrator
