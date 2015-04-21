@@ -9,7 +9,7 @@ var members = require('./models/members.js');
 var config 	= require('./config');
 var sessionId = config.openTok.sessionId;
 var apiKey 	= config.openTok.key;
-var permissionsList = { "moderator" : "moderator", "publisher":"publisher", "administrator": "moderator" };
+var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'administrator': 'moderator' };
 
 findOrAddUser = function( request, reply, profile ) {
 	// look up in database and if not found, then add to the database as a publisher
@@ -140,19 +140,19 @@ module.exports = {
 				if(creds) {
 					var username = creds.username;
 					var userPermissions = creds.permissions;
-					console.log( "Username: " + username );
-					console.log( "Permissions: " + userPermissions);
-					console.log( "TokBox Role: " + permissionsList[ userPermissions]);
+					console.log( 'Username: ' + username );
+					console.log( 'Permissions: ' + userPermissions);
+					console.log( 'TokBox Role: ' + permissionsList[ userPermissions]);
 					// if( permissionsList[ userPermissions ] === undefined ){
 					if ( !permissionsList.hasOwnProperty(userPermissions) ) {
-						return reply.view('invalidUser', { error: "You do not have valid permissions" });
+						return reply.view('invalidUser', { error: 'You do not have valid permissions' });
 					}
 					else {
 						var tokBoxRole = permissionsList[userPermissions];
 						var token = opentok.generateToken(sessionId,({
 							role : 			tokBoxRole,
 							expireTime : 	(new Date().getTime() / 1000)+ 60*180, // in 3 hours
-							data : 			JSON.stringify( { "username" : username, "permissions" : userPermissions, role: tokBoxRole } )
+							data : 			JSON.stringify( { 'username' : username, 'permissions' : userPermissions, role: tokBoxRole } )
 						}));
 						console.log('Token: ', token);
 						if( userPermissions === 'moderator' ) {
@@ -201,10 +201,10 @@ module.exports = {
 												// request.auth.session.clear();
 												// ??? Better just to change the permissions field?
 												request.auth.session.set('permissions', data.permissions);
-												return reply.redirect("/");
+												return reply.redirect('/');
 											}
 											else {
-												return reply.redirect("/");
+												return reply.redirect('/');
 											}
 										// return reply.view( 'admin_panel', { apiKey: apiKey,
 										// 		members: members,
