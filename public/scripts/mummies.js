@@ -73,8 +73,7 @@ session.on({
 	},
 
 	streamDestroyed: function (event) {
-		// TODO - clean up subscriber object on streamDestroyed
-
+		// Default behaviour will unsubscribe by default, if subscribed
 		console.log( "Stream Destroyed reason: " + event.reason );
 		console.log( event );
 		var connectionData = event.stream.connection.data;
@@ -93,6 +92,10 @@ session.on({
 					}
 				});
 			}
+		}
+		// ??? This could be in the if statement above, but put it out here so clean up happens even if something else goes wrong
+		if (subscribers.hasOwnProperty(stream.streamId) ) {
+			delete subscribers[stream.streamId];
 		}
 	}
 });

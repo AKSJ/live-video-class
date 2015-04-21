@@ -200,7 +200,7 @@ session.on({
 		// Not currently unsubscribing, as default behaviour should handle that.
 		var destroyedStreamId = event.stream.streamId;
 		var vacatedId;
-		if (streamData[destroyedStreamId]) {
+		if (streamData.hasOwnProperty(destroyedStreamId) ) {
 			vacatedId = streamData[destroyedStreamId].id;
 			delete streamData[destroyedStreamId];
 			// Find stream with max id and put it in the hole - this should reposition things nicely in DOM if no inactive streams
