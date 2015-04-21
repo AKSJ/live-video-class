@@ -143,6 +143,7 @@ module.exports = {
 					console.log( "Username: " + username );
 					console.log( "Permissions: " + userPermissions);
 					console.log( "TokBox Role: " + permissionsList[ userPermissions]);
+					// if( permissionsList[ userPermissions ] === undefined ){
 					if ( !permissionsList.hasOwnProperty(userPermissions) ) {
 						return reply.view('invalidUser', { error: "You do not have valid permissions" });
 					}
