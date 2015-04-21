@@ -9,7 +9,7 @@ var members = require('./models/members.js');
 var config 	= require('./config');
 var sessionId = config.openTok.sessionId;
 var apiKey 	= config.openTok.key;
-var permissionsList = { "moderator" : "moderator", "publisher":"publisher", "administrator": "moderator" };
+var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'administrator': 'moderator' };
 
 findOrAddUser = function( request, reply, profile ) {
 	// look up in database and if not found, then add to the database as a publisher
@@ -102,8 +102,6 @@ module.exports = {
 					username 	: username,
 					email 		: fb.profile.email
 				};
-				request.auth.session.clear();
-				request.auth.session.set(profile);
 				console.log('Profile:');
 				console.dir(profile);
 				return findOrAddUser( request, reply, profile );
@@ -138,33 +136,50 @@ module.exports = {
 			if (request.auth.isAuthenticated) {
 				var creds = request.auth.credentials;
 				if(creds) {
+					var error = null;
+					if (creds.error) error = creds.error;
 					var username = creds.username;
 					var userPermissions = creds.permissions;
-					console.log( "Username: " + username );
-					console.log( "Permissions: " + userPermissions);
-					console.log( "TokBox Role: " + permissionsList[ userPermissions]);
+					console.log( 'Username: ' + username );
+					console.log( 'Permissions: ' + userPermissions);
+					console.log( 'TokBox Role: ' + permissionsList[ userPermissions]);
 					// if( permissionsList[ userPermissions ] === undefined ){
 					if ( !permissionsList.hasOwnProperty(userPermissions) ) {
-						return reply.view('invalidUser', { error: "You do not have valid permissions" });
+						return reply.view('invalidUser', { error: 'You do not have valid permissions' });
 					}
 					else {
 						var tokBoxRole = permissionsList[userPermissions];
 						var token = opentok.generateToken(sessionId,({
 							role : 			tokBoxRole,
 							expireTime : 	(new Date().getTime() / 1000)+ 60*180, // in 3 hours
-							data : 			JSON.stringify( { "username" : username, "permissions" : userPermissions, role: tokBoxRole } )
+							data : 			JSON.stringify( { 'username' : username, 'permissions' : userPermissions, role: tokBoxRole } )
 						}));
 						console.log('Token: ', token);
 						if( userPermissions === 'moderator' ) {
-							return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username });
+							request.auth.session.set('error', null);
+							return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 						}
 						else if( userPermissions === 'publisher'){
-							return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username });
+							request.auth.session.set('error', null);
+							return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 						}
 						else if( userPermissions === 'administrator' ){
 							members.findAll( function( err, members ) {
-								console.dir( members );
-								return reply.view( 'admin_panel', {apiKey: apiKey, members: members, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username});
+								if (err) {
+									error = (error ? error + '\n'+err : error = err);
+									request.auth.session.set('error', null);
+									return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
+								}
+								else if (members) {
+									console.dir( members );
+									request.auth.session.set('error', null);
+									return reply.view( 'admin_panel', { members: members, apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
+								}
+								else {
+									error = ( error ? error + '\nMembers not found' : 'Members not found');
+									request.auth.session.set('error', null);
+									return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
+								}
 							});
 						}
 					}
@@ -178,37 +193,43 @@ module.exports = {
 
 	memberUpdate  : {
 		handler : function( request, reply ) {
-			var alert;
+			// var alert;
 			var data = request.payload.data;
 			members.updateMember( { query: { username: data.username, email: data.email },
 									update: {permissions: data.permissions }
 								  }, function( error, result ) {
 										if( error ) {
-											console.log( error );
-
-
-											return reply.view( 'admin_panel', { apiKey: config.openTok.key,
-													members: members,
-													/*sessionId: sessionId,
-													token: token,
-													permissions: permissions,*/
-													username: data.username,
-													error : error });
+											console.error( error );
+											request.auth.session.set('error', error); //TODO don't pass raw errors to user
+											return request.redirect('/');
+											// return reply.view( 'admin_panel', { apiKey: config.openTok.key,
+											// 		members: members,
+											// 		sessionId: sessionId,
+											// 		token: token,
+											// 		permissions: permissions,
+											// 		username: data.username,
+											// 		error : error });
 										}
-										// update credentials if current user has had permissions changed
-										var creds = request.auth.credentials;
-										if( creds.username === data.username ) {
-											creds.permissions = data.permissions;
-											request.auth.session.clear();
-											request.auth.session.set(creds);
-										}
-										return reply.redirect("/");
+										else {
+											// update credentials if current user has had permissions changed
+											var creds = request.auth.credentials;
+											if( creds.username === data.username ) {
+												// creds.permissions = data.permissions;
+												// request.auth.session.clear();
+												// ??? Better just to change the permissions field?
+												request.auth.session.set('permissions', data.permissions);
+												return reply.redirect('/');
+											}
+											else {
+												return reply.redirect('/');
+											}
 										// return reply.view( 'admin_panel', { apiKey: apiKey,
 										// 		members: members,
 										// 		sessionId: sessionId,
 										// 		token: token,
 										// 		permissions: permissions,
 										// 		username: data.username, alert: alert });
+										}
 								  });
 		}
 	}
