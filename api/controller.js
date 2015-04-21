@@ -156,15 +156,17 @@ module.exports = {
 						}));
 						console.log('Token: ', token);
 						if( userPermissions === 'moderator' ) {
+							request.auth.session.set('error', null);
 							return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 						}
 						else if( userPermissions === 'publisher'){
+							request.auth.session.set('error', null);
 							return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 						}
 						else if( userPermissions === 'administrator' ){
 							members.findAll( function( err, members ) {
 								if (err) {
-									error = (error ? error += '\n'+err : error = err);
+									error = (error ? error + '\n'+err : error = err);
 									request.auth.session.set('error', null);
 									return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
 								}
@@ -174,7 +176,7 @@ module.exports = {
 									return reply.view( 'admin_panel', { members: members, apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
 								}
 								else {
-									error = ( error ? error += '\nMembers not found' : 'Members not found');
+									error = ( error ? error + '\nMembers not found' : 'Members not found');
 									request.auth.session.set('error', null);
 									return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
 								}
