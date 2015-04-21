@@ -359,19 +359,23 @@ $('#kill').click(function(){
 
 $('#endClass').click(function(){
 	// kick off all mummies
-	for (var streamId in streamData) {
-		var connectionIdToKill = streamData[streamId].stream.connection.connectionId;
-		session.forceDisconnect(connectionIdToKill, function(err){
-			if (err) {
-				console.log('Failed to kill conection');
-			}
-			else {
-				console.log('Killed '+ connectionIdToKill);
-			}
-		});
+	var end = confirm('Are you sure you want to end the class?\nEverybody will be disconnected.');
+
+	if (end) {
+		for (var streamId in streamData) {
+			var connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+			session.forceDisconnect(connectionIdToKill, function(err){
+				if (err) {
+					console.log('Failed to kill conection');
+				}
+				else {
+					console.log('Killed '+ connectionIdToKill);
+				}
+			});
+		}
+		// disconnect self
+		session.disconnect();
 	}
-	// disconnect self
-	session.disconnect();
 });
 
 $(document).on('click', '.mummy', function(){
