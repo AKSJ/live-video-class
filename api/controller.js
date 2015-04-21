@@ -199,14 +199,16 @@ module.exports = {
 									update: {permissions: data.permissions }
 								  }, function( error, result ) {
 										if( error ) {
-											console.log( error );
-											return reply.view( 'admin_panel', { apiKey: config.openTok.key,
-													members: members,
-													/*sessionId: sessionId,
-													token: token,
-													permissions: permissions,*/
-													username: data.username,
-													error : error });
+											console.error( error );
+											request.auth.session.set('error', error); //TODO don't pass raw errors to user
+											return request.redirect('/');
+											// return reply.view( 'admin_panel', { apiKey: config.openTok.key,
+											// 		members: members,
+											// 		sessionId: sessionId,
+											// 		token: token,
+											// 		permissions: permissions,
+											// 		username: data.username,
+											// 		error : error });
 										}
 										else {
 											// update credentials if current user has had permissions changed
