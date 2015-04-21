@@ -11,6 +11,7 @@ console.log("Token: " + token );
 console.log("SessionId: " + sessionId );
 console.log("Username: " + username );
 console.log("Permissions: " + permissions );
+console.log("Role: " + role );
 
 // Initialize a Publisher, and place it into the element with id="publisher"
 var publisherOptions = {
@@ -195,11 +196,12 @@ session.on({
 		addSubscriber(newStream);
 	},
 
+	// TODO: Does default behaviour trigger AFTER callback? refactor if so
 	streamDestroyed: function(event) {
 		// Not currently unsubscribing, as default behaviour should handle that.
 		var destroyedStreamId = event.stream.streamId;
 		var vacatedId;
-		if (streamData[destroyedStreamId]) {
+		if (streamData.hasOwnProperty(destroyedStreamId) ) {
 			vacatedId = streamData[destroyedStreamId].id;
 			delete streamData[destroyedStreamId];
 			// Find stream with max id and put it in the hole - this should reposition things nicely in DOM if no inactive streams
@@ -212,10 +214,35 @@ session.on({
 			}
 		}
 	},
+	// Version of streamDestroyed with manual unsubscribe - for use if defualt behaviour turns out to execute after callback
+	// streamDestroyed : function(event) {
+	// 	event.preventDefault();
+	// 	var destroyedStream = event.stream;
+	// 	var destroyedStreamId = event.stream.streamId;
+	// 	var vacatedId;
+	// 	if (streamData.hasOwnProperty(destroyedStreamId) ) {
+	// 		vacatedId = streamData[destroyedStreamId].id;
+	// 		unsubscribe(destroyedStream);
+	// 		delete streamData[destroyedStreamId];
+	// 		// Find stream with max id and put it in the hole - this should reposition things nicely in DOM if no inactive streams
+	// 		for (var streamId in streamData) {
+	// 			if (streamData[streamId].id === maxId) {
+	// 				streamData[streamId].id = vacatedId;
+	// 				maxId-- ;
+	// 				addSubscriber(streamData[streamId].stream);
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	connectionDestroyed: function(event) {
 		removeMummy(event);
 		sortMummies();
+	},
+	// TEST - can session listen for subscriber destroyed events?
+	destroyed: function(event) {
+		console.log('Subscriber destroyed:');
+		console.log(event);
 	}
 });
 
@@ -341,25 +368,12 @@ $('#getEmptySubscribers').click(function(){
 $('#kill').click(function(){
 	var mummyIdToKill = $('.selected').data('id');
 	var connectionIdToKill;
-	for (var streamId in streamData) {
-		if (streamData[streamId].id === mummyIdToKill) {
-			connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+	if (mummyIdToKill) {
+		for (var streamId in streamData) {
+			if (streamData[streamId].id === mummyIdToKill) {
+				connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+			}
 		}
-	}
-	session.forceDisconnect(connectionIdToKill, function(err){
-		if (err) {
-			console.log('Failed to kill conection');
-		}
-		else {
-			console.log('Killed '+ connectionIdToKill);
-		}
-	});
-});
-
-$('#endClass').click(function(){
-	// kick off all mummies
-	for (var streamId in streamData) {
-		var connectionIdToKill = streamData[streamId].stream.connection.connectionId;
 		session.forceDisconnect(connectionIdToKill, function(err){
 			if (err) {
 				console.log('Failed to kill conection');
@@ -369,8 +383,32 @@ $('#endClass').click(function(){
 			}
 		});
 	}
-	// disconnect self
-	session.disconnect();
+});
+
+$('#endClass').click(function(){
+	// confirmation dialogue
+	var end = confirm('Are you sure you want to end the class?\nEverybody will be disconnected.');
+
+	if (end) {
+		for (var streamId in streamData) {
+			// kick off all mummies
+			var connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+			session.forceDisconnect(connectionIdToKill, function(err){
+				if (err) {
+					console.log('Failed to kill conection');
+				}
+				else {
+					console.log('Killed '+ connectionIdToKill);
+				}
+			});
+		}
+		// disconnect self
+		session.disconnect();
+	}
+});
+
+$('#help').click(function(){
+	$('.help').toggleClass('hidden');
 });
 
 $(document).on('click', '.mummy', function(){

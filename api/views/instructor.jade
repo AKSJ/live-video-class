@@ -24,17 +24,44 @@ block content
 			.col-xs-4.subscriber#subscriber4
 			.col-xs-4.subscriber#subscriber5
 		.row
-			.col-md-3
+			.col-xs-3
 				//- button.btn#stopStream Stop Stream
 				//- button.btn#startStream Start Stream
-				button.btn#prevFive Prev Five
-				button.btn#nextFive Next Five
-			.col-md-6
+				button.btn#prevFive
+					span.glyphicon.glyphicon-arrow-left(aria-hidden='true')
+				button.btn#nextFive
+					span.glyphicon.glyphicon-arrow-right(aria-hidden='true')
+			.col-xs-6
 				.mummies
 					p Click a name to select
 					ul#mummies-list
-					button.btn#kill Kill Selected
-					button.btn#endClass End Class
-			.col-md-3
+				button.btn#kill
+					span.glyphicon.glyphicon-ban-circle(aria-hidden='true')
+				button.btn#endClass
+					span.glyphicon.glyphicon-off(aria-hidden='true')
+				button.btn#help
+					span.glyphicon.glyphicon-question-sign(aria-hidden='true')
+			.col-xs-3
 				button.btn#getStreamData Log streamData
-				button.btn#getEmptySubscribers Log Empty Sub divs
+				button.btn#getEmptySubscribers Log Empty Sub
+		.row.help.hidden
+			.col-xs-4.help
+				button.btn
+					span.glyphicon.glyphicon-arrow-left(aria-hidden='true')
+				button.btn
+					span.glyphicon.glyphicon-arrow-right(aria-hidden='true')
+				p Display next/previous five class members
+			.col-xs-4.help.aria-hidden
+				button.btn
+					span.glyphicon.glyphicon-ban-circle(aria-hidden='true')
+				p Kick the selected class member from the class
+				button.btn
+					span.glyphicon.glyphicon-off(aria-hidden='true')
+				p End the class, disconnecting all class members and yourself
+				button.btn
+					span.glyphicon.glyphicon-question-sign(aria-hidden='true')
+				p Click again to hide this help section
+			.col-xs-4.help.hidden
+				p Select a class member from the list by clicking
+
+
