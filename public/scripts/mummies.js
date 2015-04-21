@@ -7,6 +7,7 @@ console.log('Token: ' + token );
 console.log('SessionId: ' + sessionId );
 console.log('Username: ' + username );
 console.log('Permissions: ' + permissions );
+console.log("Role: " + role );
 
 var publisher;
 var liveModeratorStream = "";

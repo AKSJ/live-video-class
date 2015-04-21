@@ -11,6 +11,7 @@ console.log("Token: " + token );
 console.log("SessionId: " + sessionId );
 console.log("Username: " + username );
 console.log("Permissions: " + permissions );
+console.log("Role: " + role );
 
 // Initialize a Publisher, and place it into the element with id="publisher"
 var publisherOptions = {
