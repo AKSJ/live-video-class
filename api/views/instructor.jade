@@ -13,28 +13,28 @@ append head
 	script(src='/scripts/instructor.js')
 
 block content
-	.row.videoRow
-		.col-xs-4.publisher
-			#publisher
-		.col-xs-4.subscriber#subscriber1
-		.col-xs-4.subscriber#subscriber2
-	.row.videoRow
-		.col-xs-4.subscriber#subscriber3
-		.col-xs-4.subscriber#subscriber4
-		.col-xs-4.subscriber#subscriber5
-	.row
-		.col-md-3
-			//- button.btn#stopStream Stop Stream
-			//- button.btn#startStream Start Stream
-			button.btn#prevFive Prev Five
-			button.btn#nextFive Next Five
-		.col-md-6
-			.mummies
-				p Click a name to select
-				ul#mummies-list
-				button.btn#kill Kill Selected
-				button.btn#endClass End Class
-		.col-md-3
-			button.btn#getStreamData Log streamData
-			button.btn#getEmptySubscribers Log Empty Sub divs
-
+	.container-fluid
+		.row.videoRow
+			.col-xs-4.publisher
+				#publisher
+			.col-xs-4.subscriber#subscriber1
+			.col-xs-4.subscriber#subscriber2
+		.row.videoRow
+			.col-xs-4.subscriber#subscriber3
+			.col-xs-4.subscriber#subscriber4
+			.col-xs-4.subscriber#subscriber5
+		.row
+			.col-md-3
+				//- button.btn#stopStream Stop Stream
+				//- button.btn#startStream Start Stream
+				button.btn#prevFive Prev Five
+				button.btn#nextFive Next Five
+			.col-md-6
+				.mummies
+					p Click a name to select
+					ul#mummies-list
+					button.btn#kill Kill Selected
+					button.btn#endClass End Class
+			.col-md-3
+				button.btn#getStreamData Log streamData
+				button.btn#getEmptySubscribers Log Empty Sub divs

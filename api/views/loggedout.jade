@@ -1,9 +1,10 @@
 extends ./layouts/default.jade
 
 block content
-	.row
-		.col-md-3
-		.col-md-6
-			a.btn.btn-default#fbLogin(href='/login/facebook', role='button') Facebook
-			a.btn.btn-default#googleLogin(href='/login/google', role='button') Google
-		.col-md-3
+	.container
+		.row
+			.col-md-3
+			.col-md-6
+				a.btn.btn-default#fbLogin(href='/login/facebook', role='button') Facebook
+				a.btn.btn-default#googleLogin(href='/login/google', role='button') Google
+			.col-md-3
