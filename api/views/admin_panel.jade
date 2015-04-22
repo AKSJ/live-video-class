@@ -2,7 +2,7 @@ extends ./layouts/default.jade
 
 //- NB- The full stop on line 6 is VERY IMPORTANT
 append head
-	link(href='/css/main.css', rel='stylesheet' type='text/css')
+	link(href='/css/mummies.css', rel='stylesheet' type='text/css')
 	script(type='text/javascript').
 		var apiKey = '#{apiKey}'
 		var sessionId = '#{sessionId}'
@@ -11,6 +11,7 @@ append head
 		var role = '#{role}'
 		var username = '#{username}'
 	script(src='/scripts/admin.js')
+	script(src='/scripts/mummies.js')
 
 block navbar
 	include ./includes/admin_navbar.jade
@@ -19,27 +20,51 @@ permTypes = ["moderator", "publisher", "administrator"];
 
 block content
 	.container
-			h2 Member Administration Page
-			//- p
-			//- 	The .table-responsive class creates a responsive table which will scroll horizontally on small devices (under 768px). When viewing on anything larger than 768px wide, there is no difference:
-			.table-responsive
-				table.table.table-striped.table-bordered.table-hover.table-condensed
-					thead
-						tr
-							th Username
-							th Email
-							th Permissions
-					tbody
-						if members
-							each member in members
+		div.tabpanel(role='tabpanel')
+			ul.nav.nav-tabs(role='tablist')
+				li.active(role='presentation')
+					a(href='#memberview', aria-controls='memberview', role='tab', data-toggle='tab') Member View
+				li(role='presentation')
+					a(href='#classview', aria-controls='classview', role='tab', data-toggle='tab') Class View
+			.tab-content
+				#classview.tab-pane(role='tabpanel')
+					//- .container-fluid
+					//- .row
+						//- .col-md-12#window
+					#window.windowpanel
+						#publisher
+							#publisher-div
+							div
+								button.btn.button-stop#stopStream
+									i.glyphicon.glyphicon-volume-off
+								button.btn.button-play#startStream
+									i.glyphicon.glyphicon-volume-up
+						#moderator
+							.image
+								img(src="http://mummyworkouts.com/wp-content/uploads/2015/03/Home_Image_Large_crop_4-11.jpg" )
+
+				#memberview.tab-pane.active(role='tabpanel')
+					h2 Member Administration Page
+					//- p
+					//- 	The .table-responsive class creates a responsive table which will scroll horizontally on small devices (under 768px). When viewing on anything larger than 768px wide, there is no difference:
+					.table-responsive
+						table.table.table-striped.table-bordered.table-hover.table-condensed
+							thead
 								tr
-									td(class=member.id + " username") #{member.username}
-									td.email(class=member.id + " email") #{member.email}
-									td(class=member.id + " permissions")
-										.form-group
-											select.form-control.selectpermissions
-												option(selected="selected") #{member.permissions}
-												//- each perm in permTypes
-												option moderator
-												option publisher
-												option administrator
+									th Username
+									th Email
+									th Permissions
+							tbody
+								if members
+									each member in members
+										tr
+											td(class=member.id + " username") #{member.username}
+											td.email(class=member.id + " email") #{member.email}
+											td(class=member.id + " permissions")
+												.form-group
+													select.form-control.selectpermissions
+														option(selected="selected") #{member.permissions}
+														//- each perm in permTypes
+														option moderator
+														option publisher
+														option administrator
