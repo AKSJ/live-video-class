@@ -1,7 +1,7 @@
 // TODO: Make mummies mute by default (audio off).
 
-// TODO Create client list (where on page?) with forceDisconnect buttons. Audio Focus?
-// Show 'active' status by setting class?
+// TODO: Add second list of 'active mummies'.?
+
 
 OT.setLogLevel(OT.DEBUG);
 
@@ -25,11 +25,11 @@ var publisherOptions = {
 
 var publisher = OT.initPublisher('publisher', publisherOptions );
 
-// store all incoming streams in 'streams'. Add an object with property name of streamId:
+// store all incoming streams in 'streamData'. Add an object with property name of streamId:
 // streamId:{	stream: {stream object},
 // 				status: 'active' / 'inactive',
 // 				id: 1,
-// 				subscriber: {subscriber object},
+// 				subscriber: {subscriber object} / null,
 // 				username: 'string'
 // 			}
 // NB -These custom streamData objects are refered to as 'streamRefs', to avoid confusion with the OT stream objects they hold
@@ -47,20 +47,16 @@ var selectedMummy;
 /////////////////////////
 function findMissingId() {
 	var currentIds = [];
-	var maxRange = [];
 	for (var streamId in streamData) {
 		currentIds.push(streamData[streamId].id);
 	}
-	currentIds.sort();
-	for (var i=1; i<=maxId; i++) {
-		maxRange.push(i);
-	}
-	if (currentIds.length !== maxRange.length) {
-		maxRange.forEach(function(id, index){
-			if (currentIds.indexOf(id) === -1) {
-				return id;
+	if (currentIds.length < maxId) {
+		currentIds.sort(); //sort ids to find lowest available id first
+		for (var i=1; i<=maxId; i++) {
+			if (currentIds.indexOf(i) === -1) {
+				return i;
 			}
-		});
+		}
 	}
 	else {
 		return false;
@@ -112,6 +108,7 @@ function usernameFreeCheck(stream) {
 
 // mummies-list helpers
 //////////////////////////
+
 function hyphenate(string) {
 	return string.replace(/\s+/g,'-');
 }
@@ -151,6 +148,7 @@ function removeMummy(event) {
 
 // subscription/DOM helpers
 ///////////////////////////
+
 function activateStream(stream) {
 	var streamId = stream.streamId;
 	streamData[streamId].status = 'active';
@@ -159,9 +157,8 @@ function activateStream(stream) {
 	var subscriberOptions = {
 								width: '100%',
 								height: '100%',
-								/*audioVolume: 0,*/  //Tried this to start mummies muted, but no UI button to unmute.
-								// audioLevelDisplayMode: 'on', //Doesn't seem to allow volume contol, just shows a giant set og headphpnes in top right
-								// TODO? make mute button visible always, rather than mouse over
+								audioVolume: 0,
+								buttonDisplayMode: 'on',
 								style: {nameDisplayMode: 'on'}
 							};
 	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
@@ -213,7 +210,6 @@ session.on({
 		var permissions = newStreamConnectionData.permissions;
 		var availableId = getAvailableId();
 		// Check for streamRef with same username, don't add streamRef etc. if found.
-		// TODO: ensure unique username from server
 		var usernameFree = usernameFreeCheck(newStream);
 		if (usernameFree) {
 			streamData[newStreamId] = {
@@ -277,11 +273,6 @@ session.on({
 		removeMummy(event);
 		sortMummies();
 	},
-	// TEST - can session listen for subscriber destroyed events?
-	destroyed: function(event) {
-		console.log('Subscriber destroyed:');
-		console.log(event);
-	}
 });
 
 publisher.on({
@@ -298,6 +289,7 @@ publisher.on({
 
 session.connect(token);
 
+// Instructor video toggles -currently removed
 // $('#stopStream').click(function(){
 // 	session.unpublish(publisher);
 // 	// publisher.publishVideo(false);
@@ -398,15 +390,6 @@ $('#prevFive').click(function(){
 	});
 });
 
-$('#getStreamData').click(function(){
-	console.log(streamData);
-});
-
-$('#getEmptySubscribers').click(function(){
-	console.log($('.subscriber:empty'));
-	console.log('Empty Subscriber Div length: ',$('.subscriber:empty').length);
-});
-
 $('#kill').click(function(){
 	var mummyIdToKill = $('.selected').data('id');
 	var connectionIdToKill;
@@ -457,4 +440,17 @@ $(document).on('click', '.mummy', function(){
 	$('.mummy').removeClass('selected');
 	$(this).addClass('selected');
 });
+
+///////////////
+// DEV TOOLS //
+///////////////
+$('#getStreamData').click(function(){
+	console.log(streamData);
+});
+
+$('#getEmptySubscribers').click(function(){
+	console.log($('.subscriber:empty'));
+	console.log('Empty Subscriber Div length: ',$('.subscriber:empty').length);
+});
+
 
