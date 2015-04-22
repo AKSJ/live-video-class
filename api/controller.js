@@ -63,7 +63,7 @@ var findOrAddUser = function( request, reply, profile ) {
 			findUniqueUsername(profile.username, 0, function(err3, uniqueUsername){
 				if (err3) {
 					console.error(err3);
-					console.log('Failed to find unique username');
+					console.error('Failed to find unique username');
 					request.auth.session.clear();
 					return reply.redirect( '/loggedout' );
 				}
@@ -76,7 +76,7 @@ var findOrAddUser = function( request, reply, profile ) {
 					members.addMember(newMember, function(err4, newMember){
 						if (err4) {
 							console.error(err4);
-							console.log('Failed to add new member');
+							console.error('Failed to add new member');
 							request.auth.session.clear();
 							return reply.redirect( '/loggedout' );
 						}
@@ -91,13 +91,11 @@ var findOrAddUser = function( request, reply, profile ) {
 					});
 				}
 				else { //This step should never be reached. Redundant?
-
+					console.error('findUniqueUsername failed to return a string');
+					request.auth.session.clear();
+					return reply.redirect( '/loggedout' );
 				}
 			});
-			// TODO if duplicate found, add number to username.
-			// Method: var count = 1, if dupe found, search for username+count,
-			// If not found, as newUser as username+count
-			// If found, add 1 to count, try again....
 		}
 	});
 };
@@ -237,7 +235,6 @@ module.exports = {
 			}
 			else {
 				console.log( 'You are not authorised');
-
 				return reply.view('invalidUser', { error: 'You are not an authorised user.' });
 			}
 		}
@@ -265,12 +262,6 @@ module.exports = {
 											else {
 												return reply.redirect('/');
 											}
-										// return reply.view( 'admin_panel', { apiKey: apiKey,
-										// 		members: members,
-										// 		sessionId: sessionId,
-										// 		token: token,
-										// 		permissions: permissions,
-										// 		username: data.username, alert: alert });
 										}
 								  });
 		}
