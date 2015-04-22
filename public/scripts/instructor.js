@@ -82,18 +82,18 @@ function sortStreamRefsById(a,b) {
 }
 
 // recursive function to patch holes in our ids
-// Not using now :(   Must find a use!
-function rationaliseIds() {
-	var missingId = findMissingId();
-	if (missingId) {
-		for (var streamId in streamData) {
-			if (streamData[streamId].id > missingId) {
-				streamData[streamId].id -= 1;
-			}
-		}
-		rationaliseIds();
-	}
-}
+// Not using now :(   Must find a use! --NB, doesn't account for mummies list ids
+// function rationaliseIds() {
+// 	var missingId = findMissingId();
+// 	if (missingId) {
+// 		for (var streamId in streamData) {
+// 			if (streamData[streamId].id > missingId) {
+// 				streamData[streamId].id -= 1;
+// 			}
+// 		}
+// 		rationaliseIds();
+// 	}
+// }
 
 function usernameFreeCheck(stream) {
 	var connectionData = JSON.parse(stream.connection.data);
@@ -228,6 +228,14 @@ session.on({
 			addSubscriber(newStream);
 		}
 	},
+	// ?????? this seems wrong - nextFive etc predicated on streamRef = subscibable stream, maxId being maxid of subscribale stream...
+	//  solution?? make data-id !== streamRef.id? or, === if stream active, data-id > maxId if inactve
+	//  maxId needs a name change, maxPublishedStreamId ?
+	// TODO :MASSIVE REFACTOR!
+	// 1) Dont delete streatmRef until clientDissconect, we need it to keep username/id assoc
+	// 2) Check for preexisting username in streamData on streamCrreated! if found, add stream object
+	// 3) on stream destoryed, pull in maxId stream as now, but move destoyedStream ref to maxId
+	// 4) Handle mummy list elements - reset data-id appropriately
 
 	// TODO: Does default behaviour trigger AFTER callback? refactor if so
 	streamDestroyed: function(event) {
@@ -237,6 +245,9 @@ session.on({
 		if (streamData.hasOwnProperty(destroyedStreamId) ) {
 			vacatedId = streamData[destroyedStreamId].id;
 			delete streamData[destroyedStreamId];
+			//  find  unpublished mummies list element
+			var unpublishedMummy = $('[data-id =' + vacatedId + ']');
+			// set unplublisehdMummy id to new(old?) max id
 			// Find stream with max id and put it in the hole - this should reposition things nicely in DOM if no inactive streams
 			for (var streamId in streamData) {
 				if (streamData[streamId].id === maxId) {
@@ -392,20 +403,25 @@ $('#prevFive').click(function(){
 $('#kill').click(function(){
 	var mummyIdToKill = $('.selected').data('id');
 	var connectionIdToKill;
-	if (mummyIdToKill) {
-		for (var streamId in streamData) {
-			if (streamData[streamId].id === mummyIdToKill) {
-				connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+	// confirmation dialogue
+	var kill = confirm('Are you sure you want to kick this client?\nThey will be disconnected from the class');
+
+	if (kill) {
+		if (mummyIdToKill) {
+			for (var streamId in streamData) {
+				if (streamData[streamId].id === mummyIdToKill) {
+					connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+				}
 			}
+			session.forceDisconnect(connectionIdToKill, function(err){
+				if (err) {
+					console.log('Failed to kill connection');
+				}
+				else {
+					console.log('Killed '+ connectionIdToKill);
+				}
+			});
 		}
-		session.forceDisconnect(connectionIdToKill, function(err){
-			if (err) {
-				console.log('Failed to kill conection');
-			}
-			else {
-				console.log('Killed '+ connectionIdToKill);
-			}
-		});
 	}
 });
 
@@ -419,7 +435,7 @@ $('#endClass').click(function(){
 			var connectionIdToKill = streamData[streamId].stream.connection.connectionId;
 			session.forceDisconnect(connectionIdToKill, function(err){
 				if (err) {
-					console.log('Failed to kill conection');
+					console.log('Failed to kill connection');
 				}
 				else {
 					console.log('Killed '+ connectionIdToKill);
@@ -435,6 +451,7 @@ $('#help').click(function(){
 	$('.help').toggleClass('hidden');
 });
 
+// TODO: connect mummy-list /OT_subscriber clicks so one click selects both if poss
 $(document).on('click', '.mummy', function(){
 	$('.mummy').removeClass('selected');
 	$(this).addClass('selected');
