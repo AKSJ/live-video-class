@@ -32,9 +32,10 @@ body, html, .container-fluid, .publisher, .subscriber {
 }
 
 /*Classes to style mummy list entries*/
+
 .selected {
 	color: white;
-	background-color: black;
+	background-color: gray;
 }
 
 .active {
@@ -49,6 +50,10 @@ body, html, .container-fluid, .publisher, .subscriber {
 	color: purple;
 }
 
-.muted {
+/*Classes to style selected subscriber elements*/
 
+.selected-subscriber {
+	border-style: solid;
+	border-width: 2px;
+	border-color: yellow;
 }

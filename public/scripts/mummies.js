@@ -15,7 +15,7 @@ var moderators = [];
 var subscribers = {};
 
 // Initialize a Publisher, and place it into the element with id='publisher'
-publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', height: '100%', /*publishAudio: false,*/ style: {nameDisplayMode: 'on'}});
+publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', height: '100%'/*, style: {nameDisplayMode: 'on'}*/});
 
 
 // Attach event handlers

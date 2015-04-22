@@ -116,14 +116,14 @@ generateToken = function( credentials ){
 	return token;
 };
 
-generateAdminView = function( request, reply, aToken ) {
+generateAdminView = function( request, reply, aToken, error ) {
 	var credentials = request.auth.credentials;
 	var username = credentials.username;
 	var userPermissions = credentials.permissions;
 	var tokBoxRole = permissionsList[userPermissions];
-	var error = (credentials.error) ? credentials.error : null;
 	var token = ( aToken ) ? aToken : generateToken( credentials );
-	request.auth.session.set('error', null);
+	// var error = (credentials.error) ? credentials.error : null;
+	// request.auth.session.set('error', null);
 	members.findAll( function( err, members ) {
 		if (err) {
 			error = error ? error + '\n'+err : err;
@@ -150,9 +150,10 @@ clientView = function( request, reply ) {
 	var tokBoxRole = permissionsList[userPermissions];
 
 	var error = credentials.error ? credentials.error : null;
+	request.auth.session.set('error', null);
+
 	var token = generateToken( credentials );
 
-	request.auth.session.set('error', null);
 	if( userPermissions === 'moderator' ) {
 		return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 	}
@@ -160,7 +161,7 @@ clientView = function( request, reply ) {
 		return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 	}
 	else if( userPermissions === 'administrator' ){
-		return generateAdminView( request, reply, token );
+		return generateAdminView( request, reply, token, error );
 	}
 	else{
 		request.auth.session.set( 'error', 'Your user permissions are invalid: ' + userPermissions );
