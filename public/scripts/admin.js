@@ -1,4 +1,4 @@
-$(function() {
+$(document).ready(function() {
 
   $('.selectpermissions').on('change', function(){
     var newPermission = $(this).find("option:selected").val();

@@ -1,4 +1,4 @@
-body, html, .container-fluid, .row {
+body, html, .container,.tabpanel, #classview,.tab-content,.container-fluid, .row  {
 	height:100%;
 
 }
@@ -26,13 +26,15 @@ body, html, .container-fluid, .row {
 }
 
 .image{
+	position:absolute;
 	height: 100%;
 	width: 100%;
 	/*background-size: 100%*/
+	overflow : hidden;
 }
-.image img{
+/*.image img{
 	min-height: 100%;
-}
+}*/
 
 #publisher {
 	position:absolute;

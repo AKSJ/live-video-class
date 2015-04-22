@@ -54,6 +54,72 @@ findOrAddUser = function( request, reply, profile ) {
 		}
 	});
 };
+
+generateToken = function( credentials ){
+	var username = credentials.username;
+	var userPermissions = credentials.permissions;
+	var tokBoxRole = permissionsList[userPermissions];
+	console.log( 'Username: ' + username );
+	console.log( 'Permissions: ' + userPermissions);
+	console.log( 'TokBox Role: ' + tokBoxRole );
+	var token = opentok.generateToken(sessionId,({
+		role : 			tokBoxRole,
+		expireTime : 	(new Date().getTime() / 1000)+ 60*180, // in 3 hours
+		data : 			JSON.stringify( { 'username' : username, 'permissions' : userPermissions, role: tokBoxRole } )
+	}));
+	console.log('Token: ', token);
+	return token;
+};
+generateAdminView = function( request, reply, aToken ) {
+	var credentials = request.auth.credentials;
+	var username = credentials.username;
+	var userPermissions = credentials.permissions;
+	var tokBoxRole = permissionsList[userPermissions];
+	var error = (credentials.error) ? credentials.error : null;
+	var token = ( aToken ) ? aToken : generateToken( credentials );
+	request.auth.session.set('error', null);
+	members.findAll( function( err, members ) {
+		if (err) {
+			error = error ? error + '\n'+err : err;
+			// if (request.auth.credentials.error) request.auth.session.set('error', null);
+			return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
+		}
+		else if (members) {
+			console.dir( members );
+			// if (request.auth.credentials.error) request.auth.session.set('error', null);
+			return reply.view( 'admin_panel', { members: members, apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
+		}
+		else {
+			error = error ? error + '\nMembers not found' : 'Members not found';
+			// if (request.auth.credentials.error) request.auth.session.set('error', null);
+			return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
+		}
+	});
+};
+
+clientView = function( request, reply ) {
+	var credentials = request.auth.credentials;
+	var username = credentials.username;
+	var userPermissions = credentials.permissions;
+	var tokBoxRole = permissionsList[userPermissions];
+
+	var error = credentials.error ? credentials.error : null;
+	var token = generateToken( credentials );
+
+	request.auth.session.set('error', null);
+	if( userPermissions === 'moderator' ) {
+		return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
+	}
+	else if( userPermissions === 'publisher'){
+		return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
+	}
+	else if( userPermissions === 'administrator' ){
+		return generateAdminView( request, reply, token );
+	}
+	else{
+		request.auth.session.set( 'error', 'Your user permissions are invalid: ' + userPermissions );
+	}
+};
 module.exports = {
 
 	serveFile: {
@@ -133,64 +199,26 @@ module.exports = {
 			if (request.auth.isAuthenticated) {
 				var creds = request.auth.credentials;
 				if(creds) {
-					var error = null;
-					if (creds.error) error = creds.error;
-					var username = creds.username;
 					var userPermissions = creds.permissions;
-					console.log( 'Username: ' + username );
-					console.log( 'Permissions: ' + userPermissions);
-					console.log( 'TokBox Role: ' + permissionsList[ userPermissions]);
 					if ( !permissionsList.hasOwnProperty(userPermissions) ) {
 						return reply.view('invalidUser', { error: 'You do not have valid permissions' });
 					}
 					else {
-						var tokBoxRole = permissionsList[userPermissions];
-						var token = opentok.generateToken(sessionId,({
-							role : 			tokBoxRole,
-							expireTime : 	(new Date().getTime() / 1000)+ 60*180, // in 3 hours
-							data : 			JSON.stringify( { 'username' : username, 'permissions' : userPermissions, role: tokBoxRole } )
-						}));
-						console.log('Token: ', token);
-						request.auth.session.set('error', null);
-						if( userPermissions === 'moderator' ) {
-							return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
-						}
-						else if( userPermissions === 'publisher'){
-							return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
-						}
-						else if( userPermissions === 'administrator' ){
-							members.findAll( function( err, members ) {
-								if (err) {
-									error = (error ? error + '\n'+err : error = err);
-									if (request.auth.credentials.error) request.auth.session.set('error', null);
-									return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
-								}
-								else if (members) {
-									console.dir( members );
-									if (request.auth.credentials.error) request.auth.session.set('error', null);
-									return reply.view( 'admin_panel', { members: members, apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
-								}
-								else {
-									error = ( error ? error + '\nMembers not found' : 'Members not found');
-									if (request.auth.credentials.error) request.auth.session.set('error', null);
-									return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
-								}
-							});
-						}
-						else{
-							request.auth.session.set( 'error', 'Your user permissions are invalid: ' + userPermissions );
-						}
+						return clientView( request, reply );
 					}
+				}
+				else {
+					return reply.view( 'invalidUser', { error: 'Your do not have the correct credentials.'});
 				}
 			}
 			else {
 				console.log( 'You are not authorised');
-
 				return reply.view('invalidUser', { error: 'You are not an authorised user.' });
 			}
 		}
 	},
 
+	// api routes:
 	memberUpdate  : {
 		handler : function( request, reply ) {
 			// var alert;
