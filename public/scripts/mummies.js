@@ -49,7 +49,7 @@ session.on({
 			console.log( "New stream is for a moderator");
 			var streamId = event.stream.streamId;
 			// $('#publisher').wrap('<div id="streamModerator"></div>');
-			//$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
+			$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
 			// $('#window').append('<div></div>').attr("id", "streamModerator");
 			console.dir( liveModeratorStream);
 			if( !liveModeratorStream ) {
