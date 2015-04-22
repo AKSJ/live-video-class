@@ -44,3 +44,7 @@ body, html, .container,.tabpanel, #classview,.tab-content,.container-fluid, .row
 	left: 85%;
 	z-index : 10;
 }
+
+.windowpanel{
+	margin-top: 10px;
+}
