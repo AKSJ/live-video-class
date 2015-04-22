@@ -3,7 +3,7 @@
 // TODO: Add second list of 'active mummies'.?
 
 
-OT.setLogLevel(OT.DEBUG);
+// OT.setLogLevel(OT.DEBUG);
 
 // Initialize an OpenTok Session object
 var session = OT.initSession(apiKey,sessionId);
@@ -20,7 +20,7 @@ var publisherOptions = {
 							height: '100%',
 							resolution: '1280x720', //max resolution -default 640x480
 							frameRate: 30, //max frame rate
-							style: {nameDisplayMode: 'on', buttonDisplayMode: 'on'}
+							style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/}
 						};
 
 var publisher = OT.initPublisher('publisher', publisherOptions );
@@ -157,9 +157,9 @@ function activateStream(stream) {
 	var subscriberOptions = {
 								width: '100%',
 								height: '100%',
-								audioVolume: 0,
-								buttonDisplayMode: 'on',
-								style: {nameDisplayMode: 'on'}
+								// audioVolume: 0, //Not working, can still hear subscriber
+								subscribeToAudio: false,
+								style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/}
 							};
 	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
 	// set mummies-list entry class to active
@@ -439,6 +439,25 @@ $('#help').click(function(){
 $(document).on('click', '.mummy', function(){
 	$('.mummy').removeClass('selected');
 	$(this).addClass('selected');
+});
+
+$(document).on('click', '.OT_subscriber', function(){
+	$('.OT_subscriber').removeClass('selected-subscriber');
+	$(this).addClass('selected-subscriber');
+	var selectedStreamId = $(this).attr('id').replace(/stream-/,'');
+	console.log('StreamId: ', selectedStreamId);
+	var subscriberToHear = streamData[selectedStreamId].subscriber;
+	console.log(subscriberToHear);
+	var subscribersToMute = [];
+	for (var streamId in streamData) {
+		if (streamData[streamId].subscriber) {
+			subscribersToMute.push(streamData[streamId].subscriber);
+		}
+	}
+	subscriberToHear.subscribeToAudio(true);
+	subscribersToMute.forEach(function(subscriberToMute){
+		subscriberToMute.subscribeToAudio(false);
+	});
 });
 
 ///////////////
