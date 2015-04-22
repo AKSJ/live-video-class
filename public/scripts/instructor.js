@@ -157,9 +157,8 @@ function activateStream(stream) {
 	var subscriberOptions = {
 								width: '100%',
 								height: '100%',
-								// audioVolume: 0, //Not working, can still hear subscriber
 								subscribeToAudio: false,
-								style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/}
+								style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/} //buttonDsiplay left on auto as causes central overlay on small screens
 							};
 	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
 	// set mummies-list entry class to active

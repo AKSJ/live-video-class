@@ -1,3 +1,5 @@
+// TODO add user banning to admin panel. Make undoable. Checkbox, 'banned'. sets/unsets bool in member schema. Controller checks for bool
+
 $(document).ready(function() {
 
   $('.selectpermissions').on('change', function(){
