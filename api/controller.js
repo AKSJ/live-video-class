@@ -11,12 +11,42 @@ var sessionId = config.openTok.sessionId;
 var apiKey 	= config.openTok.key;
 var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'administrator': 'moderator' };
 
-findOrAddUser = function( request, reply, profile ) {
+/////////////
+// Helpers //
+/////////////
+
+// Recursive medthod - simple, slow if many duplicate usernames but they're likely to be uncommon
+// Alternative - use regex db query to find all copies of username+n, replace(/username/,''),
+// put in array do index of count, if found, increment
+var findUniqueUsername = function(username, count, callback) {
+	var newUsername;
+	if (count > 0) {
+		newUsername = username + count;
+	}
+	else {
+		newUsername = username;
+	}
+	members.findMemberByUsername(newUsername, function(err, member){
+		if (err) {
+			console.error(err);
+			return callback(err);
+		}
+		else if (member) {
+			return findUniqueUsername(username, (count + 1), callback);
+		}
+		else {
+			return callback(null, newUsername);
+		}
+	});
+};
+
+// TODO - add cookie errors the various db steps, for better user feedback
+var findOrAddUser = function( request, reply, profile ) {
 	// look up in database and if not found, then add to the database as a publisher
-	members.findMemberByEmail( profile.email, function( error, member ){
+	members.findMemberByEmail( profile.email, function( err1, member ){
 		console.log('Looking up member');
-		if( error ) {
-			console.error( error );
+		if(err1) {
+			console.error(err1);
 			request.auth.session.clear();
 			return reply.redirect( '/loggedout' );
 		}
@@ -29,31 +59,53 @@ findOrAddUser = function( request, reply, profile ) {
 			return reply.redirect('/');
 		}
 		else {
-			console.log('Member not found, adding to db');
-			var newMember = {
-				username: profile.username,
-				email: profile.email,
-				permissions: 'publisher'
-			};
-			members.addMember(newMember, function(err, newMember){
-				if (err) {
-					console.error(err);
-					console.log('Failed to add new member');
+			console.log('Member not found, checking for duplicate username');
+			findUniqueUsername(profile.username, 0, function(err3, uniqueUsername){
+				if (err3) {
+					console.error(err3);
+					console.log('Failed to find unique username');
 					request.auth.session.clear();
 					return reply.redirect( '/loggedout' );
 				}
-				else {
-					console.log('New member added to db');
-					console.dir(newMember);
-					profile.permissions = newMember.permissions;
-					request.auth.session.clear();
-					request.auth.session.set(profile);
-					return reply.redirect('/');
+				else if (uniqueUsername) {
+					var newMember = {
+					username: uniqueUsername,
+					email: profile.email,
+					permissions: 'publisher'
+					};
+					members.addMember(newMember, function(err4, newMember){
+						if (err4) {
+							console.error(err4);
+							console.log('Failed to add new member');
+							request.auth.session.clear();
+							return reply.redirect( '/loggedout' );
+						}
+						else {
+							console.log('New member added to db');
+							console.dir(newMember);
+							profile.permissions = newMember.permissions;
+							request.auth.session.clear();
+							request.auth.session.set(profile);
+							return reply.redirect('/');
+						}
+					});
+				}
+				else { //This step should never be reached. Redundant?
+
 				}
 			});
+			// TODO if duplicate found, add number to username.
+			// Method: var count = 1, if dupe found, search for username+count,
+			// If not found, as newUser as username+count
+			// If found, add 1 to count, try again....
 		}
 	});
 };
+
+////////////////////
+// Route Handlers //
+////////////////////
+
 module.exports = {
 
 	serveFile: {
