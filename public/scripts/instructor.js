@@ -26,10 +26,11 @@ var publisherOptions = {
 var publisher = OT.initPublisher('publisher', publisherOptions );
 
 // store all incoming streams in 'streams'. Add an object with property name of streamId:
-// streamId:{	stream: {},
-// 				status: 'active',
+// streamId:{	stream: {stream object},
+// 				status: 'active' / 'inactive',
 // 				id: 1,
-// 				subscriber: {}
+// 				subscriber: {subscriber object},
+// 				username: 'string'
 // 			}
 // NB -These custom streamData objects are refered to as 'streamRefs', to avoid confusion with the OT stream objects they hold
 var streamData = {};
@@ -37,7 +38,13 @@ var maxId = 0;
 var selectedMummy;
 // TODO? Replace maxId counter with a maxId() function
 
-// streamData id helpers
+///////////////////////
+//  HELPER FUNCTIONS //
+///////////////////////
+
+
+// streamData helpers
+/////////////////////////
 function findMissingId() {
 	var currentIds = [];
 	var maxRange = [];
@@ -92,7 +99,19 @@ function rationaliseIds() {
 	}
 }
 
+function usernameFreeCheck(stream) {
+	var connectionData = JSON.parse(stream.connection.data);
+	var username = connectionData.username;
+	for (var streamId in streamData) {
+		if (streamData[streamId].username === username) {
+			return false;
+		}
+	}
+	return true;
+}
+
 // mummies-list helpers
+//////////////////////////
 function hyphenate(string) {
 	return string.replace(/\s+/g,'-');
 }
@@ -131,6 +150,7 @@ function removeMummy(event) {
 }
 
 // subscription/DOM helpers
+///////////////////////////
 function activateStream(stream) {
 	var streamId = stream.streamId;
 	streamData[streamId].status = 'active';
@@ -140,7 +160,8 @@ function activateStream(stream) {
 								width: '100%',
 								height: '100%',
 								/*audioVolume: 0,*/  //Tried this to start mummies muted, but no UI button to unmute.
-								audioLevelDisplayMode: 'on', //Testing to see if audio level allows volume control (unlikely)
+								// audioLevelDisplayMode: 'on', //Doesn't seem to allow volume contol, just shows a giant set og headphpnes in top right
+								// TODO? make mute button visible always, rather than mouse over
 								style: {nameDisplayMode: 'on'}
 							};
 	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
@@ -165,6 +186,11 @@ function unsubscribe(stream){
 	sortMummies();
 }
 
+//////////////////////
+//  Event Listeners //
+//////////////////////
+
+
 session.on({
 
 	sessionConnected: function(event) {
@@ -186,21 +212,26 @@ session.on({
 		usernameId = hyphenate(username);
 		var permissions = newStreamConnectionData.permissions;
 		var availableId = getAvailableId();
-
-		streamData[newStreamId] = {
-									stream: newStream,
-									status: 'inactive',
-									id: availableId,
-									subscriber: null
-								};
-		// check for mummy li before adding new one - mummies in list only removed on connectionDestroyed
-		if ( !$('#'+usernameId).length) {
-			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy', 'data-id': availableId }).text(username);
-			if (permissions === 'moderator') { newMummy.addClass('moderator'); }
-			newMummy.appendTo($('#mummies-list'));
-			sortMummies(); //also called in activateStream, but not invoked if 5+ active streams
+		// Check for streamRef with same username, don't add streamRef etc. if found.
+		// TODO: ensure unique username from server
+		var usernameFree = usernameFreeCheck(newStream);
+		if (usernameFree) {
+			streamData[newStreamId] = {
+										stream: newStream,
+										status: 'inactive',
+										id: availableId,
+										subscriber: null,
+										username: username
+									};
+			// check for mummy li before adding new one - mummies in list only removed on connectionDestroyed
+			if ( !$('#'+usernameId).length) {
+				var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy', 'data-id': availableId }).text(username);
+				if (permissions === 'moderator') { newMummy.addClass('moderator'); }
+				newMummy.appendTo($('#mummies-list'));
+				sortMummies(); //also called in activateStream, but not invoked if 5+ active streams
+			}
+			addSubscriber(newStream);
 		}
-		addSubscriber(newStream);
 	},
 
 	// TODO: Does default behaviour trigger AFTER callback? refactor if so
@@ -278,6 +309,10 @@ session.connect(token);
 // 	// publisher.publishVideo(true);
 // 	// publisher.publishAudio(true);
 // });
+
+///////////////
+//  Buttons  //
+///////////////
 
 $('#nextFive').click(function(){
 	// find higest active id and collect active streams
