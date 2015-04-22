@@ -450,7 +450,7 @@ $(document).on('click', '.OT_subscriber', function(){
 	console.log(subscriberToHear);
 	var subscribersToMute = [];
 	for (var streamId in streamData) {
-		if (streamData[streamId].subscriber) {
+		if (streamData[streamId].subscriber && streamId !== selectedStreamId) {
 			subscribersToMute.push(streamData[streamId].subscriber);
 		}
 	}
