@@ -136,7 +136,14 @@ function activateStream(stream) {
 	streamData[streamId].status = 'active';
 	var subContainerId = 'stream-' + streamId;
 	$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty')[0]);
-	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, {width: '100%', height: '100%', audioVolume: 0, style: {nameDisplayMode: 'on'}});
+	var subscriberOptions = {
+								width: '100%',
+								height: '100%',
+								/*audioVolume: 0,*/  //Tried this to start mummies muted, but no UI button to unmute.
+								audioLevelDisplayMode: 'on', //Testing to see if audio level allows volume control (unlikely)
+								style: {nameDisplayMode: 'on'}
+							};
+	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
 	// set mummies-list entry class to active
 	setMummyActive(stream);
 	sortMummies();
