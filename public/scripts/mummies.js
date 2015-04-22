@@ -7,6 +7,7 @@ console.log('Token: ' + token );
 console.log('SessionId: ' + sessionId );
 console.log('Username: ' + username );
 console.log('Permissions: ' + permissions );
+console.log("Role: " + role );
 
 var publisher;
 var liveModeratorStream;
@@ -77,12 +78,14 @@ session.on({
 	},
 
 	streamDestroyed: function (event) {
-		// TODO - clean up subscriber object on streamDestroyed
+		// Default behaviour will unsubscribe by default, if subscribed
+		console.log( "Stream Destroyed reason: " + event.reason );
+		console.log( event );
+		var connectionData = JSON.parse(event.stream.connection.data);
 		var stream = event.stream;
 		console.dir( stream );
 		console.log( "Live Moderator Stream: ");
 		console.dir( liveModeratorStream );
-		var connectionData = JSON.parse( stream.connection.data);
 		if( connectionData.permissions === "moderator"  && liveModeratorStream.streamId === stream.streamId) {
 			console.log( 'Lead moderator has disconnected, connect to any other moderators available' );
 			liveModeratorStream = null;
@@ -105,6 +108,10 @@ session.on({
 				console.log( 'No other moderators to connect to.');
 				console.dir( liveModeratorStream );
 			}
+		}
+		// ??? This could be in the if statement above, but put it out here so clean up happens even if something else goes wrong
+		if (subscribers.hasOwnProperty(stream.streamId) ) {
+			delete subscribers[stream.streamId];
 		}
 	}
 });
