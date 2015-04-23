@@ -39,8 +39,8 @@ body, html, .container,.tabpanel, #classview,.tab-content,.container-fluid, .row
 #publisher {
 	position:absolute;
 	width: 15%;
-	height: 15%;
-	top: 69%;
+	height: 20%;
+	top: 75%;
 	left: 85%;
 	z-index : 10;
 }

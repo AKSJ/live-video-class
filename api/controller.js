@@ -21,7 +21,7 @@ var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'adm
 var findUniqueUsername = function(username, count, callback) {
 	var newUsername;
 	if (count > 0) {
-		newUsername = username + count;
+		newUsername = username + ' - ' + count;
 	}
 	else {
 		newUsername = username;
@@ -35,6 +35,7 @@ var findUniqueUsername = function(username, count, callback) {
 			return findUniqueUsername(username, (count + 1), callback);
 		}
 		else {
+			console.log('Username assigned: ', newUsername);
 			return callback(null, newUsername);
 		}
 	});
@@ -84,6 +85,7 @@ var findOrAddUser = function( request, reply, profile ) {
 							console.log('New member added to db');
 							console.dir(newMember);
 							profile.permissions = newMember.permissions;
+							profile.username = newMember.username;
 							request.auth.session.clear();
 							request.auth.session.set(profile);
 							return reply.redirect('/');
@@ -282,7 +284,7 @@ module.exports = {
 										if( error ) {
 											console.error( error );
 											request.auth.session.set('error', error); //TODO don't pass raw errors to user
-											return request.redirect('/');
+											return reply.redirect('/');
 										}
 										else {
 											// update credentials if current user has had permissions changed
