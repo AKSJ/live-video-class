@@ -62,19 +62,36 @@ function sortByName(a,b) {
 
 function sortMummies() {
 	var mummiesList = $('#mummies-list');
-	var mummies = mummiesList.children('li');
-	mummies.detach().sort(sortByName);
-	mummiesList.append(mummies);
+	var activeMummies = mummiesList.children('li.active');
+	var inactiveMummies = mummiesList.children('li.inactive');
+	var noStreamMummies = mummiesList.children('li.no-stream');
+	activeMummies.detach().sort(sortByName);
+	mummiesList.append(activeMummies);
+	inactiveMummies.detach().sort(sortByName);
+	mummiesList.append(inactiveMummies);
+	noStreamMummies.detach().sort(sortByName);
+	mummiesList.append(noStreamMummies);
+}
+
+function setMummyNoStream(username) {
+	var usernameId = hyphenate(username);
+	$('#'+usernameId).removeClass('inactive');
+	$('#'+usernameId).removeClass('active');
+	$('#'+usernameId).addClass('no-stream');
 }
 
 function setMummyActive(username) {
 	var usernameId = hyphenate(username);
+	$('#'+usernameId).removeClass('no-stream');
+	$('#'+usernameId).removeClass('inactive');
 	$('#'+usernameId).addClass('active');
 }
 
 function setMummyInactive(username) {
 	var usernameId = hyphenate(username);
+	$('#'+usernameId).removeClass('no-stream');
 	$('#'+usernameId).removeClass('active');
+	$('#'+usernameId).addClass('inactive');
 }
 
 function removeMummy(username) {
@@ -182,6 +199,7 @@ session.on({
 		session.publish(publisher);
 	},
 
+	// TODO: connectionCreated listener, to add mummy object, in case mummy not publishing when instructor connects
 
 	streamCreated: function(event) {
 		console.log(event);
@@ -203,7 +221,7 @@ session.on({
 										subscriber: null,
 										status: 'inactive'
 									};
-			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy'}).text(username);
+			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy inactive'}).text(username);
 			if (role === 'moderator') { newMummy.addClass('moderator'); }
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies(); //also called in activateStream, but not invoked if 5+ active streams
@@ -231,6 +249,7 @@ session.on({
 			mummyData[username].stream = null;
 			mummyData[username].status = 'no-stream';
 		}
+		setMummyNoStream(username);
 	},
 	// NB - this is a Connection Event, not a Stream Event
 	connectionDestroyed: function(event) {

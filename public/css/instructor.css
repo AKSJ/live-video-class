@@ -34,12 +34,19 @@ body, html, .container-fluid, .publisher, .subscriber {
 /*Classes to style mummy list entries*/
 
 .selected {
-	color: white;
 	background-color: gray;
 }
 
 .active {
 	color: green;
+}
+
+.inactive {
+	color: red;
+}
+
+.no-stream {
+	color: black;
 }
 
 .moderator {
