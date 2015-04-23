@@ -49,11 +49,11 @@ session.on({
 			console.log( "New stream is for a moderator");
 			var streamId = event.stream.streamId;
 			// $('#publisher').wrap('<div id="streamModerator"></div>');
-			$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
 			// $('#window').append('<div></div>').attr("id", "streamModerator");
 			console.dir( liveModeratorStream);
 			if( !liveModeratorStream ) {
 				console.log( 'No live moderator so subscribe to this new stream.');
+				$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
 				subscribers[streamId] = session.subscribe( event.stream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
 					if( error ) {
 						console.log( "Error subscribing to moderator stream");
@@ -92,8 +92,8 @@ session.on({
 			console.log( moderators );
 			if( moderators.length ) {
 				var moderatorStream = moderators.shift();
-				$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
-				subscribers[moderatorStream.streamId] = session.subscribe( moderatorStream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
+				$('<div/>').attr("id", "moderator-div2").appendTo('#moderator');
+				subscribers[moderatorStream.streamId] = session.subscribe( moderatorStream, "moderator-div2", { width: '100%', height: '100%'}, function( error ){
 					if( error ) {
 						console.log( "Error subscribing to moderator stream");
 					}
