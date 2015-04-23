@@ -55,8 +55,8 @@ function hyphenate(string) {
 function sortByName(a,b) {
 	var aName = $(a).text();
 	var bName = $(b).text();
-	if 		( aId < bId ) 	{ return -1;}
-	else if ( aId > bId ) 	{ return 1; }
+	if 		( aName < bName ) 	{ return -1;}
+	else if ( aName > bName ) 	{ return 1; }
 	else					{ return 0; }
 }
 
@@ -78,7 +78,7 @@ function setMummyInactive(username) {
 }
 
 function removeMummy(username) {
-	var usernameId = hyphenate(connectionData.username);
+	var usernameId = hyphenate(username);
 	$('#'+usernameId).remove();
 }
 
@@ -216,8 +216,8 @@ session.on({
 		event.preventDefault();
 		var destroyedStream = event.stream;
 		var destroyedStreamId = event.stream.streamId;
-		var newStreamConnectionData = JSON.parse(newStream.connection.data);
-		var username = newStreamConnectionData.username;
+		var connectionData = JSON.parse(destroyedStream.connection.data);
+		var username = connectionData.username;
 		var usernameId = hyphenate(username);
 		// If stream subscribed, unsub (remove dom)
 		if (mummyData.hasOwnProperty(username) ) {
@@ -232,10 +232,11 @@ session.on({
 			mummyData[username].status = 'no-stream';
 		}
 	},
-
+	// NB - this is a Connection Event, not a Stream Event
 	connectionDestroyed: function(event) {
-		var newStreamConnectionData = JSON.parse(newStream.connection.data);
-		var username = newStreamConnectionData.username;
+		var connectionData = JSON.parse(event.connection.data);
+		var username = connectionData.username;
+		// TODO UNSUBSCRIBE!
 		// remove mummyRef
 		if (mummyData.hasOwnProperty(username) ) {
 			delete mummyData[username];
@@ -296,11 +297,11 @@ $('#nextFive').click(function(){
 	usernamesOfActiveStreamers.sort();
 	// find highest username currently displayed
 	var lastActiveUsername = usernamesOfActiveStreamers[usernamesOfActiveStreamers.length - 1];
-	// find lastActiveUsername and get 5 usernames after it in userNamesOfAllStreamers
+	// find lastActiveUsername and get 5 usernames after it in usernamesOfAllStreamers
 	var usernamesToSubscribeTo;
-	var lastActiveUsernameIndex = userNamesOfAllStreamers.indexOf(lastActiveUsername);
+	var lastActiveUsernameIndex = usernamesOfAllStreamers.indexOf(lastActiveUsername);
 	// check if there are 5 more names to get, if so, fetch
-	if ( lastActiveUsernameIndex < userNamesOfAllStreamers.length - 6 ) {
+	if ( lastActiveUsernameIndex < usernamesOfAllStreamers.length - 6 ) {
 		usernamesToSubscribeTo = usernamesOfAllStreamers.slice(lastActiveUsernameIndex + 1, lastActiveUsernameIndex + 6);
 	}
 	else { //fetch last 5 names
@@ -332,9 +333,9 @@ $('#prevFive').click(function(){
 	usernamesOfActiveStreamers.sort();
 	// find lowest username currently displayed
 	var firstActiveUsername = usernamesOfActiveStreamers[0];
-	// find firstActiveUsername and get 5 usernames before it in userNamesOfAllStreamers
+	// find firstActiveUsername and get 5 usernames before it in usernamesOfAllStreamers
 	var usernamesToSubscribeTo;
-	var firstActiveUsernameIndex = userNamesOfAllStreamers.indexOf(firstActiveUsername);
+	var firstActiveUsernameIndex = usernamesOfAllStreamers.indexOf(firstActiveUsername);
 	// check if there are > 5 lower names to get, if so, fetch
 	if ( firstActiveUsernameIndex >= 5 ) {
 		usernamesToSubscribeTo = usernamesOfAllStreamers.slice(firstActiveUsernameIndex - 5, firstActiveUsernameIndex);
@@ -353,23 +354,25 @@ $('#prevFive').click(function(){
 });
 
 $('#kill').click(function(){
-	var mummyUsernameToKill = $('.selected').text();
+	var usernameToKill = $('.selected').text();
 	var connectionIdToKill;
 	// confirmation dialogue
 	var kill = confirm('Are you sure you want to kick this client?\nThey will be disconnected from the class');
 
 	if (kill) {
-		if (mummyData.hasOwnProperty(mummyUsernameToKill) ) {
-			if (mummyData[mummyUsernameToKill].stream) {
-					connectionIdToKill = mummyData[mummyUsernameToKill].stream.connection.connectionId;
+		if (mummyData.hasOwnProperty(usernameToKill) ) {
+			if (mummyData[usernameToKill].stream) {
+					connectionIdToKill = mummyData[usernameToKill].stream.connection.connectionId;
 			}
 		}
+		unsubscribe(mummyData[usernameToKill]);
 		session.forceDisconnect(connectionIdToKill, function(err){
 			if (err) {
 				console.log('Failed to kill connection');
 			}
 			else {
 				console.log('Killed '+ connectionIdToKill);
+				delete mummyData[usernameToKill];
 			}
 		});
 	}
@@ -402,6 +405,8 @@ $('#endClass').click(function(){
 		session.disconnect();
 		// clear mummies-list
 		$('#mummies-list').empty();
+		// clear mummyData;
+		mummyData = {};
 	}
 });
 
@@ -420,7 +425,8 @@ $(document).on('click', '.OT_subscriber', function(){
 	$(this).addClass('selected-subscriber');
 	var selectedUsername = $(this).attr('id').replace(/-subscriber/,'');
 	selectedUsername = selectedUsername.replace(/-/g, ' ');
-	var subscriberToHear = mummyData[selectedUsername].subscriber;
+	var subscriberToHear;
+	if (mummyData[selectedUsername].subscriber) subscriberToHear = mummyData[selectedUsername].subscriber;
 	console.log(subscriberToHear);
 	var subscribersToMute = [];
 	for (var username in mummyData) {
@@ -428,7 +434,7 @@ $(document).on('click', '.OT_subscriber', function(){
 			subscribersToMute.push(mummyData[username].subscriber);
 		}
 	}
-	subscriberToHear.subscribeToAudio(true);
+	if (subscriberToHear) subscriberToHear.subscribeToAudio(true);
 	subscribersToMute.forEach(function(subscriberToMute){
 		subscriberToMute.subscribeToAudio(false);
 	});
