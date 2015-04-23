@@ -22,7 +22,7 @@ body, html, .container,.tabpanel, #classview,.tab-content,.container-fluid, .row
 	left:0;
 	height: 100%;
 	width: 100%;
-	z-index: -1;
+	/*z-index: -1;*/ /*z-index -1 prevents on hover UI working*/
 }
 
 .image{
@@ -38,8 +38,8 @@ body, html, .container,.tabpanel, #classview,.tab-content,.container-fluid, .row
 
 #publisher {
 	position:absolute;
-	width: 160px;
-	height: 120px;
+	width: 15%;
+	height: 15%;
 	top: 69%;
 	left: 85%;
 	z-index : 10;
