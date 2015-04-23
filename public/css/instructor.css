@@ -37,20 +37,20 @@ body, html, .container-fluid, .publisher, .subscriber {
 	background-color: gray;
 }
 
-.active {
+.active .active-help {
 	color: green;
 }
 
-.inactive {
+.inactive .inactive-help {
 	color: red;
 }
 
-.no-stream {
+.no-stream .no-stream-help {
 	color: black;
 }
 
-.moderator {
-	color: red;
+.moderator .moderator-help {
+	color: teal;
 }
 
 .moderator.active {
