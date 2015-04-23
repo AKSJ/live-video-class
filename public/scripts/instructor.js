@@ -66,10 +66,10 @@ function sortMummies() {
 	var inactiveMummies = mummiesList.children('li.inactive');
 	var noStreamMummies = mummiesList.children('li.no-stream');
 	activeMummies.detach().sort(sortByName);
-	mummiesList.append(activeMummies);
 	inactiveMummies.detach().sort(sortByName);
-	mummiesList.append(inactiveMummies);
 	noStreamMummies.detach().sort(sortByName);
+	mummiesList.append(activeMummies);
+	mummiesList.append(inactiveMummies);
 	mummiesList.append(noStreamMummies);
 }
 
@@ -429,11 +429,7 @@ $('#endClass').click(function(){
 	}
 });
 
-$('#help').click(function(){
-	$('.help').toggleClass('hidden');
-});
 
-// TODO: connect mummy-list /OT_subscriber clicks so one click selects both if poss
 $(document).on('click', '.mummy', function(){
 	$('.mummy').removeClass('selected');
 	$(this).addClass('selected');
@@ -471,4 +467,8 @@ $('#getEmptySubscribers').click(function(){
 	console.log('Empty Subscriber Div length: ',$('.subscriber:empty').length);
 });
 
+// Not currently used
+// $('#help').click(function(){
+// 	$('.help').toggleClass('hidden');
+// });
 
