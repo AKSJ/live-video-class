@@ -234,9 +234,13 @@ session.on({
 	},
 	// NB - this is a Connection Event, not a Stream Event
 	connectionDestroyed: function(event) {
+		event.preventDefault();
 		var connectionData = JSON.parse(event.connection.data);
 		var username = connectionData.username;
-		// TODO UNSUBSCRIBE!
+		// unsbscribe/clear DOM if needed
+		if (mummyData[username].stream) {
+			unsubscribe(mummyData[username].stream);
+		}
 		// remove mummyRef
 		if (mummyData.hasOwnProperty(username) ) {
 			delete mummyData[username];
@@ -278,10 +282,6 @@ session.connect(token);
 //  Buttons  //
 ///////////////
 
-// Next five for alphabetical mummies....
-// New: mummyData[username] = {stream:{}, subscriber:{}, status: ''}
-// - new streamRefs may or may not contain a stream, so can be preserved on stream disconnect
-//  - have separate list for active/inactive? maintains onscreen/list grouping symmetry
 $('#nextFive').click(function(){
 	usernamesOfAllStreamers = [];
 	usernamesOfActiveStreamers = [];
@@ -365,7 +365,7 @@ $('#kill').click(function(){
 					connectionIdToKill = mummyData[usernameToKill].stream.connection.connectionId;
 			}
 		}
-		unsubscribe(mummyData[usernameToKill]);
+		unsubscribe(mummyData[usernameToKill].stream);
 		session.forceDisconnect(connectionIdToKill, function(err){
 			if (err) {
 				console.log('Failed to kill connection');
