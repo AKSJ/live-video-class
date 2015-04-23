@@ -11,12 +11,42 @@ var sessionId = config.openTok.sessionId;
 var apiKey 	= config.openTok.key;
 var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'administrator': 'moderator' };
 
-findOrAddUser = function( request, reply, profile ) {
+/////////////
+// Helpers //
+/////////////
+
+// Recursive method - simple, slow if many duplicate usernames but they're likely to be uncommon
+// Alternative - use regex db query to find all copies of username+n, replace(/username/,''),
+// put resulting nums in array do index of count = 1, if found, increment, if not found, return username+count
+var findUniqueUsername = function(username, count, callback) {
+	var newUsername;
+	if (count > 0) {
+		newUsername = username + count;
+	}
+	else {
+		newUsername = username;
+	}
+	members.findMemberByUsername(newUsername, function(err, member){
+		if (err) {
+			console.error(err);
+			return callback(err);
+		}
+		else if (member) {
+			return findUniqueUsername(username, (count + 1), callback);
+		}
+		else {
+			return callback(null, newUsername);
+		}
+	});
+};
+
+// TODO - add cookie errors the various db steps, for better user feedback
+var findOrAddUser = function( request, reply, profile ) {
 	// look up in database and if not found, then add to the database as a publisher
-	members.findMemberByEmail( profile.email, function( error, member ){
+	members.findMemberByEmail( profile.email, function( err1, member ){
 		console.log('Looking up member');
-		if( error ) {
-			console.error( error );
+		if(err1) {
+			console.error(err1);
 			request.auth.session.clear();
 			return reply.redirect( '/loggedout' );
 		}
@@ -29,26 +59,41 @@ findOrAddUser = function( request, reply, profile ) {
 			return reply.redirect('/');
 		}
 		else {
-			console.log('Member not found, adding to db');
-			var newMember = {
-				username: profile.username,
-				email: profile.email,
-				permissions: 'publisher'
-			};
-			members.addMember(newMember, function(err, newMember){
-				if (err) {
-					console.error(err);
-					console.log('Failed to add new member');
+			console.log('Member not found, checking for duplicate username');
+			findUniqueUsername(profile.username, 0, function(err3, uniqueUsername){
+				if (err3) {
+					console.error(err3);
+					console.error('Failed to find unique username');
 					request.auth.session.clear();
 					return reply.redirect( '/loggedout' );
 				}
-				else {
-					console.log('New member added to db');
-					console.dir(newMember);
-					profile.permissions = newMember.permissions;
+				else if (uniqueUsername) {
+					var newMember = {
+					username: uniqueUsername,
+					email: profile.email,
+					permissions: 'publisher'
+					};
+					members.addMember(newMember, function(err4, newMember){
+						if (err4) {
+							console.error(err4);
+							console.error('Failed to add new member');
+							request.auth.session.clear();
+							return reply.redirect( '/loggedout' );
+						}
+						else {
+							console.log('New member added to db');
+							console.dir(newMember);
+							profile.permissions = newMember.permissions;
+							request.auth.session.clear();
+							request.auth.session.set(profile);
+							return reply.redirect('/');
+						}
+					});
+				}
+				else { //This step should never be reached. Redundant?
+					console.error('findUniqueUsername failed to return a string');
 					request.auth.session.clear();
-					request.auth.session.set(profile);
-					return reply.redirect('/');
+					return reply.redirect( '/loggedout' );
 				}
 			});
 		}
@@ -70,14 +115,15 @@ generateToken = function( credentials ){
 	console.log('Token: ', token);
 	return token;
 };
-generateAdminView = function( request, reply, aToken ) {
+
+generateAdminView = function( request, reply, aToken, error ) {
 	var credentials = request.auth.credentials;
 	var username = credentials.username;
 	var userPermissions = credentials.permissions;
 	var tokBoxRole = permissionsList[userPermissions];
-	var error = (credentials.error) ? credentials.error : null;
 	var token = ( aToken ) ? aToken : generateToken( credentials );
-	request.auth.session.set('error', null);
+	// var error = (credentials.error) ? credentials.error : null;
+	// request.auth.session.set('error', null);
 	members.findAll( function( err, members ) {
 		if (err) {
 			error = error ? error + '\n'+err : err;
@@ -104,9 +150,10 @@ clientView = function( request, reply ) {
 	var tokBoxRole = permissionsList[userPermissions];
 
 	var error = credentials.error ? credentials.error : null;
+	request.auth.session.set('error', null);
+
 	var token = generateToken( credentials );
 
-	request.auth.session.set('error', null);
 	if( userPermissions === 'moderator' ) {
 		return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 	}
@@ -114,12 +161,18 @@ clientView = function( request, reply ) {
 		return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 	}
 	else if( userPermissions === 'administrator' ){
-		return generateAdminView( request, reply, token );
+		return generateAdminView( request, reply, token, error );
 	}
 	else{
 		request.auth.session.set( 'error', 'Your user permissions are invalid: ' + userPermissions );
 	}
 };
+
+
+////////////////////
+// Route Handlers //
+////////////////////
+
 module.exports = {
 
 	serveFile: {
@@ -241,12 +294,6 @@ module.exports = {
 											else {
 												return reply.redirect('/');
 											}
-										// return reply.view( 'admin_panel', { apiKey: apiKey,
-										// 		members: members,
-										// 		sessionId: sessionId,
-										// 		token: token,
-										// 		permissions: permissions,
-										// 		username: data.username, alert: alert });
 										}
 								  });
 		}

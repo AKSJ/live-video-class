@@ -12,11 +12,11 @@ exports.findAll = function( callback ) {
 		}
 	});
 };
+
 // sample params: 	{ 	query: {'email': 'foo'},
 // 		optional ----->	filter: {'permissions': 1, 'username':1, _id': 0}
 // 					}
 exports.search = function(params, callback) {
-	// NB - Probably want find rather than findOne for general search
 	if (params.filter) {
 		Member.find(params.query, params.filter, function(err, result){
 			if (err) {
@@ -38,6 +38,17 @@ exports.search = function(params, callback) {
 // NB if no member found, returns result of null, not error
 exports.findMemberByEmail = function(email, callback) {
 	Member.findOne({email: email}, function(err, result){
+		if (err) {
+			return callback(err);
+		}
+		else {
+			return callback(null, result);
+		}
+	});
+};
+
+exports.findMemberByUsername = function(username, callback) {
+	Member.findOne({username: username}, function(err, result){
 		if (err) {
 			return callback(err);
 		}

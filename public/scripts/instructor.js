@@ -1,9 +1,9 @@
 // TODO: Make mummies mute by default (audio off).
 
-// TODO Create client list (where on page?) with forceDisconnect buttons. Audio Focus?
-// Show 'active' status by setting class?
+// TODO: Add second list of 'active mummies'.?
 
-OT.setLogLevel(OT.DEBUG);
+
+// OT.setLogLevel(OT.DEBUG);
 
 // Initialize an OpenTok Session object
 var session = OT.initSession(apiKey,sessionId);
@@ -20,16 +20,17 @@ var publisherOptions = {
 							height: '100%',
 							resolution: '1280x720', //max resolution -default 640x480
 							frameRate: 30, //max frame rate
-							style: {nameDisplayMode: 'on', buttonDisplayMode: 'on'}
+							style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/}
 						};
 
 var publisher = OT.initPublisher('publisher', publisherOptions );
 
-// store all incoming streams in 'streams'. Add an object with property name of streamId:
-// streamId:{	stream: {},
-// 				status: 'active',
+// store all incoming streams in 'streamData'. Add an object with property name of streamId:
+// streamId:{	stream: {stream object},
+// 				status: 'active' / 'inactive',
 // 				id: 1,
-// 				subscriber: {}
+// 				subscriber: {subscriber object} / null,
+// 				username: 'string'
 // 			}
 // NB -These custom streamData objects are refered to as 'streamRefs', to avoid confusion with the OT stream objects they hold
 var streamData = {};
@@ -37,23 +38,25 @@ var maxId = 0;
 var selectedMummy;
 // TODO? Replace maxId counter with a maxId() function
 
-// streamData id helpers
+///////////////////////
+//  HELPER FUNCTIONS //
+///////////////////////
+
+
+// streamData helpers
+/////////////////////////
 function findMissingId() {
 	var currentIds = [];
-	var maxRange = [];
 	for (var streamId in streamData) {
 		currentIds.push(streamData[streamId].id);
 	}
-	currentIds.sort();
-	for (var i=1; i<=maxId; i++) {
-		maxRange.push(i);
-	}
-	if (currentIds.length !== maxRange.length) {
-		maxRange.forEach(function(id, index){
-			if (currentIds.indexOf(id) === -1) {
-				return id;
+	if (currentIds.length < maxId) {
+		currentIds.sort(); //sort ids to find lowest available id first
+		for (var i=1; i<=maxId; i++) {
+			if (currentIds.indexOf(i) === -1) {
+				return i;
 			}
-		});
+		}
 	}
 	else {
 		return false;
@@ -79,20 +82,33 @@ function sortStreamRefsById(a,b) {
 }
 
 // recursive function to patch holes in our ids
-// Not using now :(   Must find a use!
-function rationaliseIds() {
-	var missingId = findMissingId();
-	if (missingId) {
-		for (var streamId in streamData) {
-			if (streamData[streamId].id > missingId) {
-				streamData[streamId].id -= 1;
-			}
+// Not using now :(   Must find a use! --NB, doesn't account for mummies list ids
+// function rationaliseIds() {
+// 	var missingId = findMissingId();
+// 	if (missingId) {
+// 		for (var streamId in streamData) {
+// 			if (streamData[streamId].id > missingId) {
+// 				streamData[streamId].id -= 1;
+// 			}
+// 		}
+// 		rationaliseIds();
+// 	}
+// }
+
+function usernameFreeCheck(stream) {
+	var connectionData = JSON.parse(stream.connection.data);
+	var username = connectionData.username;
+	for (var streamId in streamData) {
+		if (streamData[streamId].username === username) {
+			return false;
 		}
-		rationaliseIds();
 	}
+	return true;
 }
 
 // mummies-list helpers
+//////////////////////////
+
 function hyphenate(string) {
 	return string.replace(/\s+/g,'-');
 }
@@ -131,12 +147,20 @@ function removeMummy(event) {
 }
 
 // subscription/DOM helpers
+///////////////////////////
+
 function activateStream(stream) {
 	var streamId = stream.streamId;
 	streamData[streamId].status = 'active';
 	var subContainerId = 'stream-' + streamId;
 	$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty')[0]);
-	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, {width: '100%', height: '100%', audioVolume: 0, style: {nameDisplayMode: 'on'}});
+	var subscriberOptions = {
+								width: '100%',
+								height: '100%',
+								subscribeToAudio: false,
+								style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/} //buttonDsiplay left on auto as causes central overlay on small screens
+							};
+	streamData[streamId].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
 	// set mummies-list entry class to active
 	setMummyActive(stream);
 	sortMummies();
@@ -157,6 +181,11 @@ function unsubscribe(stream){
 	setMummyInactive(stream);
 	sortMummies();
 }
+
+//////////////////////
+//  Event Listeners //
+//////////////////////
+
 
 session.on({
 
@@ -179,22 +208,34 @@ session.on({
 		usernameId = hyphenate(username);
 		var permissions = newStreamConnectionData.permissions;
 		var availableId = getAvailableId();
-
-		streamData[newStreamId] = {
-									stream: newStream,
-									status: 'inactive',
-									id: availableId,
-									subscriber: null
-								};
-		// check for mummy li before adding new one - mummies in list only removed on connectionDestroyed
-		if ( !$('#'+usernameId).length) {
-			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy', 'data-id': availableId }).text(username);
-			if (permissions === 'moderator') { newMummy.addClass('moderator'); }
-			newMummy.appendTo($('#mummies-list'));
-			sortMummies(); //also called in activateStream, but not invoked if 5+ active streams
+		// Check for streamRef with same username, don't add streamRef etc. if found.
+		var usernameFree = usernameFreeCheck(newStream);
+		if (usernameFree) {
+			streamData[newStreamId] = {
+										stream: newStream,
+										status: 'inactive',
+										id: availableId,
+										subscriber: null,
+										username: username
+									};
+			// check for mummy li before adding new one - mummies in list only removed on connectionDestroyed
+			if ( !$('#'+usernameId).length) {
+				var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy', 'data-id': availableId }).text(username);
+				if (permissions === 'moderator') { newMummy.addClass('moderator'); }
+				newMummy.appendTo($('#mummies-list'));
+				sortMummies(); //also called in activateStream, but not invoked if 5+ active streams
+			}
+			addSubscriber(newStream);
 		}
-		addSubscriber(newStream);
 	},
+	// ?????? this seems wrong - nextFive etc predicated on streamRef = subscibable stream, maxId being maxid of subscribale stream...
+	//  solution?? make data-id !== streamRef.id? or, === if stream active, data-id > maxId if inactve
+	//  maxId needs a name change, maxPublishedStreamId ?
+	// TODO :MASSIVE REFACTOR!
+	// 1) Dont delete streatmRef until clientDissconect, we need it to keep username/id assoc
+	// 2) Check for preexisting username in streamData on streamCrreated! if found, add stream object
+	// 3) on stream destoryed, pull in maxId stream as now, but move destoyedStream ref to maxId
+	// 4) Handle mummy list elements - reset data-id appropriately
 
 	// TODO: Does default behaviour trigger AFTER callback? refactor if so
 	streamDestroyed: function(event) {
@@ -204,6 +245,9 @@ session.on({
 		if (streamData.hasOwnProperty(destroyedStreamId) ) {
 			vacatedId = streamData[destroyedStreamId].id;
 			delete streamData[destroyedStreamId];
+			//  find  unpublished mummies list element
+			var unpublishedMummy = $('[data-id =' + vacatedId + ']');
+			// set unplublisehdMummy id to new(old?) max id
 			// Find stream with max id and put it in the hole - this should reposition things nicely in DOM if no inactive streams
 			for (var streamId in streamData) {
 				if (streamData[streamId].id === maxId) {
@@ -239,11 +283,6 @@ session.on({
 		removeMummy(event);
 		sortMummies();
 	},
-	// TEST - can session listen for subscriber destroyed events?
-	destroyed: function(event) {
-		console.log('Subscriber destroyed:');
-		console.log(event);
-	}
 });
 
 publisher.on({
@@ -260,6 +299,7 @@ publisher.on({
 
 session.connect(token);
 
+// Instructor video toggles -currently removed
 // $('#stopStream').click(function(){
 // 	session.unpublish(publisher);
 // 	// publisher.publishVideo(false);
@@ -271,6 +311,10 @@ session.connect(token);
 // 	// publisher.publishVideo(true);
 // 	// publisher.publishAudio(true);
 // });
+
+///////////////
+//  Buttons  //
+///////////////
 
 $('#nextFive').click(function(){
 	// find higest active id and collect active streams
@@ -356,32 +400,28 @@ $('#prevFive').click(function(){
 	});
 });
 
-$('#getStreamData').click(function(){
-	console.log(streamData);
-});
-
-$('#getEmptySubscribers').click(function(){
-	console.log($('.subscriber:empty'));
-	console.log('Empty Subscriber Div length: ',$('.subscriber:empty').length);
-});
-
 $('#kill').click(function(){
 	var mummyIdToKill = $('.selected').data('id');
 	var connectionIdToKill;
-	if (mummyIdToKill) {
-		for (var streamId in streamData) {
-			if (streamData[streamId].id === mummyIdToKill) {
-				connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+	// confirmation dialogue
+	var kill = confirm('Are you sure you want to kick this client?\nThey will be disconnected from the class');
+
+	if (kill) {
+		if (mummyIdToKill) {
+			for (var streamId in streamData) {
+				if (streamData[streamId].id === mummyIdToKill) {
+					connectionIdToKill = streamData[streamId].stream.connection.connectionId;
+				}
 			}
+			session.forceDisconnect(connectionIdToKill, function(err){
+				if (err) {
+					console.log('Failed to kill connection');
+				}
+				else {
+					console.log('Killed '+ connectionIdToKill);
+				}
+			});
 		}
-		session.forceDisconnect(connectionIdToKill, function(err){
-			if (err) {
-				console.log('Failed to kill conection');
-			}
-			else {
-				console.log('Killed '+ connectionIdToKill);
-			}
-		});
 	}
 });
 
@@ -395,7 +435,7 @@ $('#endClass').click(function(){
 			var connectionIdToKill = streamData[streamId].stream.connection.connectionId;
 			session.forceDisconnect(connectionIdToKill, function(err){
 				if (err) {
-					console.log('Failed to kill conection');
+					console.log('Failed to kill connection');
 				}
 				else {
 					console.log('Killed '+ connectionIdToKill);
@@ -411,8 +451,41 @@ $('#help').click(function(){
 	$('.help').toggleClass('hidden');
 });
 
+// TODO: connect mummy-list /OT_subscriber clicks so one click selects both if poss
 $(document).on('click', '.mummy', function(){
 	$('.mummy').removeClass('selected');
 	$(this).addClass('selected');
 });
+
+$(document).on('click', '.OT_subscriber', function(){
+	$('.OT_subscriber').removeClass('selected-subscriber');
+	$(this).addClass('selected-subscriber');
+	var selectedStreamId = $(this).attr('id').replace(/stream-/,'');
+	console.log('StreamId: ', selectedStreamId);
+	var subscriberToHear = streamData[selectedStreamId].subscriber;
+	console.log(subscriberToHear);
+	var subscribersToMute = [];
+	for (var streamId in streamData) {
+		if (streamData[streamId].subscriber && streamId !== selectedStreamId) {
+			subscribersToMute.push(streamData[streamId].subscriber);
+		}
+	}
+	subscriberToHear.subscribeToAudio(true);
+	subscribersToMute.forEach(function(subscriberToMute){
+		subscriberToMute.subscribeToAudio(false);
+	});
+});
+
+///////////////
+// DEV TOOLS //
+///////////////
+$('#getStreamData').click(function(){
+	console.log(streamData);
+});
+
+$('#getEmptySubscribers').click(function(){
+	console.log($('.subscriber:empty'));
+	console.log('Empty Subscriber Div length: ',$('.subscriber:empty').length);
+});
+
 
