@@ -134,6 +134,7 @@ function unsubscribe(stream){
 }
 
 function fillInFive() {
+	console.log('fillInFive() called');
 	var usernamesWithStreams = [];
 	var usernamesToSubscribeTo;
 	// find all available streams
@@ -168,10 +169,14 @@ function fillInFive() {
 		}
 	}
 	// unsub all active
+	console.log('Unsubscribing: ');
+	console.log(activeUsernames);
 	activeUsernames.forEach(function(username){
 		unsubscribe(mummyData[username].stream);
 	});
 	// sub to new streams
+	console.log('Subscribing to: ');
+	console.log(usernamesToSubscribeTo);
 	usernamesToSubscribeTo.forEach(function(username){
 		addSubscriber(mummyData[username].stream);
 	});
@@ -239,13 +244,13 @@ session.on({
 		if (mummyData.hasOwnProperty(username) ) {
 			if (mummyData[username].subscriber) {
 				unsubscribe(destroyedStream);
-				// try and keep 5 streams on screen
-				fillInFive();
 			}
 			// update mummyRef
 			mummyData[username].subscriber = null;
 			mummyData[username].stream = null;
 			mummyData[username].status = 'no-stream';
+			// try and keep 5 streams on screen
+			fillInFive();
 		}
 		setMummyNoStream(username);
 	},
@@ -334,6 +339,7 @@ session.connect(token);
 
 // TODO: find bug, 3 subs -> 2, should stay 3
 $('#nextFive').click(function(){
+	console.log('nextFive() called');
 	$('.OT_subscriber_error').remove();
 	usernamesOfAllStreamers = [];
 	usernamesOfActiveStreamers = [];
@@ -347,16 +353,24 @@ $('#nextFive').click(function(){
 	}
 	usernamesOfAllStreamers.sort();
 	usernamesOfActiveStreamers.sort();
+	console.log('All streamers: ');
+	console.log(usernamesOfAllStreamers);
+	console.log('Active streamers: ');
+	console.log(usernamesOfActiveStreamers);
 	// find highest username currently displayed
 	var lastActiveUsername = usernamesOfActiveStreamers[usernamesOfActiveStreamers.length - 1];
 	// find lastActiveUsername and get 5 usernames after it in usernamesOfAllStreamers
 	var usernamesToSubscribeTo;
 	var lastActiveUsernameIndex = usernamesOfAllStreamers.indexOf(lastActiveUsername);
 	// check if there are 5 more names to get, if so, fetch
-	if ( lastActiveUsernameIndex < usernamesOfAllStreamers.length - 6 ) {
+	if (usernamesOfAllStreamers.length <= 5 ) {
+		usernamesToSubscribeTo = usernamesOfAllStreamers;
+	}
+	else if ( lastActiveUsernameIndex < usernamesOfAllStreamers.length - 6 ) {
 		usernamesToSubscribeTo = usernamesOfAllStreamers.slice(lastActiveUsernameIndex + 1, lastActiveUsernameIndex + 6);
 	}
 	else { //fetch last 5 names
+		console.log('End of list, fetching last 5 names');
 		usernamesToSubscribeTo = usernamesOfAllStreamers.slice(usernamesOfAllStreamers.length - 5);
 	}
 	// unsubscribe active streams
@@ -364,6 +378,8 @@ $('#nextFive').click(function(){
 		unsubscribe(mummyData[username].stream);
 	});
 	// subscribe to new streams
+	console.log('Subscribing to: ');
+	console.log(usernamesToSubscribeTo);
 	usernamesToSubscribeTo.forEach(function(username){
 		addSubscriber(mummyData[username].stream);
 	});
@@ -371,6 +387,7 @@ $('#nextFive').click(function(){
 
 
 $('#prevFive').click(function(){
+	console.log('nextFive() called');
 	$('.OT_subscriber_error').remove();
 	usernamesOfAllStreamers = [];
 	usernamesOfActiveStreamers = [];
@@ -384,6 +401,10 @@ $('#prevFive').click(function(){
 	}
 	usernamesOfAllStreamers.sort();
 	usernamesOfActiveStreamers.sort();
+	console.log('All streamers: ');
+	console.log(usernamesOfAllStreamers);
+	console.log('Active streamers: ');
+	console.log(usernamesOfActiveStreamers);
 	// find lowest username currently displayed
 	var firstActiveUsername = usernamesOfActiveStreamers[0];
 	// find firstActiveUsername and get 5 usernames before it in usernamesOfAllStreamers
@@ -401,6 +422,8 @@ $('#prevFive').click(function(){
 		unsubscribe(mummyData[username].stream);
 	});
 	// subscribe to new streams
+	console.log('Subscribing to: ');
+	console.log(usernamesToSubscribeTo);
 	usernamesToSubscribeTo.forEach(function(username){
 		addSubscriber(mummyData[username].stream);
 	});
