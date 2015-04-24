@@ -1,4 +1,4 @@
-body, html, .container,.tabpanel, #classview,.tab-content,.container-fluid, .row  {
+body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .row  {
 	height:100%;
 
 }
@@ -9,13 +9,13 @@ body, html, .container,.tabpanel, #classview,.tab-content,.container-fluid, .row
 	height: 100%;
 	width: 100%;
 }
-.btn{
+/*.btn{
 	font-size: 10px;
-}
-.btn:hover{
+}*/
+/*.btn:hover{
 	color: #F21E1E;
 	text-decoration: none
-}
+}*/
 #moderator{
 	position:absolute;
 	top:0;
@@ -39,12 +39,21 @@ body, html, .container,.tabpanel, #classview,.tab-content,.container-fluid, .row
 #publisher {
 	position:absolute;
 	width: 15%;
-	height: 15%;
-	top: 69%;
+	height: 20%;
+	top: 75%;
 	left: 85%;
 	z-index : 10;
 }
 
 .windowpanel{
 	margin-top: 10px;
+}
+
+/*This <a> psuedo button is too close to sib unless explicitly padded*/
+#logOut {
+	margin-left: 4px;
+}
+
+.modal-title {
+	text-align: center;
 }
