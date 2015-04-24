@@ -197,6 +197,7 @@ session.on({
 
 	streamCreated: function(event) {
 		console.log(event);
+		$('.OT_subscriber_error').remove();
 		var newStream = event.stream;
 		var newStreamId = newStream.streamId;
 		var newStreamConnectionData = JSON.parse(newStream.connection.data);
@@ -227,6 +228,8 @@ session.on({
 	streamDestroyed: function(event) {
 		console.log(event);
 		event.preventDefault();
+		$('.OT_subscriber_error').remove();
+
 		var destroyedStream = event.stream;
 		var destroyedStreamId = event.stream.streamId;
 		var connectionData = JSON.parse(destroyedStream.connection.data);
@@ -250,6 +253,8 @@ session.on({
 	connectionDestroyed: function(event) {
 		console.log(event);
 		event.preventDefault();
+		$('.OT_subscriber_error').remove();
+
 		var connectionData = JSON.parse(event.connection.data);
 		var username = connectionData.username;
 		// unsbscribe/clear DOM if needed
@@ -278,27 +283,37 @@ publisher.on({
 });
 
 // Not currently clearing DOM as intended
+// OT.on('exception', function(event){
+// 	if (event.code === 1013) {
+// 		console.log('Connection Failed event:');
+// 		console.log(event);
+// 		//  event.target is a subscriber object
+// 		var disconnectedStream = event.target.stream;
+// 		var connectionData = JSON.parse(disconnectedStream.connection.data);
+// 		var disconnectedUsername = connectionData.username;
+// 		var disconnectedUsernameId = hyphenate(disconnectedUsername);
+// 		// unsubscribe
+// 		unsubscribe(disconnectedStream);
+// 		// delete mummyRef
+// 		if (mummyData[username]) {
+// 			delete mummyData[username];
+// 		}
+// 		// remove mummy-list entry
+// 		removeMummy(username);
+// 		// fallback clear DOM <-- Still there!
+// 		$('#' + usernameId + '-subscriber').remove();
+// 	}
+// });
+
 OT.on('exception', function(event){
 	if (event.code === 1013) {
 		console.log('Connection Failed event:');
 		console.log(event);
-		//  event.target is a subscriber object
-		var disconnectedStream = event.target.stream;
-		var connectionData = JSON.parse(disconnectedStream.connection.data);
-		var disconnectedUsername = connectionData.username;
-		var disconnectedUsernameId = hyphenate(disconnectedUsername);
-		// unsubscribe
-		unsubscribe(disconnectedStream);
-		// delete mummyRef
-		if (mummyData[username]) {
-			delete mummyData[username];
-		}
-		// remove mummy-list entry
-		removeMummy(username);
-		// fallback clear DOM <-- Still there!
-		$('#' + usernameId + '-subscriber').remove();
+		$('.OT_subscriber_error').remove();
 	}
 });
+
+
 
 session.connect(token);
 
@@ -321,6 +336,7 @@ session.connect(token);
 
 // TODO: find bug, 3 subs -> 2, should stay 3
 $('#nextFive').click(function(){
+	$('.OT_subscriber_error').remove();
 	usernamesOfAllStreamers = [];
 	usernamesOfActiveStreamers = [];
 	for (var username in mummyData) {
@@ -357,6 +373,7 @@ $('#nextFive').click(function(){
 
 
 $('#prevFive').click(function(){
+	$('.OT_subscriber_error').remove();
 	usernamesOfAllStreamers = [];
 	usernamesOfActiveStreamers = [];
 	for (var username in mummyData) {
