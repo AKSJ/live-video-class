@@ -15,7 +15,7 @@ var moderators = [];
 var subscribers = {};
 
 // Initialize a Publisher, and place it into the element with id='publisher'
-publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', height: '100%'/*, style: {nameDisplayMode: 'on'}*/});
+publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', height: '100%', style: {nameDisplayMode: 'off'} });
 
 //Helpers//
 function unsubscribe(stream){
@@ -115,7 +115,7 @@ session.on({
 		}
 		// ??? This could be in the if statement above, but put it out here so clean up happens even if something else goes wrong
 		if (subscribers.hasOwnProperty(destroyedStream.streamId) ) {
-			delete subscribers[stream.streamId];
+			delete subscribers[destroyedStream.streamId];
 		}
 	}
 });

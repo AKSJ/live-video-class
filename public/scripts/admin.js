@@ -17,7 +17,7 @@ $(document).ready(function() {
     $.post("/api/memberupdate", {data: payload}, function(result){
         // $("span").html(result);
         console.log( result );
-        window.location.reload(true); // <- is this needed? Seems like it would overide the redirect work we're doing on the server
+        window.location.reload(true);
     });
   });
 
