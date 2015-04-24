@@ -1,0 +1,23 @@
+extends ./layouts/nonavbar.jade
+
+block content
+	.container
+		.row
+			.col-md-12
+				h1(style='text-align:center;') Mummy Workouts
+		.row
+			.col-md-3
+			.col-md-6.text-center
+				a.btn#fbLogin(style='text-align:center;', href='/login/facebook', role='button') Login with Facebook
+			.col-md-3
+		.row
+			.col-md-3
+			.col-md-6
+				h4(style='text-align:center;') Please login using your Facebook account
+				br
+				p(style='text-align:center;') We cannot post anything to your wall, or access your account information.
+			.col-md-3
+		.row
+			.col-md-3
+			.col-md-6
+				a.btn.btn-default#googleLogin(href='/login/google', role='button') Google - DEV TOOL

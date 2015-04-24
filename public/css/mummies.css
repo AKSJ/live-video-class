@@ -1,0 +1,77 @@
+body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .row  {
+	height:100%;
+
+}
+
+#window{
+	position: relative;
+	left: 10px;
+	height: 100%;
+	width: 100%;
+}
+/*.btn{
+	font-size: 10px;
+}*/
+/*.btn:hover{
+	color: #F21E1E;
+	text-decoration: none
+}*/
+#moderator {
+	position:absolute;
+	top:0;
+	left:0;
+	height: 100%;
+	width: 100%;
+	/*z-index: -1;*/ /*z-index -1 prevents on hover UI working*/
+}
+
+.image {
+	position:absolute;
+	height: 100%;
+	width: 100%;
+	/*background-size: 100%*/
+	overflow : hidden;
+}
+/*.image img{
+	min-height: 100%;
+}*/
+
+#publisher {
+	position:absolute;
+	width: 15%;
+	height: 20%;
+	top: 75%;
+	left: 85%;
+	z-index : 10;
+}
+
+#blackout-div {
+	position:absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	background-color: black;
+	z-index: 11;
+}
+
+.hidden {
+	display: none;
+}
+
+.windowpanel{
+	margin-top: 10px;
+}
+
+/*This <a> psuedo button is too close to sib unless explicitly padded*/
+#logOut {
+	margin-left: 4px;
+}
+#adminlogOut {
+	margin-left: 4px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+.modal-title {
+	text-align: center;
+}

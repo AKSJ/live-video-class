@@ -7,7 +7,7 @@ var config 	= require('./config');
 
 var host = 'localhost';
 if (process.env.PORT) host = '0.0.0.0';
-var serverOptions 	= {port: (process.env.PORT || 3000 ), host: host };
+var serverOptions 	= {port: (process.env.PORT || 3000 ), host: '0.0.0.0' }; //host: host
 
 var server = new Hapi.Server({
 	connections: {
@@ -27,7 +27,7 @@ server.register([Bell, Cookie], function (err) {
 	server.auth.strategy('session', 'cookie',{
 		password: config.cookie.password,
 		cookie: 'sid',
-		// redirectTo: '/',
+		redirectTo: '/loggedout',
 		redirectOnTry: false,
 		isSecure: false
 	});
@@ -38,6 +38,14 @@ server.register([Bell, Cookie], function (err) {
 		isSecure: false,
 		clientId: config.google.cKey,
 		clientSecret: config.google.cSecret
+	});
+
+	server.auth.strategy('facebook', 'bell', {
+		provider: 'facebook',
+		password: config.facebook.secret,
+		isSecure: false,
+		clientId: config.facebook.cKey,
+		clientSecret: config.facebook.cSecret
 	});
 
 
@@ -62,7 +70,7 @@ var goodOptions = {
 	opsInterval: 60 * 1000,
 	reporters: [{
 		reporter: require('good-console'),
-		events: {ops: '*', log: '*', error: '*', response: '*'}
+		events: {log: '*', error: '*', response: '*'}
 	}]
 };
 

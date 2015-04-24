@@ -1,0 +1,131 @@
+extends ./layouts/nonavbar.jade
+
+//- NB- The full stop on line 6 is VERY IMPORTANT
+append head
+	link(href='/css/instructor.css', rel='stylesheet' type='text/css')
+	script(type='text/javascript').
+		var apiKey = '#{apiKey}'
+		var sessionId = '#{sessionId}'
+		var token = '#{token}'
+		var permissions = '#{permissions}' // should be moderator
+		var role = '#{role}'
+		var username = '#{username}'
+	script(src='/scripts/instructor.js')
+
+block content
+	.container-fluid
+		.row.videoRow
+			.col-xs-4.videoCol.publisher
+				#publisher
+			.col-xs-4.videoCol.subscriber#subscriber1
+			.col-xs-4.videoCol.subscriber#subscriber2
+		.row.videoRow
+			.col-xs-4.videoCol.subscriber#subscriber3
+			.col-xs-4.videoCol.subscriber#subscriber4
+			.col-xs-4.videoCol.subscriber#subscriber5
+
+		.row.buttonRow
+			.col-xs-4
+				//- button.btn.btn-default#stopStream Stop Stream
+				//- button.btn.btn-default#startStream Start Stream
+				button.btn.btn-primary#prevFive
+					span.glyphicon.glyphicon-arrow-left(aria-hidden='true')
+				button.btn.btn-primary#nextFive
+					span.glyphicon.glyphicon-arrow-right(aria-hidden='true')
+			.col-xs-2
+				button.btn.btn-success(type='button', data-toggle='modal', data-target='#mummiesModal')#classList
+					span.glyphicon.glyphicon-tasks(aria-hidden='true')
+			.col-xs-2
+				button.btn.btn-info(type='button', data-toggle='modal', data-target='#helpModal')#help
+					span.glyphicon.glyphicon-question-sign(aria-hidden='true')
+			.col-xs-2
+				a.btn.btn-warning#logOut(href='/logout', role='button')
+					span.glyphicon.glyphicon-log-out(aria-hidden='true')
+			.col-xs-2
+				button.btn.btn-danger#endClass
+					span.glyphicon.glyphicon-off(aria-hidden='true')
+
+	#mummiesModal.modal(tabindex='-1', role='dialog', aria-labelledby='mummiesModalLabel', aria-hidden='true')
+		.modal-dialog
+			.modal-content
+				.modal-header
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') &times;
+					h4#mummiesModalLabel.modal-title Class List
+				.modal-body
+					.container-fluid
+						.row
+							.col-xs-8
+								.mummies
+									ul#mummies-list
+							.col-xs-4
+								p Click a name on the list to select
+								br
+								button.btn.btn-danger#kill
+									span.glyphicon.glyphicon-ban-circle(aria-hidden='true')
+								p Click button to kick selected class member from the class
+								br
+								hr
+								h5 List Order
+								br
+								p.active-help Currently displayed
+								p.inactive-help Streaming but not displayed
+								p.no-stream-help Not streaming
+								p.moderator-help Instructor
+				.modal-footer
+					button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+	#helpModal.modal(tabindex='-1', role='dialog', aria-labelledby='helpModalLabel', aria-hidden='true')
+		.modal-dialog
+			.modal-content
+				.modal-header
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') &times;
+					h4#helpModalLabel.modal-title Help
+				.modal-body
+					.container-fluid
+						.row
+							.col-xs-4
+								button.btn.btn-primary
+									span.glyphicon.glyphicon-arrow-left(aria-hidden='true')
+								p Display previous 5 class members.
+								button.btn.btn-primary
+									span.glyphicon.glyphicon-arrow-right(aria-hidden='true')
+								p Display next 5 class members.
+							.col-xs-4
+								button.btn.btn-success
+									span.glyphicon.glyphicon-tasks(aria-hidden='true')
+								p Open class list pop-up.
+								button.btn.btn-info
+									span.glyphicon.glyphicon-question-sign(aria-hidden='true')
+								p Open help pop-up.
+							.col-xs-4
+								button.btn.btn-warning
+									span.glyphicon.glyphicon-log-out(aria-hidden='true')
+								p Log out
+								p (Use if you signed in with wrong account)
+								button.btn.btn-danger
+									span.glyphicon.glyphicon-off(aria-hidden='true')
+								p End the class, disconnecting all class members and yourself.
+						.row
+							.col-xs-12
+								hr
+						.row
+							.col-xs-4
+								p The arrow buttons scroll through the available class member video streams.
+							.col-xs-4
+								p You can view the names of everyone attending the class in the class list pop-up.
+							.con-xs-4
+								p You can kick a class member from the class.
+						.row
+							.col-xs-4
+								p Click a video box to enable sound from that class member.
+								p (A yellow border indicates active sound output)
+							.col-xs-4
+								p This includes those with their video output turned off.
+							.con-xs-4
+								p Select their name from the list, then click the kick button
+				.modal-footer
+					button.btn.btn-default(type='button', data-dismiss='modal') Close
+
+

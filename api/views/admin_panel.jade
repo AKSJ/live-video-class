@@ -1,0 +1,108 @@
+extends ./layouts/default.jade
+
+//- NB- The full stop on line 6 is VERY IMPORTANT
+append head
+	link(href='/css/admin.css', rel='stylesheet' type='text/css')
+	script(type='text/javascript').
+		var apiKey = '#{apiKey}'
+		var sessionId = '#{sessionId}'
+		var token = '#{token}'
+		var permissions = '#{permissions}'
+		var role = '#{role}'
+		var username = '#{username}'
+	script(src='/scripts/admin.js')
+	script(src='/scripts/mummies.js')
+
+block navbar
+	include ./includes/admin_navbar.jade
+
+permTypes = ["moderator", "publisher", "administrator"];
+
+block content
+	.container
+		div.tabpanel(role='tabpanel')
+			ul.nav.nav-tabs(role='tablist')
+				li.active(role='presentation')
+					a(href='#memberview', aria-controls='memberview', role='tab', data-toggle='tab') Member View
+				li(role='presentation')
+					a(href='#classview', aria-controls='classview', role='tab', data-toggle='tab') Class View
+			.tab-content
+				#classview.tab-pane(role='tabpanel')
+					//- .container-fluid
+					//- .row
+						//- .col-md-12#window
+					#window.windowpanel
+						#publisher
+							#publisher-div
+							div.controls
+								button.btn.btn-danger#stopStream
+									//- span.glyphicon.glyphicon-remove
+									span.glyphicon.glyphicon-facetime-video
+								button.btn.btn-success#startStream
+									//- span.glyphicon.glyphicon-ok
+									span.glyphicon.glyphicon-facetime-video
+								button.btn.btn-info(type='button', data-toggle='modal', data-target='#helpModal')#help
+									span.glyphicon.glyphicon-question-sign(aria-hidden='true')
+								a.btn.btn-warning#logOut(href='/logout', role='button')
+									span.glyphicon.glyphicon-log-out(aria-hidden='true')
+						#moderator
+							.image
+								img(src="http://mummyworkouts.com/wp-content/uploads/2015/03/Home_Image_Large_crop_4-11.jpg" )
+
+				#helpModal.modal(tabindex='-1', role='dialog', aria-labelledby='helpModalLabel', aria-hidden='true')
+					.modal-dialog
+						.modal-content
+							.modal-header
+								button.close(type='button', data-dismiss='modal', aria-label='Close')
+									span(aria-hidden='true') &times;
+								h4#helpModalLabel.modal-title Help
+							.modal-body
+								.container-fluid
+									.row
+										.col-xs-3
+											button.btn.btn-danger
+												//- span.glyphicon.glyphicon-remove
+												span.glyphicon.glyphicon-facetime-video
+											p Stop sending video to the instructor.
+										.col-xs-3
+											button.btn.btn-success
+												//- span.glyphicon.glyphicon-ok
+												span.glyphicon.glyphicon-facetime-video
+											p Resume sending video to the instructor.
+										.col-xs-4
+											button.btn.btn-info
+												span.glyphicon.glyphicon-question-sign(aria-hidden='true')
+											p Open help pop-up.
+										.col-xs-4
+											button.btn.btn-warning
+												span.glyphicon.glyphicon-log-out(aria-hidden='true')
+											p Log out.
+											p (Use if you signed in with wrong account)
+							.modal-footer
+								button.btn.btn-default.btn.btn-default-default(type='button', data-dismiss='modal') Close
+
+				#memberview.tab-pane.active(role='tabpanel')
+					h2 Member Administration Page
+					//- p
+					//- 	The .table-responsive class creates a responsive table which will scroll horizontally on small devices (under 768px). When viewing on anything larger than 768px wide, there is no difference:
+					.table-responsive
+						table.table.table-striped.table-bordered.table-hover.table-condensed
+							thead
+								tr
+									th Username
+									th Email
+									th Permissions
+							tbody
+								if members
+									each member in members
+										tr
+											td(class=member.id + " username") #{member.username}
+											td.email(class=member.id + " email") #{member.email}
+											td(class=member.id + " permissions")
+												.form-group
+													select.form-control.selectpermissions
+														option(selected="selected") #{member.permissions}
+														//- each perm in permTypes
+														option moderator
+														option publisher
+														option administrator
