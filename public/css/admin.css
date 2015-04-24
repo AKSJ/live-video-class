@@ -13,9 +13,9 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
     position: relative;
     bottom: 5%;
 }
-.controls{
+/*.controls{
 	padding-left: 5px;
-}
+}*/
 #collapselist{
 	position: relative;
 	top: 25%;
@@ -52,6 +52,20 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 /*.image img{
 	min-height: 100%;
 }*/
+
+#blackout-div {
+	position:absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	background-color: black;
+	z-index: 11;
+}
+#button-div {
+	z-index: 12;
+	text-align: center;
+}
 
 #publisher {
 	position:absolute;
