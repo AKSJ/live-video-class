@@ -18,25 +18,53 @@ var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'adm
 // Recursive method - simple, slow if many duplicate usernames but they're likely to be uncommon
 // Alternative - use regex db query to find all copies of username+n, replace(/username/,''),
 // put resulting nums in array do index of count = 1, if found, increment, if not found, return username+count
-var findUniqueUsername = function(username, count, callback) {
-	var newUsername;
-	if (count > 0) {
-		newUsername = username + ' - ' + count;
-	}
-	else {
-		newUsername = username;
-	}
-	members.findMemberByUsername(newUsername, function(err, member){
+// var findUniqueUsername = function(username, count, callback) {
+// 	var newUsername;
+// 	if (count > 0) {
+// 		newUsername = username + ' - ' + count;
+// 	}
+// 	else {
+// 		newUsername = username;
+// 	}
+// 	members.findMemberByUsername(newUsername, function(err, member){
+// 		if (err) {
+// 			console.error(err);
+// 			return callback(err);
+// 		}
+// 		else if (member) {
+// 			return findUniqueUsername(username, (count + 1), callback);
+// 		}
+// 		else {
+// 			console.log('Username assigned: ', newUsername);
+// 			return callback(null, newUsername);
+// 		}
+// 	});
+// };
+
+var findUniqueUsername = function(username, callback) {
+	var usernameRegex = new RegExp(username);
+	members.findMembersByUsername(usernameRegex, function(err, membersArray){
 		if (err) {
 			console.error(err);
 			return callback(err);
 		}
-		else if (member) {
-			return findUniqueUsername(username, (count + 1), callback);
-		}
 		else {
-			console.log('Username assigned: ', newUsername);
-			return callback(null, newUsername);
+			if (membersArray.length === 0 || membersArray.indexOf(username) === -1) {
+				return callback (null, username);
+			}
+			else {
+				for (var i = 1; i < membersArray.length+5; i++) {
+					var newUsername = username + ' - ' + i;
+					if (membersArray.indexOf(newUsername) === -1) {
+						return callback(null, newUsername);
+					}
+					else {
+						if (i === membersArray.length+4) {
+							return callback('findUniqueUsername() failed in operation');
+						}
+					}
+				}
+			}
 		}
 	});
 };
@@ -61,7 +89,7 @@ var findOrAddUser = function( request, reply, profile ) {
 		}
 		else {
 			console.log('Member not found, checking for duplicate username');
-			findUniqueUsername(profile.username, 0, function(err3, uniqueUsername){
+			findUniqueUsername(profile.username, function(err3, uniqueUsername){
 				if (err3) {
 					console.error(err3);
 					console.error('Failed to find unique username');

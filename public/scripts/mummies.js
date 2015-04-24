@@ -137,12 +137,14 @@ session.connect( token);
 
 $('#stopStream').click(function(){
 	session.unpublish(publisher);
+	$('#blackout-div').removeClass('hidden');
 	// publisher.publishVideo(false);
 	// publisher.publishAudio(false);
 });
 
 $('#startStream').click(function(){
 	session.publish(publisher);
+	$('#blackout-div').addClass('hidden');
 	// publisher.publishVideo(true);
 	// publisher.publishAudio(true);
 });

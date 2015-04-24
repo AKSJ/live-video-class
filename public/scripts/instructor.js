@@ -231,6 +231,7 @@ session.on({
 	},
 
 	streamDestroyed: function(event) {
+		console.log(event);
 		event.preventDefault();
 		var destroyedStream = event.stream;
 		var destroyedStreamId = event.stream.streamId;
@@ -253,6 +254,7 @@ session.on({
 	},
 	// NB - this is a Connection Event, not a Stream Event
 	connectionDestroyed: function(event) {
+		console.log(event);
 		event.preventDefault();
 		var connectionData = JSON.parse(event.connection.data);
 		var username = connectionData.username;
