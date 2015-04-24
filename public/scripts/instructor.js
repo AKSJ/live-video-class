@@ -28,7 +28,7 @@ var publisher = OT.initPublisher('publisher', publisherOptions );
 // store all incoming streams in 'streamData'. Add an object with property name of streamId:
 // streamId:{	stream: {stream object},
 // 				status: 'active' / 'inactive',
-// 				id: 1,
+// 				id: 1,s
 // 				subscriber: {subscriber object} / null,
 // 				username: 'string'
 // 			}

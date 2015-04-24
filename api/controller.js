@@ -9,7 +9,7 @@ var members = require('./models/members.js');
 var config 	= require('./config');
 var sessionId = config.openTok.sessionId;
 var apiKey 	= config.openTok.key;
-var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'administrator': 'moderator' };
+var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'administrator': 'publisher' };
 
 /////////////
 // Helpers //
@@ -105,6 +105,7 @@ generateToken = function( credentials ){
 	var userPermissions = credentials.permissions;
 	var tokBoxRole = permissionsList[userPermissions];
 	console.log( 'Username: ' + username );
+	console.log( 'Email: ' + credentials.email );
 	console.log( 'Permissions: ' + userPermissions);
 	console.log( 'TokBox Role: ' + tokBoxRole );
 	var token = opentok.generateToken(sessionId,({
@@ -282,7 +283,7 @@ module.exports = {
 										if( error ) {
 											console.error( error );
 											request.auth.session.set('error', error); //TODO don't pass raw errors to user
-											return request.redirect('/');
+											return reply.redirect('/');
 										}
 										else {
 											// update credentials if current user has had permissions changed
