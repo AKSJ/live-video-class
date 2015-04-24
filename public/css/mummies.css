@@ -57,6 +57,7 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 
 #button-div {
 	z-index: 12;
+	text-align: center;
 }
 
 .hidden {

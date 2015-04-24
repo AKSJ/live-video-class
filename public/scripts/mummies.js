@@ -145,18 +145,18 @@ OT.on('exception', function(event){
 session.connect( token);
 
 
-$('#stopStream').click(function(){
-	session.unpublish(publisher);
-	$('#blackout-div').removeClass('hidden');
-	// publisher.publishVideo(false);
-	// publisher.publishAudio(false);
+$('#streamtoggle').click(function(){
+	if( $('#streamtoggle').hasClass( "btn-danger") ) {
+		$('#streamtoggle').removeClass( 'btn-danger');
+		$('#streamtoggle').addClass( 'btn-success');
+		session.unpublish(publisher);
+		$('#blackout-div').removeClass('hidden');
+	}
+	else if( $('#streamtoggle').hasClass( "btn-success") ) {
+		$('#streamtoggle').removeClass( 'btn-success');
+		$('#streamtoggle').addClass( 'btn-danger');
+		session.publish(publisher);
+		$('#blackout-div').addClass('hidden');
+	}
 });
-
-$('#startStream').click(function(){
-	session.publish(publisher);
-	$('#blackout-div').addClass('hidden');
-	// publisher.publishVideo(true);
-	// publisher.publishAudio(true);
-});
-
 
