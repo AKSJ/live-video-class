@@ -9,34 +9,44 @@ var members = require('./models/members.js');
 var config 	= require('./config');
 var sessionId = config.openTok.sessionId;
 var apiKey 	= config.openTok.key;
-var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'administrator': 'publisher' };
+var permissionsList = { 'moderator': 'moderator', 'publisher': 'publisher', 'administrator': 'publisher' };
 
 /////////////
 // Helpers //
 /////////////
 
-// Recursive method - simple, slow if many duplicate usernames but they're likely to be uncommon
-// Alternative - use regex db query to find all copies of username+n, replace(/username/,''),
-// put resulting nums in array do index of count = 1, if found, increment, if not found, return username+count
-var findUniqueUsername = function(username, count, callback) {
-	var newUsername;
-	if (count > 0) {
-		newUsername = username + ' - ' + count;
-	}
-	else {
-		newUsername = username;
-	}
-	members.findMemberByUsername(newUsername, function(err, member){
+var findUniqueUsername = function(username, callback) {
+	var usernameRegex = new RegExp(username);
+	members.findMembersByUsername(usernameRegex, function(err, membersArray){
 		if (err) {
 			console.error(err);
 			return callback(err);
 		}
-		else if (member) {
-			return findUniqueUsername(username, (count + 1), callback);
-		}
 		else {
-			console.log('Username assigned: ', newUsername);
-			return callback(null, newUsername);
+			var usernames = [];
+			membersArray.forEach(function(memberObject){
+				usernames.push(memberObject.username);
+			});
+			console.dir(usernames);
+			if (usernames.length === 0 || usernames.indexOf(username) === -1) {
+				console.log('Username available');
+				return callback (null, username);
+			}
+			else {
+				console.log('Iterating to find free username');
+				for (var i = 1; i < usernames.length+5; i++) {
+					var newUsername = username + ' - ' + i;
+					if (usernames.indexOf(newUsername) === -1) {
+						console.log('available username: ', newUsername);
+						return callback(null, newUsername);
+					}
+					else {
+						if (i === usernames.length+4) {
+							return callback('findUniqueUsername() failed in operation');
+						}
+					}
+				}
+			}
 		}
 	});
 };
@@ -61,7 +71,7 @@ var findOrAddUser = function( request, reply, profile ) {
 		}
 		else {
 			console.log('Member not found, checking for duplicate username');
-			findUniqueUsername(profile.username, 0, function(err3, uniqueUsername){
+			findUniqueUsername(profile.username, function(err3, uniqueUsername){
 				if (err3) {
 					console.error(err3);
 					console.error('Failed to find unique username');
@@ -125,22 +135,17 @@ generateAdminView = function( request, reply, aToken, error ) {
 	var userPermissions = credentials.permissions;
 	var tokBoxRole = permissionsList[userPermissions];
 	var token = ( aToken ) ? aToken : generateToken( credentials );
-	// var error = (credentials.error) ? credentials.error : null;
-	// request.auth.session.set('error', null);
 	members.findAll( function( err, members ) {
 		if (err) {
 			error = error ? error + '\n'+err : err;
-			// if (request.auth.credentials.error) request.auth.session.set('error', null);
 			return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
 		}
 		else if (members) {
 			console.dir( members );
-			// if (request.auth.credentials.error) request.auth.session.set('error', null);
 			return reply.view( 'admin_panel', { members: members, apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
 		}
 		else {
 			error = error ? error + '\nMembers not found' : 'Members not found';
-			// if (request.auth.credentials.error) request.auth.session.set('error', null);
 			return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
 		}
 	});

@@ -58,6 +58,17 @@ exports.findMemberByUsername = function(username, callback) {
 	});
 };
 
+exports.findMembersByUsername = function(username, callback) {
+	Member.find({username: username}, function(err, result){
+		if (err) {
+			return callback(err);
+		}
+		else {
+			return callback(null, result);
+		}
+	});
+};
+
 exports.addMember = function(newMember, callback) {
 	var newMemberObj = new Member(newMember);
 	Member.create(newMemberObj, function(err, member){

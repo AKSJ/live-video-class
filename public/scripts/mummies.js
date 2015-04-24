@@ -88,7 +88,6 @@ session.on({
 	},
 
 	streamDestroyed: function (event) {
-		// Default behaviour will unsubscribe by default, if subscribed
 		event.preventDefault();
 		var destroyedStream = event.stream;
 		var connectionData = JSON.parse(event.stream.connection.data);
@@ -141,12 +140,14 @@ session.connect( token);
 
 $('#stopStream').click(function(){
 	session.unpublish(publisher);
+	$('#blackout-div').removeClass('hidden');
 	// publisher.publishVideo(false);
 	// publisher.publishAudio(false);
 });
 
 $('#startStream').click(function(){
 	session.publish(publisher);
+	$('#blackout-div').addClass('hidden');
 	// publisher.publishVideo(true);
 	// publisher.publishAudio(true);
 });

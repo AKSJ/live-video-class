@@ -1,8 +1,3 @@
-// TODO: Make mummies mute by default (audio off).
-
-// TODO: Add second list of 'active mummies'.?
-
-
 // OT.setLogLevel(OT.DEBUG);
 
 // Initialize an OpenTok Session object
@@ -25,15 +20,13 @@ var publisherOptions = {
 
 var publisher = OT.initPublisher('publisher', publisherOptions );
 
-// mummyData[username] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive' ?'no-stream'?}
+// mummyData[username] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive'/'no-stream'}
 var mummyData = {};
 var selectedMummy;
 
 ///////////////////////
 //  HELPER FUNCTIONS //
 ///////////////////////
-
-
 
 function usernameFreeCheck(stream) {
 	var connectionData = JSON.parse(stream.connection.data);
@@ -77,6 +70,7 @@ function setMummyNoStream(username) {
 	$('#'+usernameId).removeClass('inactive');
 	$('#'+usernameId).removeClass('active');
 	$('#'+usernameId).addClass('no-stream');
+	sortMummies();
 }
 
 function setMummyActive(username) {
@@ -84,6 +78,7 @@ function setMummyActive(username) {
 	$('#'+usernameId).removeClass('no-stream');
 	$('#'+usernameId).removeClass('inactive');
 	$('#'+usernameId).addClass('active');
+	sortMummies();
 }
 
 function setMummyInactive(username) {
@@ -91,11 +86,13 @@ function setMummyInactive(username) {
 	$('#'+usernameId).removeClass('no-stream');
 	$('#'+usernameId).removeClass('active');
 	$('#'+usernameId).addClass('inactive');
+	sortMummies();
 }
 
 function removeMummy(username) {
 	var usernameId = hyphenate(username);
 	$('#'+usernameId).remove();
+	sortMummies();
 }
 
 // subscription/DOM helpers
@@ -117,7 +114,6 @@ function activateStream(stream) {
 	mummyData[username].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
 	// set mummies-list entry class to active
 	setMummyActive(username);
-	sortMummies();
 }
 
 function addSubscriber(stream) {
@@ -135,7 +131,6 @@ function unsubscribe(stream){
 	mummyData[username].subscriber = null;
 	mummyData[username].status = 'inactive';
 	setMummyInactive(username);
-	sortMummies();
 }
 
 function fillInFive() {
@@ -230,6 +225,7 @@ session.on({
 	},
 
 	streamDestroyed: function(event) {
+		console.log(event);
 		event.preventDefault();
 		var destroyedStream = event.stream;
 		var destroyedStreamId = event.stream.streamId;
@@ -252,6 +248,7 @@ session.on({
 	},
 	// NB - this is a Connection Event, not a Stream Event
 	connectionDestroyed: function(event) {
+		console.log(event);
 		event.preventDefault();
 		var connectionData = JSON.parse(event.connection.data);
 		var username = connectionData.username;
@@ -265,7 +262,6 @@ session.on({
 		}
 		// remove mummies-list entry
 		removeMummy(username);
-		sortMummies();
 	},
 });
 
@@ -278,6 +274,29 @@ publisher.on({
 			console.log('ConnectionId match');
 			event.preventDefault();
 		}
+	}
+});
+
+// Not currently clearing DOM as intended
+OT.on('exception', function(event){
+	if (event.code === 1013) {
+		console.log('Connection Failed event:');
+		console.log(event);
+		//  event.target is a subscriber object
+		var disconnectedStream = event.target.stream;
+		var connectionData = JSON.parse(disconnectedStream.connection.data);
+		var disconnectedUsername = connectionData.username;
+		var disconnectedUsernameId = hyphenate(disconnectedUsername);
+		// unsubscribe
+		unsubscribe(disconnectedStream);
+		// delete mummyRef
+		if (mummyData[username]) {
+			delete mummyData[username];
+		}
+		// remove mummy-list entry
+		removeMummy(username);
+		// fallback clear DOM <-- Still there!
+		$('#' + usernameId + '-subscriber').remove();
 	}
 });
 
@@ -300,6 +319,7 @@ session.connect(token);
 //  Buttons  //
 ///////////////
 
+// TODO: find bug, 3 subs -> 2, should stay 3
 $('#nextFive').click(function(){
 	usernamesOfAllStreamers = [];
 	usernamesOfActiveStreamers = [];
