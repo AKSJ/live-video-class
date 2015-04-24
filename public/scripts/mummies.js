@@ -88,7 +88,6 @@ session.on({
 	},
 
 	streamDestroyed: function (event) {
-		// Default behaviour will unsubscribe by default, if subscribed
 		event.preventDefault();
 		var destroyedStream = event.stream;
 		var connectionData = JSON.parse(event.stream.connection.data);
