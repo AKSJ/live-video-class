@@ -1,5 +1,5 @@
 
-OT.setLogLevel(OT.DEBUG);
+// OT.setLogLevel(OT.DEBUG);
 
 // Initialize an OpenTok Session object
 var session = OT.initSession( apiKey,sessionId );
