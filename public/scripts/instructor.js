@@ -282,7 +282,7 @@ publisher.on({
 	}
 });
 
-// Not currently clearing DOM as intended
+// TODO: Tidy up mummyData etc on 1013 error?
 // OT.on('exception', function(event){
 // 	if (event.code === 1013) {
 // 		console.log('Connection Failed event:');
@@ -300,8 +300,6 @@ publisher.on({
 // 		}
 // 		// remove mummy-list entry
 // 		removeMummy(username);
-// 		// fallback clear DOM <-- Still there!
-// 		$('#' + usernameId + '-subscriber').remove();
 // 	}
 // });
 
