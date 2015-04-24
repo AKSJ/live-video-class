@@ -9,7 +9,7 @@ var members = require('./models/members.js');
 var config 	= require('./config');
 var sessionId = config.openTok.sessionId;
 var apiKey 	= config.openTok.key;
-var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'administrator': 'moderator' };
+var permissionsList = { 'moderator' : 'moderator', 'publisher':'publisher', 'administrator': 'publisher' };
 
 /////////////
 // Helpers //
@@ -135,6 +135,7 @@ generateToken = function( credentials ){
 	var userPermissions = credentials.permissions;
 	var tokBoxRole = permissionsList[userPermissions];
 	console.log( 'Username: ' + username );
+	console.log( 'Email: ' + credentials.email );
 	console.log( 'Permissions: ' + userPermissions);
 	console.log( 'TokBox Role: ' + tokBoxRole );
 	var token = opentok.generateToken(sessionId,({
