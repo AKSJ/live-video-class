@@ -2,6 +2,24 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 	height:100%;
 
 }
+.navigation{
+	position: relative;
+	height: 12%;
+}
+.navbar-default{
+	height: 85px;
+}
+.navbar-header{
+    position: relative;
+    bottom: 5%;
+}
+.controls{
+	padding-left: 5px;
+}
+#collapselist{
+	position: relative;
+	top: 25%;
+}
 #window{
 	position: relative;
 	left: 10px;
@@ -37,10 +55,10 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 
 #publisher {
 	position:absolute;
-	width: 15%;
+	width: 16%;
 	height: 20%;
-	top: 75%;
-	left: 85%;
+	top: 74%;
+	left: 84%;
 	z-index : 10;
 }
 
