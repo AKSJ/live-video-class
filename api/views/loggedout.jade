@@ -1,23 +1,23 @@
 extends ./layouts/nonavbar.jade
+append head
+	link(rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lobster")
 
 block content
-	.container
+	.container.loginpage
 		.row
-			.col-md-12
-				h1(style='text-align:center;') Mummy Workouts
+			.col-md-6.col-md-offset-3
+				//- h1(style='text-align:center;')
+				img(src='http://mummyworkouts.com/wp-content/uploads/2014/12/Mummy_Workout_Logo_3.jpg')
 		.row
-			.col-md-3
-			.col-md-6.text-center
-				a.btn#fbLogin(style='text-align:center;', href='/login/facebook', role='button') Login with Facebook
-			.col-md-3
-		.row
-			.col-md-3
-			.col-md-6
-				h4(style='text-align:center;') Please login using your Facebook account
+			//- .col-md-3
+			.col-md-6.col-md-offset-3
+				h4 Please login using your Facebook account
 				br
-				p(style='text-align:center;') We cannot post anything to your wall, or access your account information.
-			.col-md-3
+				p We cannot post anything to your wall, or access your account information.
+			//- .col-md-3
 		.row
-			.col-md-3
-			.col-md-6
+			.col-md-6.text-center.col-md-offset-3
+				a.btn#fbLogin(style='text-align:center;', href='/login/facebook', role='button') Login with Facebook
+		.row
+			.col-md-6.col-md-offset-3
 				a.btn.btn-default#googleLogin(href='/login/google', role='button') Google - DEV TOOL
