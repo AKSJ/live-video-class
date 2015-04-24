@@ -77,10 +77,14 @@ button, #logOut {
 	color: green;
 }
 
-/* Selected subscriber elements */
+/* Class List modal*/
 
 .selected-subscriber {
 	border-style: solid;
 	border-width: 2px;
 	border-color: yellow;
+}
+
+#kill {
+	margin-bottom: 4px;
 }
