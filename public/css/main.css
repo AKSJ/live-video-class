@@ -11,7 +11,7 @@
 	margin-top: 5%;
 	text-align: center;
 }
-h4 {
+.loginfacebook{
 	font-family: Lobster;
 	font-size: 24px;
 	font-style: normal;
@@ -19,8 +19,7 @@ h4 {
 	font-weight: 500;
 	line-height: 26.3999996185303px;
 }
-
-p {
+.logininfo {
 	font-family: Lobster;
 	font-size: 18px;
 	font-style: normal;
