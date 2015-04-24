@@ -17,7 +17,31 @@ var subscribers = {};
 // Initialize a Publisher, and place it into the element with id='publisher'
 publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', height: '100%', style: {nameDisplayMode: 'off'} });
 
+//Helpers//
+function unsubscribe(stream){
+	var streamId = stream.streamId;
+	console.log( "Unsubscribe this Subscriber: ");
+	console.dir( subscribers[streamId] );
+	if( subscribers[streamId] ) {
+		session.unsubscribe(subscribers[streamId]);
+		$('moderator-div').remove();
+		subscribers[streamId] = null;
+	}
+}
 
+function addModerator( stream ){
+	$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
+	subscribers[stream.streamId] = session.subscribe( stream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
+		if( error ) {
+			console.log( "Error subscribing to moderator stream");
+		}
+		else {
+			console.log( 'Subscribing to a moderator');
+			liveModeratorStream = stream;
+			console.dir( liveModeratorStream );
+		}
+	});
+}
 // Attach event handlers
 session.on({
 
@@ -44,26 +68,12 @@ session.on({
 		var streamData = JSON.parse( event.stream.connection.data );
 		console.log( streamData );
 
-
 		if( streamData.permissions === "moderator" ){
 			console.log( "New stream is for a moderator");
 			var streamId = event.stream.streamId;
-			// $('#publisher').wrap('<div id="streamModerator"></div>');
-			$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
-			// $('#window').append('<div></div>').attr("id", "streamModerator");
-			console.dir( liveModeratorStream);
 			if( !liveModeratorStream ) {
 				console.log( 'No live moderator so subscribe to this new stream.');
-				subscribers[streamId] = session.subscribe( event.stream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
-					if( error ) {
-						console.log( "Error subscribing to moderator stream");
-					}
-					else {
-						console.log( 'Subscribing to new moderator');
-						liveModeratorStream = event.stream;
-						console.log( liveModeratorStream );
-					}
-				});
+				addModerator( event.stream );
 			}
 			else {
 				// Store any subsequent moderators in case the live moderator stream is destroyed.
@@ -79,30 +89,24 @@ session.on({
 
 	streamDestroyed: function (event) {
 		// Default behaviour will unsubscribe by default, if subscribed
-		console.log( "Stream Destroyed reason: " + event.reason );
-		console.log( event );
+		event.preventDefault();
+		var destroyedStream = event.stream;
 		var connectionData = JSON.parse(event.stream.connection.data);
-		var stream = event.stream;
-		console.dir( stream );
+		console.log( 'Destroyed Stream: ');
+		console.dir( destroyedStream );
+
+		// var destroyedStreamId = event.stream.streamId;
+		unsubscribe(destroyedStream);
+		// var stream = event.stream;
 		console.log( "Live Moderator Stream: ");
 		console.dir( liveModeratorStream );
-		if( connectionData.permissions === "moderator"  && liveModeratorStream.streamId === stream.streamId) {
+		if( connectionData.permissions === "moderator"  && liveModeratorStream.streamId === destroyedStream.streamId) {
 			console.log( 'Lead moderator has disconnected, connect to any other moderators available' );
 			liveModeratorStream = null;
-			console.log( moderators );
+			console.dir( moderators );
 			if( moderators.length ) {
 				var moderatorStream = moderators.shift();
-				$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
-				subscribers[moderatorStream.streamId] = session.subscribe( moderatorStream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
-					if( error ) {
-						console.log( "Error subscribing to moderator stream");
-					}
-					else {
-						console.log( 'Subscribed to another moderator');
-						liveModeratorStream = moderatorStream;
-						console.dir( liveModeratorStream );
-					}
-				});
+				addModerator( moderatorStream );
 			}
 			else{
 				console.log( 'No other moderators to connect to.');
@@ -110,8 +114,8 @@ session.on({
 			}
 		}
 		// ??? This could be in the if statement above, but put it out here so clean up happens even if something else goes wrong
-		if (subscribers.hasOwnProperty(stream.streamId) ) {
-			delete subscribers[stream.streamId];
+		if (subscribers.hasOwnProperty(destroyedStream.streamId) ) {
+			delete subscribers[destroyedStream.streamId];
 		}
 	}
 });

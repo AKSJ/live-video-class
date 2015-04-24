@@ -26,7 +26,6 @@ var publisherOptions = {
 var publisher = OT.initPublisher('publisher', publisherOptions );
 
 // mummyData[username] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive' ?'no-stream'?}
-
 var mummyData = {};
 var selectedMummy;
 
