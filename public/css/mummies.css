@@ -55,6 +55,10 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 	z-index: 11;
 }
 
+#button-div {
+	z-index: 12;
+}
+
 .hidden {
 	display: none;
 }
@@ -67,11 +71,13 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 #logOut {
 	margin-left: 4px;
 }
+
 #adminlogOut {
 	margin-left: 4px;
 	padding-top: 10px;
 	padding-bottom: 10px;
 }
+
 .modal-title {
 	text-align: center;
 }
