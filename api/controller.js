@@ -290,17 +290,17 @@ module.exports = {
 										if( error ) {
 											console.error( error );
 											request.auth.session.set('error', error); //TODO don't pass raw errors to user
-											return reply.redirect('/');
+											return reply( 'Error updating member');
 										}
 										else {
 											// update credentials if current user has had permissions changed
 											var creds = request.auth.credentials;
 											if( creds.username === data.username ) {
 												request.auth.session.set('permissions', data.permissions);
-												return reply.redirect('/');
+												return reply('Updated administrator. ');
 											}
 											else {
-												return reply.redirect('/');
+												return reply('Updated user: ' + data.username );
 											}
 										}
 								  });
