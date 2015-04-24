@@ -134,6 +134,13 @@ publisher.on({
 	}
 });
 
+OT.on('exception', function(event){
+	if (event.code === 1013) {
+		console.log('Connection Failed event:');
+		console.log(event);
+		$('.OT_subscriber_error').remove();
+	}
+});
 // Connect to the Session using the 'token' for permission
 session.connect( token);
 
