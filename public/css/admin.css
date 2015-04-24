@@ -84,7 +84,10 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 #logOut {
 	margin-left: 4px;
 }
-#adminlogOut {
+
+#adminlogOut, #adminLogOut:hover {
+	color: white;
+	background-color: #f0ad4e;
 	margin-left: 4px;
 	padding-top: 10px;
 	padding-bottom: 10px;
