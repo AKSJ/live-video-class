@@ -2,7 +2,7 @@ extends ./layouts/default.jade
 
 //- NB- The full stop on line 6 is VERY IMPORTANT
 append head
-	link(href='/css/mummies.css', rel='stylesheet' type='text/css')
+	link(href='/css/admin.css', rel='stylesheet' type='text/css')
 	script(type='text/javascript').
 		var apiKey = '#{apiKey}'
 		var sessionId = '#{sessionId}'
@@ -34,7 +34,7 @@ block content
 					#window.windowpanel
 						#publisher
 							#publisher-div
-							div
+							div.controls
 								button.btn.btn-danger#stopStream
 									//- span.glyphicon.glyphicon-remove
 									span.glyphicon.glyphicon-facetime-video

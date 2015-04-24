@@ -24,7 +24,7 @@ function unsubscribe(stream){
 	console.dir( subscribers[streamId] );
 	if( subscribers[streamId] ) {
 		session.unsubscribe(subscribers[streamId]);
-		$('moderator-div').remove();
+		$('#moderator-div').remove();
 		subscribers[streamId] = null;
 	}
 }
