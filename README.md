@@ -27,7 +27,7 @@ The client sees a fullscreen video of the instructor, while the instructor sees 
 ### Service dependencies
 
 1. [TokBox](https://tokbox.com/)
-2. Mongodb (e.g. [mongolab](https://mongolab.com/)
+2. Mongodb e.g. [mongolab](https://mongolab.com/)
 3. [Facbook oauth](https://developers.facebook.com/)
 
 Keys to be stored in api/creds.json or as process.env variables, e.g. on Heroku.
@@ -37,19 +37,24 @@ See api/config.js for environment variable names.
 
 ### Technical considerations
 
-All users connect to a single TokBox session. 
+* All users connect to a single TokBox session. 
+
 As such, only one class can run concurrently.  
 
-The session is routed through TokBox's 'media router'.
+* The session is routed through TokBox's 'media router'.
+
 As such, bandwidth will only be consumed between a user and the media router. There is no peer-to-peer traffic.
 
-There is no way to deactivate the session e.g. outside scheduled class times. 
+* There is no way to deactivate the session e.g. outside scheduled class times. 
+
 As such, at the end of a class the instructor should click the 'end class' button, and all users should close their browsers.  
  
-TokBox charge per minute of *received* stream. 
+* TokBox charge per minute of *received* stream. 
+
 As such, clients should be unable to generate streaming costs if they stay connected, as long as no instructors are connected.  
 
-The client's browser will listen for the first available stream with the correct permissions to act as an instructor, and display it. If other potential instructors connect, the client will be unaware. An instructor can tell if another instructor is connected by looking at the class list.
+* The client's browser will listen for the first available stream with the correct permissions to act as an instructor, and display it. If other potential instructors connect, the client will be unaware. An instructor can tell if another instructor is connected by looking at the class list.
+
 As such, only one instructor should connect at a time to avoid the wrong one being visible to the clients.
 
 #### Compatibility and Requirements
@@ -92,7 +97,7 @@ The user:
 * sees a full page video of the instructor, with sound.
 * sees their outgoing video in a small overlay in the bottom right corner.
 * sees 3 buttons below their outgoing video.
-* can press the red 'camera button to stop steaming to the instructor (toggles to green, to restart steam).
+* can press the red 'camera button to stop streaming to the instructor (toggles to green, to restart stream).
 * can press the blue 'question mark' button for a help pop-up.
 * can press the orange 'log out' button to log out.
 * can use the 'speaker' button at the top right of the instructor video to mute the instructor.
