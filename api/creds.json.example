@@ -1,0 +1,23 @@
+{
+	"database" : {
+		"dbuser"	: "<database username>",
+		"dbpwd"		: "<database password>",
+		"dburl"		: "mongodb://<dbuser>:<dbpwd>@<database access url>"
+	},
+	"openTok": {
+		"key"		: "<TokBox api kei>",
+		"secret"	: "<TokBox api secret>",
+		"sessionId" : "<sessionId - Run generate-id.js to create a new one>"
+	},
+	"google" : {
+		"secret"	: "<arbitary string for cookie encryption>",
+		"cKey"		: "<google oauth api key>",
+		"cSecret"	: "<google oauth api secret>"
+	},
+	"facebook" : {
+		"secret"	: "<arbitary string for cookie encryption>",
+		"cKey" 		: "<facebook oauth api key>",
+		"cSecret" 	: "<facebook oauth api secret>"
+	},
+	"cookieSecret"	: "<arbitary string for cookie encryption>"
+}

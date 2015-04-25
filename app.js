@@ -1,4 +1,3 @@
-var fs 			= require('fs');
 var server 		= require('./api/server');
 var opentok 	= require('./api/opentok');
 
@@ -16,18 +15,6 @@ server.start(function () {
 			console.log("database connection successful");
 		});
 	});
-
-	// Comment out this code to create a new sessiond id, if needed.
-	// Get id, and put in creds/process_env
-
-	// opentok.createSession({mediaMode:"routed"}, function(err, session) {
-	// 	if (err) return console.error(err);
-	// 	if (session) {
-	// 		console.log('Session:');
-	// 		console.dir(session);
-	// 	}
-	// });
-
 
 	console.log('Server running at:', server.info.uri);
 });
