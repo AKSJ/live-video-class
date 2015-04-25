@@ -109,7 +109,7 @@ function activateStream(stream) {
 								width: '100%',
 								height: '100%',
 								subscribeToAudio: false,
-								style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/} //buttonDisplay on auto as causes central overlay on small screens
+								style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/} //buttonDisplay on auto, as on causes central overlay on small screens
 							};
 	mummyData[username].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
 	// set mummies-list entry class to active
@@ -198,11 +198,30 @@ session.on({
 		session.publish(publisher);
 	},
 
-	// TODO: connectionCreated listener, to add mummy object, in case mummy not publishing when instructor connects
+	connectionCreated: function(event) {
+		// Check for mummyRef, add if missing.
+		// May already exist from stream created event?
+		var connectionData = JSON.parse(event.connection.data);
+		var username = connectionData.username;
+		var usernameId = hyphenate(username);
+		var role = connectionData.role;
+
+		if (!mummyData.hasOwnProperty(username) ) {
+			mummyData[username] = 	{
+									stream: null,
+									subscriber: null,
+									status: 'no-stream'
+								};
+			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy no-stream'}).text(username);
+			if (role === 'moderator') { newMummy.addClass('moderator'); }
+			newMummy.appendTo($('#mummies-list'));
+			sortMummies();
+		}
+	},
 
 	streamCreated: function(event) {
 		console.log(event);
-		$('.OT_subscriber_error').remove();
+
 		var newStream = event.stream;
 		var newStreamId = newStream.streamId;
 		var newStreamConnectionData = JSON.parse(newStream.connection.data);
@@ -210,12 +229,13 @@ session.on({
 		var usernameId = hyphenate(username);
 		var role = newStreamConnectionData.role;
 
-		// If mummyRef found, update entry
+		// If mummyRef found, update mummyRef and list entry
 		if (mummyData.hasOwnProperty(username) ) {
 			mummyData[username].stream = newStream;
 			mummyData[username].status = 'inactive';
+			setMummyInactive(username);
 		}
-		else { // add new mummyRef
+		else { // add new mummyRef and list entry
 			mummyData[username] = 	{
 										stream: newStream,
 										subscriber: null,
@@ -224,7 +244,7 @@ session.on({
 			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy inactive'}).text(username);
 			if (role === 'moderator') { newMummy.addClass('moderator'); }
 			newMummy.appendTo($('#mummies-list'));
-			sortMummies(); //also called in activateStream, but not invoked if 5+ active streams
+			sortMummies();
 		}
 		// Call addSubscriber to subscribe if < 5 streams currently displayed
 		addSubscriber(newStream);
@@ -233,7 +253,6 @@ session.on({
 	streamDestroyed: function(event) {
 		console.log(event);
 		event.preventDefault();
-		$('.OT_subscriber_error').remove();
 
 		var destroyedStream = event.stream;
 		var destroyedStreamId = event.stream.streamId;
@@ -249,16 +268,16 @@ session.on({
 			mummyData[username].subscriber = null;
 			mummyData[username].stream = null;
 			mummyData[username].status = 'no-stream';
+			// update mummies list entry
+			setMummyNoStream(username);
 			// try and keep 5 streams on screen
 			fillInFive();
 		}
-		setMummyNoStream(username);
 	},
 	// NB - this is a Connection Event, not a Stream Event
 	connectionDestroyed: function(event) {
 		console.log(event);
 		event.preventDefault();
-		$('.OT_subscriber_error').remove();
 
 		var connectionData = JSON.parse(event.connection.data);
 		var username = connectionData.username;
@@ -287,27 +306,11 @@ publisher.on({
 	}
 });
 
-// TODO: Tidy up mummyData etc on 1013 error?
-// OT.on('exception', function(event){
-// 	if (event.code === 1013) {
-// 		console.log('Connection Failed event:');
-// 		console.log(event);
-// 		//  event.target is a subscriber object
-// 		var disconnectedStream = event.target.stream;
-// 		var connectionData = JSON.parse(disconnectedStream.connection.data);
-// 		var disconnectedUsername = connectionData.username;
-// 		var disconnectedUsernameId = hyphenate(disconnectedUsername);
-// 		// unsubscribe
-// 		unsubscribe(disconnectedStream);
-// 		// delete mummyRef
-// 		if (mummyData[username]) {
-// 			delete mummyData[username];
-// 		}
-// 		// remove mummy-list entry
-// 		removeMummy(username);
-// 	}
-// });
 
+// Remove 'Cannot connect to stream' boxes from DOM on connection error
+// If left, they clutter the display.
+// ??? - Reason for frequency of these errors unclear. Seems to happen on cliet browser exit/refresh.
+// ??? - Do streamDestroyed/connectionDestroyed events also trigger? If not, mummyData needs tidy up here.
 OT.on('exception', function(event){
 	if (event.code === 1013) {
 		console.log('Connection Failed event:');
@@ -315,7 +318,6 @@ OT.on('exception', function(event){
 		$('.OT_subscriber_error').remove();
 	}
 });
-
 
 
 session.connect(token);
@@ -337,7 +339,12 @@ session.connect(token);
 //  Buttons  //
 ///////////////
 
-// TODO: find bug, 3 subs -> 2, should stay 3
+// TODO Make nextFive/prevFive wrap around.
+// TODO Abstract into functions, for use in loop
+// TODO add setInterval to invoke nextFive() every 15? secs
+// TODO Make #nextFive click reset loop.
+// How? Put setInterval in wrapping function, call on page load. Recall on button press? Explicit loop cancel required first?
+
 $('#nextFive').click(function(){
 	console.log('nextFive() called');
 	$('.OT_subscriber_error').remove();
@@ -493,36 +500,50 @@ $(document).on('click', '.mummy', function(){
 });
 
 $(document).on('click', '.OT_subscriber', function(){
-	$('.OT_subscriber').removeClass('selected-subscriber');
-	$(this).addClass('selected-subscriber');
-	var selectedUsername = $(this).attr('id').replace(/-subscriber/,'');
-	selectedUsername = selectedUsername.replace(/-/g, ' ');
-	var subscriberToHear;
-	if (mummyData[selectedUsername].subscriber) subscriberToHear = mummyData[selectedUsername].subscriber;
-	console.log(subscriberToHear);
-	var subscribersToMute = [];
-	for (var username in mummyData) {
-		if (mummyData[username].subscriber && username !== selectedUsername) {
-			subscribersToMute.push(mummyData[username].subscriber);
-		}
+	if ($(this).hasClass('selected-subscriber') ){
+		$('.OT_subscriber').removeClass('selected-subscriber');
+		var usernameToMute = $(this).attr('id').replace(/-subscriber/,'');
+		usernameToMute = usernameToMute.replace(/-/g, ' ');
+		var subscriberToMute;
+		console.log('Muting:');
+		console.log(subscriberToMute);
+		if (mummyData[usernameToMute].subscriber) subscriberToMute = mummyData[usernameToMute].subscriber;
+		if (subscriberToMute) subscriberToMute.subscribeToAudio(false);
 	}
-	if (subscriberToHear) subscriberToHear.subscribeToAudio(true);
-	subscribersToMute.forEach(function(subscriberToMute){
-		subscriberToMute.subscribeToAudio(false);
-	});
+	else {
+		$('.OT_subscriber').removeClass('selected-subscriber');
+		$(this).addClass('selected-subscriber');
+		var selectedUsername = $(this).attr('id').replace(/-subscriber/,'');
+		selectedUsername = selectedUsername.replace(/-/g, ' ');
+		var subscriberToHear;
+		if (mummyData[selectedUsername].subscriber) subscriberToHear = mummyData[selectedUsername].subscriber;
+		console.log('Unmuting:');
+		console.log(subscriberToHear);
+		var subscribersToMute = [];
+		for (var username in mummyData) {
+			if (mummyData[username].subscriber && username !== selectedUsername) {
+				subscribersToMute.push(mummyData[username].subscriber);
+			}
+		}
+		if (subscriberToHear) subscriberToHear.subscribeToAudio(true);
+		subscribersToMute.forEach(function(toMute){
+			toMute.subscribeToAudio(false);
+		});
+	}
 });
 
 ///////////////
 // DEV TOOLS //
 ///////////////
-$('#getStreamData').click(function(){
-	console.log(mummyData);
-});
 
-$('#getEmptySubscribers').click(function(){
-	console.log($('.subscriber:empty'));
-	console.log('Empty Subscriber Div length: ',$('.subscriber:empty').length);
-});
+// $('#getStreamData').click(function(){
+// 	console.log(mummyData);
+// });
+
+// $('#getEmptySubscribers').click(function(){
+// 	console.log($('.subscriber:empty'));
+// 	console.log('Empty Subscriber Div length: ',$('.subscriber:empty').length);
+// });
 
 // Not currently used
 // $('#help').click(function(){
