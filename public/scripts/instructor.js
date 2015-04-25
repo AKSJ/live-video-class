@@ -344,6 +344,7 @@ session.connect(token);
 // TODO add setInterval to invoke nextFive() every 15? secs
 // TODO Make #nextFive click reset loop.
 // How? Put setInterval in wrapping function, call on page load. Recall on button press? Explicit loop cancel required first?
+// !! Assign setInterval to var, return intervalId, pass this to clearInterval to cancel
 
 $('#nextFive').click(function(){
 	console.log('nextFive() called');
