@@ -6,23 +6,67 @@
 
 A service to provide live workouts in the home.  
 
-The client sees a fullscreen video of the instructor, while the instructor sees five class members at the time, and can switch between them. 
+The client sees a fullscreen video of the instructor, while the instructor sees five class members at a time, and can switch between them.
+
+### Team
+
+[Adam Kowalczyk](https://github.com/adamkowalczyk)
+
+[Sarah Johnston](https://github.com/sarahabimay)
 
 ### Installation 
 
 1. `git clone` this repo
 2. `npm install`
+2. `node generate-id.js` - see cli or sessionId.txt for output
 3. `touch api/creds.json` - see api/creds.json.example
 4. `npm start`
+
+*NB* Before first running the service a new sessionId must be generated.
 
 ### Service dependencies
 
 1. [TokBox](https://tokbox.com/)
 2. Mongodb (e.g. [mongolab](https://mongolab.com/)
-3. [Facbook auth](https://developers.facebook.com/)
+3. [Facbook oauth](https://developers.facebook.com/)
 
 Keys to be stored in api/creds.json or as process.env variables, e.g. on Heroku.
 See api/config.js for environment variable names.
+
+*NB* Ensure that an appropriate redirect URI is set for Facebook oauth
+
+### Technical considerations
+
+All users connect to a single TokBox session. 
+As such, only one class can run concurrently.  
+
+The session is routed through TokBox's 'media router'.
+As such, bandwidth will only be consumed between a user and the media router. There is no peer-to-peer traffic.
+
+There is no way to deactivate the session e.g. outside scheduled class times. 
+As such, at the end of a class the instructor should click the 'end class' button, and all users should close their browsers.  
+ 
+TokBox charge per minute of *received* stream. 
+As such, clients should be unable to generate streaming costs if they stay connected, as long as no instructors are connected.  
+
+The client's browser will listen for the first available stream with the correct permissions to act as an instructor, and display it. If other potential instructors connect, the client will be unaware. An instructor can tell if another instructor is connected by looking at the class list.
+As such, only one instructor should connect at a time to avoid the wrong one being visible to the clients.
+
+#### Compatibility and Requirements
+
+See [here](https://tokbox.com/opentok/libraries/client/js/release-notes.html#requirements).
+
+TokBox is currently supported by: 
+* Chrome and Firefox
+* Chrome Android and Firefox Android. 
+* IE 8 - 11 (with plugin)
+* Opera
+
+*NB* Safari is *not* supported.
+
+[System Requirements](https://tokbox.com/opentok/requirements/)
+
+For the best experience, all users should have a webcam, microphone and a good internet connection.
 
 ### User flow
 
@@ -36,7 +80,7 @@ Possible permissions levels are:
 3. Administrator
 4. Unauthorised
 
-*NB* All users will be presented with a browser prompt after login, requesting permission to use the camera and microphone. Users should choose 'allow'.
+*NB* All users (except 'unauthorised') will be presented with a browser prompt after login, requesting permission to use the camera and microphone. Users should choose 'allow'.
 
 *NB* The intended flow for all users is to close the browser/tab when finished. There is no need to log out. Moderators should first press the *end class* button.
 
