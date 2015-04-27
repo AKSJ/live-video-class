@@ -116,8 +116,10 @@ The service instructor view.
 The user:
 * sees their outgoing video in the top left of the screen.
 * can see up to five clients at a time (two rows of three videos, with the instructor always top left).
-* sees 6 buttons at the bottom of their view.
-* can press the blue right/left arrow buttons to view the next/previous five clients.
+* will see the next 5 class members (alphabetically) displayed every 15 seconds.
+* sees 7 buttons at the bottom of their view.
+* can press the blue right/left arrow buttons to view the next/previous five clients. This will reset the loop (if active), to ensure a full 15 seconds viewing after changing pages.
+* can press the red 'pause'/green 'play' button to pause/restart the looping behaviour.
 * can press the green 'list' button to see a pop-up list of all clients viewing the class. This includes clients not currently visible to the instructor (i.e. not currently streaming).
 * can press the red 'kick' button on the list pop-up to kick a selected client from the class.
 * can press the blue 'question mark' button for a help pop-up.
@@ -125,6 +127,7 @@ The user:
 * can press the red 'end class' button to end the class, disconnecting all clients and herself.
 * can use the 'speaker' button at the top right of the their outgoing video to mute herself. 
 * can click on any clients video box to hear their sound output. (*NB* clients start muted by default).
+* can click a second time on an un-muted to video box to re-mute it.
 
 The user will be visible to all other users, and cannot choose to disable their stream.
 
