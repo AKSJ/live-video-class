@@ -1,3 +1,5 @@
+// TODO Explicitly place subscribers in subscriber-n, rather than reply on subscriber:empty
+
 // OT.setLogLevel(OT.DEBUG);
 
 // Initialize an OpenTok Session object
@@ -295,6 +297,7 @@ function prevFive() {
 }
 
 function displayLoop() {
+	console.log('displayLoop() called');
 	// check if > 5 streams. If not, do nothing.
 	usernamesOfAllStreamers = [];
 	for (var username in mummyData) {
@@ -467,10 +470,10 @@ session.connect(token);
 //  Timer  //
 /////////////
 
-// var timer = intervalId for use with cancelInterval
+// var timer = intervalId for use with clearInterval
 var timer = setInterval(function(){
 	displayLoop();
-}, 15000);
+}, 1000);
 
 
 ///////////////
@@ -478,15 +481,18 @@ var timer = setInterval(function(){
 ///////////////
 
 // TODO check num avail streams. Do nothing if <=5. Disable? How to renable? piggyback 15sec set interval
-// BUT, prevent handy use rof arrow button to reset bad layout
+// BUT, prevent handy use of arrow button to reset bad layout
 $('#nextFive').click(function(){
 	// get next 5 streams
 	nextFive();
 	// reset interval
-	cancelInterval(timer);
-	timer = setInterval(function(){
-	displayLoop();
-	}, 15000);
+	if (timer) clearInterval(timer);
+	// restart interval if not paused
+	if ( !$('#pauseToggle').hasClass('paused') ){
+		timer = setInterval(function(){
+			displayLoop();
+		}, 1000);
+	}
 });
 
 
@@ -494,10 +500,36 @@ $('#prevFive').click(function(){
 	// get previous 5 streams
 	prevFive();
 	// reset interval
-	cancelInterval(timer);
-	timer = setInterval(function(){
-	displayLoop();
-	}, 15000);
+	if (timer) clearInterval(timer);
+	// restart interval if not paused
+	if ( !$('#pauseToggle').hasClass('paused') ){
+		timer = setInterval(function(){
+			displayLoop();
+		}, 1000);
+	}
+});
+
+$('#pauseToggle').click(function(){
+	if ( $(this).hasClass('paused') ) {
+		$(this).removeClass('paused');
+		$(this).removeClass('btn-success');
+		$(this).addClass('btn-danger');
+		$('#play').addClass('hidden');
+		$('#pause').removeClass('hidden');
+		// unpause!
+		timer = setInterval(function(){
+			displayLoop();
+		}, 1000);
+	}
+	else {
+		$(this).addClass('paused');
+		$(this).removeClass('btn-danger');
+		$(this).addClass('btn-success');
+		$('#pause').addClass('hidden');
+		$('#play').removeClass('hidden');
+		// pause!
+		if (timer) clearInterval(timer);
+	}
 });
 
 $('#kill').click(function(){

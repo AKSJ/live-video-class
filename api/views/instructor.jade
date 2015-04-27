@@ -26,12 +26,13 @@ block content
 
 		.row.buttonRow
 			.col-xs-4
-				//- button.btn.btn-default#stopStream Stop Stream
-				//- button.btn.btn-default#startStream Start Stream
 				button.btn.btn-primary#prevFive
 					span.glyphicon.glyphicon-arrow-left(aria-hidden='true')
 				button.btn.btn-primary#nextFive
 					span.glyphicon.glyphicon-arrow-right(aria-hidden='true')
+				button.btn.btn-danger#pauseToggle
+					span.glyphicon.glyphicon-pause#pause(aria-hidden='true')
+					span.glyphicon.glyphicon-play.hidden#play(aria-hidden='true')
 			.col-xs-2
 				button.btn.btn-success(type='button', data-toggle='modal', data-target='#mummiesModal')#classList
 					span.glyphicon.glyphicon-tasks(aria-hidden='true')
@@ -92,6 +93,11 @@ block content
 								button.btn.btn-primary
 									span.glyphicon.glyphicon-arrow-right(aria-hidden='true')
 								p Display next 5 class members.
+								button.btn.btn-danger
+									span.glyphicon.glyphicon-pause(aria-hidden='true')
+								button.btn.btn-success
+									span.glyphicon.glyphicon-play(aria-hidden='true')
+								p Pause/restart the class member display loop.
 							.col-xs-4
 								button.btn.btn-success
 									span.glyphicon.glyphicon-tasks(aria-hidden='true')
@@ -113,8 +119,10 @@ block content
 						.row
 							.col-xs-4
 								p The arrow buttons scroll through the available class member video streams.
+								p Every 15 seconds, the next 5 class members will be shown, unless you press pause.
 							.col-xs-4
 								p You can view the names of everyone attending the class in the class list pop-up.
+								p This includes those with their video output turned off.
 							.col-xs-4
 								p You can kick a class member from the class.
 								p Select their name from the list, then click the kick button.
@@ -123,9 +131,7 @@ block content
 								p Click a video box to enable sound from that class member.
 								p (A yellow border indicates active sound output)
 							.col-xs-4
-								p This includes those with their video output turned off.
-							//- .col-xs-4
-							//- 	p Select their name from the list, then click the kick button.
+
 				.modal-footer
 					button.btn.btn-default(type='button', data-dismiss='modal') Close
 
