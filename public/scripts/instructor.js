@@ -473,7 +473,7 @@ session.connect(token);
 // var timer = intervalId for use with clearInterval
 var timer = setInterval(function(){
 	displayLoop();
-}, 1000);
+}, 15000);
 
 
 ///////////////
@@ -491,7 +491,7 @@ $('#nextFive').click(function(){
 	if ( !$('#pauseToggle').hasClass('paused') ){
 		timer = setInterval(function(){
 			displayLoop();
-		}, 1000);
+		}, 15000);
 	}
 });
 
@@ -505,7 +505,7 @@ $('#prevFive').click(function(){
 	if ( !$('#pauseToggle').hasClass('paused') ){
 		timer = setInterval(function(){
 			displayLoop();
-		}, 1000);
+		}, 15000);
 	}
 });
 
@@ -519,7 +519,7 @@ $('#pauseToggle').click(function(){
 		// unpause!
 		timer = setInterval(function(){
 			displayLoop();
-		}, 1000);
+		}, 15000);
 	}
 	else {
 		$(this).addClass('paused');
