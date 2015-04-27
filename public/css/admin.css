@@ -13,36 +13,33 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 	position: relative;
 	bottom: 5%;
 }
-/*.controls{
-	padding-left: 5px;
-}*/
+
 #collapselist{
 	position: relative;
 	top: 25%;
 }
+
+.windowpanel{
+	margin-top: 10px;
+}
+
 #window{
 	position: relative;
-	left: 10px;
 	height: 100%;
 	width: 100%;
+	padding: 0;
+	overflow: none;
 }
-/*.btn{
-	font-size: 10px;
-}*/
-/*.btn:hover{
-	color: #F21E1E;
-	text-decoration: none
-}*/
-#moderator{
+
+#moderator {
 	position:absolute;
 	top:0;
 	left:0;
 	height: 100%;
 	width: 100%;
-	/*z-index: -1;*/ /*z-index -1 prevents on hover UI working*/
 }
 
-.image{
+.image {
 	position:absolute;
 	height: 100%;
 	width: 100%;
@@ -53,6 +50,35 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 	min-height: 100%;
 }*/
 
+#button-div {
+	position: absolute;
+	width: 50%;
+	height: 30px; /* px to match buttons, % can get to small, pushes buttons off bottom of page*/
+	bottom: 1%;
+	right: 0.5%;
+	z-index: 12;
+	float: right;
+	text-align: right;
+	overflow: visible;
+}
+
+#streamtoggle, #help {
+	margin-right: 4px;
+}
+
+#logOut {
+	margin-left: 4px;
+}
+
+#publisher {
+	position: absolute;
+	width: 15%;
+	height: 20%;
+	bottom: 0;
+	right: 0;
+	z-index : 10;
+}
+
 #blackout-div {
 	position:absolute;
 	width: 100%;
@@ -62,28 +88,8 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 	background-color: black;
 	z-index: 11;
 }
-#button-div {
-	z-index: 12;
-	text-align: center;
-}
 
-#publisher {
-	position:absolute;
-	width: 16%;
-	height: 20%;
-	top: 74%;
-	left: 84%;
-	z-index : 10;
-}
 
-.windowpanel{
-	margin-top: 10px;
-}
-
-/*This <a> psuedo button is too close to sib unless explicitly padded*/
-#logOut {
-	margin-left: 4px;
-}
 
 #adminlogOut, #adminLogOut:hover {
 	color: white;
@@ -95,3 +101,8 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 .modal-title {
 	text-align: center;
 }
+
+.hidden {
+	display: none;
+}
+

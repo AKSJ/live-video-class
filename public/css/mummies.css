@@ -2,13 +2,8 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 	height:100%;
 }
 
-.container-fluid {
-	/*padding: 0 1% 0 1%;*/
-}
-
 #window{
 	position: relative;
-	/*left: 10%;*/
 	height: 100%;
 	width: 100%;
 	padding: 0;
