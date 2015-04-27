@@ -8,6 +8,8 @@ A service to provide live workouts in the home.
 
 The client sees a fullscreen video of the instructor, while the instructor sees five class members at a time, and can switch between them.
 
+Built using Node.js and Hapi, with TokBox as a video streaming service.
+
 ### Team
 
 [Adam Kowalczyk](https://github.com/adamkowalczyk)
@@ -116,7 +118,7 @@ The service instructor view.
 The user:
 * sees their outgoing video in the top left of the screen.
 * can see up to five clients at a time (two rows of three videos, with the instructor always top left).
-* will see the next 5 class members (alphabetically) displayed every 15 seconds.
+* will see the next 5 class members (alphabetically) displayed every 15 seconds, on a continuous loop.
 * sees 7 buttons at the bottom of their view.
 * can press the blue right/left arrow buttons to view the next/previous five clients. This will reset the loop (if active), to ensure a full 15 seconds viewing after changing pages.
 * can press the red 'pause'/green 'play' button to pause/restart the looping behaviour.
