@@ -40,7 +40,11 @@ body, html, .container-fluid, .publisher, .subscriber {
 /* Buttons */
 
 #prevFive, #nextFive {
-	width: 45%;
+	width: 35%;
+}
+
+#pauseToggle {
+	width: 10%;
 }
 
 #classList, #help {
@@ -87,4 +91,8 @@ button, #logOut {
 
 #kill {
 	margin-bottom: 4px;
+}
+
+.hidden {
+	display: none;
 }

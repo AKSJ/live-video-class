@@ -18,16 +18,16 @@ block content
 	.container-fluid
 		.row
 			.col-md-12#window
+				#button-div
+					button.btn.btn-danger#streamtoggle
+						span.glyphicon.glyphicon-facetime-video
+					button.btn.btn-info(type='button', data-toggle='modal', data-target='#helpModal')#help
+						span.glyphicon.glyphicon-question-sign(aria-hidden='true')
+					a.btn.btn-warning#logOut(href='/logout', role='button')
+						span.glyphicon.glyphicon-log-out(aria-hidden='true')
 				#publisher
 					#blackout-div.hidden
 					#publisher-div
-					div#button-div
-						button.btn.btn-danger#streamtoggle
-							span.glyphicon.glyphicon-facetime-video
-						button.btn.btn-info(type='button', data-toggle='modal', data-target='#helpModal')#help
-							span.glyphicon.glyphicon-question-sign(aria-hidden='true')
-						a.btn.btn-warning#logOut(href='/logout', role='button')
-							span.glyphicon.glyphicon-log-out(aria-hidden='true')
 				#moderator
 					.image
 						img(src="http://mummyworkouts.com/wp-content/uploads/2015/03/Home_Image_Large_crop_4-11.jpg" )
