@@ -336,8 +336,9 @@ session.on({
 		var username = connectionData.username;
 		var usernameId = hyphenate(username);
 		var role = connectionData.role;
-
-		if (!mummyData.hasOwnProperty(username) ) {
+		var ownConnection = false;
+		if (event.target.connection.connectionId === session.connection.connectionId) ownConnection = true;
+		if (!mummyData.hasOwnProperty(username) && !ownConnection ) {
 			mummyData[username] = 	{
 									stream: null,
 									subscriber: null,
