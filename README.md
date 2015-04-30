@@ -20,11 +20,11 @@ Built using Node.js and Hapi, with TokBox as a video streaming service.
 
 1. `git clone` this repo
 2. `npm install`
-2. `node generate-id.js` - see cli or sessionId.txt for output
-3. `touch api/creds.json` - see api/creds.json.example
+2. `touch api/creds.json` - see api/creds.json.example
+3. `node generate-id.js` - see cli or sessionId.txt for output, add to creds.json.
 4. `npm start`
 
-*NB* Before first running the service a new sessionId must be generated.
+*NB* Before first running the service a new sessionId must be generated. Ensure that your TokBox api key and secret are in place before running.
 
 ### Service dependencies
 
