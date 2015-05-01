@@ -176,6 +176,6 @@ The user cannot see any one else, or be seen by anyone else.
 
 ### Screenshots
 
-[!Publisher View](/screenshots/PublisherView.jpg?raw=true 'Publisher View')
-[!Moderator View](/screenshots/ModeratorView.jpg?raw=true 'Moderator View')
+![Publisher View](/screenshots/PublisherView.jpg?raw=true 'Publisher View')
+![Moderator View](/screenshots/ModeratorView.jpg?raw=true 'Moderator View')
 
