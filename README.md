@@ -111,6 +111,7 @@ The user can be heard by the instructor if they are currently being viewed by th
 
 *NB* When the client has finished their workout they should then close the browser/tab. There is no need to log out.
 
+
 #### Moderator
 
 The service instructor view.
@@ -173,6 +174,8 @@ The user:
 
 The user cannot see any one else, or be seen by anyone else.
 
+### Screenshots
 
-
+[!Publisher View](/screenshots/PublisherView.jpg?raw=true 'Publisher View')
+[!Moderator View](/screenshots/ModeratorView.jpg?raw=true 'Moderator View')
 
