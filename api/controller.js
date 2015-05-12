@@ -52,6 +52,7 @@ var findUniqueUsername = function(username, callback) {
 };
 
 // TODO - add cookie errors the various db steps, for better user feedback
+// TODO - look up user by username rather than email, as usernames are now unique
 var findOrAddUser = function( request, reply, profile ) {
 	// look up in database and if not found, then add to the database as a publisher
 	members.findMemberByEmail( profile.email, function( err1, member ){
@@ -193,29 +194,29 @@ module.exports = {
 	},
 
 // TODO remove google auth and route etc. for production.
-	loginGoogle: {
-		 auth: {
-			strategy: 'google'
-		 },
-		 handler: function (request, reply) {
-			if (request.auth.isAuthenticated) {
-				var gPlus = request.auth.credentials;
-				console.dir(gPlus);
-				var username = gPlus.profile.displayName || gPlus.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
-				var profile = {
-					username 	: username,
-					email 		: gPlus.profile.email,
-					error 		: null
-				};
-				console.log('Profile:');
-				console.dir(profile);
-				return findOrAddUser( request, reply, profile );
-			}
-			else {
-				return reply.redirect('/loggedout');
-			}
-		}
-	},
+	// loginGoogle: {
+	// 	 auth: {
+	// 		strategy: 'google'
+	// 	 },
+	// 	 handler: function (request, reply) {
+	// 		if (request.auth.isAuthenticated) {
+	// 			var gPlus = request.auth.credentials;
+	// 			console.dir(gPlus);
+	// 			var username = gPlus.profile.displayName || gPlus.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
+	// 			var profile = {
+	// 				username 	: username,
+	// 				email 		: gPlus.profile.email,
+	// 				error 		: null
+	// 			};
+	// 			console.log('Profile:');
+	// 			console.dir(profile);
+	// 			return findOrAddUser( request, reply, profile );
+	// 		}
+	// 		else {
+	// 			return reply.redirect('/loggedout');
+	// 		}
+	// 	}
+	// },
 
 	loginFacebook: {
 		 auth: {

@@ -30,6 +30,8 @@ npm-debug.log
 
 
 creds.json
+NEWCREDS.json
+OLDCREDS.json
 sessionId.txt
 
 instructor_memberlist.jade
