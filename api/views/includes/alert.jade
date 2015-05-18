@@ -1,8 +1,11 @@
 if error
-	.alert.alert-danger(role='alert') #{error}
+	.container(style='text-align:center;')
+		.alert.alert-danger(role='alert') #{error}
 
 if success
-	.alert.alert-success(role='alert') #{success}
+	.container(style='text-align:center;')
+		.alert.alert-success(role='alert') #{success}
 
 if message
-	.alert.alert-info(role='alert') #{message}
+	.container(style='text-align:center;')
+		.alert.alert-info(role='alert') #{message}

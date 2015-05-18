@@ -4,13 +4,21 @@
 
 // Initialize an OpenTok Session object
 var session = OT.initSession(apiKey,sessionId);
-console.log("Token: " + token );
-console.log("SessionId: " + sessionId );
-console.log("Username: " + username );
-console.log("Permissions: " + permissions );
-console.log("Role: " + role );
 
-// Initialize a Publisher, and place it into the element with id="publisher"
+console.log('Token: ' + token);
+console.log('SessionId: ' + sessionId);
+console.log('Username: ' + username);
+console.log('Display Name: ' + displayName);
+console.log('MembershipLevel: ' + membershipLevel);
+console.log('Role: ' + role);
+
+
+//  ----TODO-----
+
+//see NOTES
+// use displayName in mummy list and for publisher/subsciber objects
+
+// Initialize a Publisher, and place it into the element with id='publisher'
 var publisherOptions = {
 							name: username,
 							width: '100%',
@@ -24,7 +32,6 @@ var publisher = OT.initPublisher('publisher', publisherOptions );
 
 // mummyData[username] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive'/'no-stream'}
 var mummyData = {};
-var selectedMummy;
 
 ///////////////////////
 //  HELPER FUNCTIONS //
@@ -51,7 +58,7 @@ function sortByName(a,b) {
 	var bName = $(b).text();
 	if 		( aName < bName ) 	{ return -1;}
 	else if ( aName > bName ) 	{ return 1; }
-	else					{ return 0; }
+	else						{ return 0; }
 }
 
 function sortMummies() {

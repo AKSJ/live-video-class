@@ -7,16 +7,16 @@ append head
 		var apiKey = '#{apiKey}'
 		var sessionId = '#{sessionId}'
 		var token = '#{token}'
-		var permissions = '#{permissions}'
+		var membershipLevel = '#{membershipLevel}'
 		var role = '#{role}'
 		var username = '#{username}'
+		var displayName = '#{displayName}'
 	script(src='/scripts/admin.js')
 	script(src='/scripts/mummies.js')
 
 block navbar
 	include ./includes/admin_navbar.jade
 
-permTypes = ["moderator", "publisher", "administrator"];
 
 block content
 	.container
@@ -96,7 +96,6 @@ block content
 												.form-group
 													select.form-control.selectpermissions
 														option(selected="selected") #{member.permissions}
-														//- each perm in permTypes
 														option moderator
 														option publisher
 														option administrator

@@ -3,11 +3,13 @@
 
 // Initialize an OpenTok Session object
 var session = OT.initSession( apiKey,sessionId );
-console.log('Token: ' + token );
-console.log('SessionId: ' + sessionId );
-console.log('Username: ' + username );
-console.log('Permissions: ' + permissions );
-console.log("Role: " + role );
+
+console.log('Token: ' + token);
+console.log('SessionId: ' + sessionId);
+console.log('Username: ' + username);
+console.log('Display Name: ' + displayName);
+console.log('MembershipLevel: ' + membershipLevel);
+console.log('Role: ' + role);
 
 var publisher;
 var liveModeratorStream;
@@ -20,7 +22,7 @@ publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', 
 //Helpers//
 function unsubscribe(stream){
 	var streamId = stream.streamId;
-	console.log( "Unsubscribe this Subscriber: ");
+	console.log( 'Unsubscribe this Subscriber: ');
 	console.dir( subscribers[streamId] );
 	if( subscribers[streamId] ) {
 		session.unsubscribe(subscribers[streamId]);
@@ -30,10 +32,10 @@ function unsubscribe(stream){
 }
 
 function addModerator( stream ){
-	$('<div/>').attr("id", "moderator-div").appendTo('#moderator');
-	subscribers[stream.streamId] = session.subscribe( stream, "moderator-div", { width: '100%', height: '100%'}, function( error ){
+	$('<div/>').attr('id', 'moderator-div').appendTo('#moderator');
+	subscribers[stream.streamId] = session.subscribe( stream, 'moderator-div', { width: '100%', height: '100%'}, function( error ){
 		if( error ) {
-			console.log( "Error subscribing to moderator stream");
+			console.log( 'Error subscribing to moderator stream');
 		}
 		else {
 			console.log( 'Subscribing to a moderator');
@@ -63,13 +65,12 @@ session.on({
 		// if the event is from a moderator then subscribe, otherwise ignore
 		console.log( 'New Event: ' );
 		console.log( event );
-		// var permission
-		console.log( "New Event data: " );
+		console.log( 'New Event data: ' );
 		var streamData = JSON.parse( event.stream.connection.data );
 		console.log( streamData );
 
-		if( streamData.permissions === "moderator" ){
-			console.log( "New stream is for a moderator");
+		if( streamData.role === 'moderator' ){
+			console.log( 'New stream is for a moderator');
 			var streamId = event.stream.streamId;
 			if( !liveModeratorStream ) {
 				console.log( 'No live moderator so subscribe to this new stream.');
@@ -83,7 +84,7 @@ session.on({
 			}
 		}
 		else {
-			console.log( "New stream is for a publisher so ignore");
+			console.log( 'New stream is for a publisher so ignore');
 		}
 	},
 
@@ -97,9 +98,9 @@ session.on({
 		// var destroyedStreamId = event.stream.streamId;
 		unsubscribe(destroyedStream);
 		// var stream = event.stream;
-		console.log( "Live Moderator Stream: ");
+		console.log( 'Live Moderator Stream: ');
 		console.dir( liveModeratorStream );
-		if( connectionData.permissions === "moderator"  && liveModeratorStream.streamId === destroyedStream.streamId) {
+		if( connectionData.role === 'moderator'  && liveModeratorStream.streamId === destroyedStream.streamId) {
 			console.log( 'Lead moderator has disconnected, connect to any other moderators available' );
 			liveModeratorStream = null;
 			console.dir( moderators );
@@ -124,13 +125,13 @@ publisher.on({
 		// Check if stream is our own. We want to leave it in place if so.
 		console.log('Publisher Event:');
 		console.log(event);
-		if ( event.reason != "forceDisconnected" ) {
+		if ( event.reason != 'forceDisconnected' ) {
 			if( event.stream.connection.connectionId === session.connection.connectionId) {
 				console.log('ConnectionId match');
 				event.preventDefault();
 			}
 		}
-		console.log( "Connection has been destroyed.  Allow it!");
+		console.log( 'Connection has been destroyed.  Allow it!');
 	}
 });
 
@@ -146,13 +147,13 @@ session.connect( token);
 
 
 $('#streamtoggle').click(function(){
-	if( $('#streamtoggle').hasClass( "btn-danger") ) {
+	if( $('#streamtoggle').hasClass( 'btn-danger') ) {
 		$('#streamtoggle').removeClass( 'btn-danger');
 		$('#streamtoggle').addClass( 'btn-success');
 		session.unpublish(publisher);
 		$('#blackout-div').removeClass('hidden');
 	}
-	else if( $('#streamtoggle').hasClass( "btn-success") ) {
+	else if( $('#streamtoggle').hasClass( 'btn-success') ) {
 		$('#streamtoggle').removeClass( 'btn-success');
 		$('#streamtoggle').addClass( 'btn-danger');
 		session.publish(publisher);

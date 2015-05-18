@@ -1,181 +1,81 @@
 var fs 		= require('fs');
-var Bell 	= require('bell');
+var url		= require('url');
 var Path 	= require('path');
 // var Joi 	= require('joi');
 var opentok = require('./opentok');
 var members = require('./models/members.js');
+var MM 		= require('./memberMouse.js');
 
-
-var config 	= require('./config');
-var sessionId = config.openTok.sessionId;
-var apiKey 	= config.openTok.key;
-var permissionsList = { 'moderator': 'moderator', 'publisher': 'publisher', 'administrator': 'publisher' };
+var config 		= require('./config');
+var sessionId 	= config.openTok.sessionId;
+var apiKey 		= config.openTok.key;
 
 /////////////
 // Helpers //
 /////////////
 
-var findUniqueUsername = function(username, callback) {
-	var usernameRegex = new RegExp(username);
-	members.findMembersByUsername(usernameRegex, function(err, membersArray){
-		if (err) {
-			console.error(err);
-			return callback(err);
-		}
-		else {
-			var usernames = [];
-			membersArray.forEach(function(memberObject){
-				usernames.push(memberObject.username);
-			});
-			console.dir(usernames);
-			if (usernames.length === 0 || usernames.indexOf(username) === -1) {
-				console.log('Username available');
-				return callback (null, username);
-			}
-			else {
-				console.log('Iterating to find free username');
-				for (var i = 1; i < usernames.length+5; i++) {
-					var newUsername = username + ' - ' + i;
-					if (usernames.indexOf(newUsername) === -1) {
-						console.log('available username: ', newUsername);
-						return callback(null, newUsername);
-					}
-					else {
-						if (i === usernames.length+4) {
-							return callback('findUniqueUsername() failed in operation');
-						}
-					}
-				}
-			}
-		}
-	});
-};
-
-// TODO - add cookie errors the various db steps, for better user feedback
-// TODO - look up user by username rather than email, as usernames are now unique
-var findOrAddUser = function( request, reply, profile ) {
-	// look up in database and if not found, then add to the database as a publisher
-	members.findMemberByEmail( profile.email, function( err1, member ){
-		console.log('Looking up member');
-		if(err1) {
-			console.error(err1);
-			request.auth.session.clear();
-			return reply.redirect( '/loggedout' );
-		}
-		else if (member) {
-			console.log('Found member:');
-			console.dir(member);
-			profile.permissions = member.permissions;
-			request.auth.session.clear();
-			request.auth.session.set(profile);
-			return reply.redirect('/');
-		}
-		else {
-			console.log('Member not found, checking for duplicate username');
-			findUniqueUsername(profile.username, function(err3, uniqueUsername){
-				if (err3) {
-					console.error(err3);
-					console.error('Failed to find unique username');
-					request.auth.session.clear();
-					return reply.redirect( '/loggedout' );
-				}
-				else if (uniqueUsername) {
-					var newMember = {
-					username: uniqueUsername,
-					email: profile.email,
-					permissions: 'publisher'
-					};
-					members.addMember(newMember, function(err4, newMember){
-						if (err4) {
-							console.error(err4);
-							console.error('Failed to add new member');
-							request.auth.session.clear();
-							return reply.redirect( '/loggedout' );
-						}
-						else {
-							console.log('New member added to db');
-							console.dir(newMember);
-							profile.permissions = newMember.permissions;
-							profile.username = newMember.username;
-							request.auth.session.clear();
-							request.auth.session.set(profile);
-							return reply.redirect('/');
-						}
-					});
-				}
-				else { //This step should never be reached. Redundant?
-					console.error('findUniqueUsername failed to return a string');
-					request.auth.session.clear();
-					return reply.redirect( '/loggedout' );
-				}
-			});
-		}
-	});
-};
-
-generateToken = function( credentials ){
+function  generateToken(credentials) {
 	var username = credentials.username;
-	var userPermissions = credentials.permissions;
-	var tokBoxRole = permissionsList[userPermissions];
+	var displayName = credentials.firstName + ' ' + credentials.lastName;
+	var membershipLevel = credentials.membershipLevel;
+	var tokBoxRole = (membershipLevel === 'Instructor') ? 'moderator' : 'publisher';
 	console.log( 'Username: ' + username );
-	console.log( 'Email: ' + credentials.email );
-	console.log( 'Permissions: ' + userPermissions);
+	console.log( 'DisplayName: ' + displayName );
+	console.log( 'MembershipLevel: ' + membershipLevel);
 	console.log( 'TokBox Role: ' + tokBoxRole );
 	var token = opentok.generateToken(sessionId,({
 		role : 			tokBoxRole,
 		expireTime : 	(new Date().getTime() / 1000)+ 60*180, // in 3 hours
-		data : 			JSON.stringify( { 'username' : username, 'permissions' : userPermissions, role: tokBoxRole } )
+		data : 			JSON.stringify( { 'username' : username, displayName : displayName, 'membershipLevel' : membershipLevel, role: tokBoxRole } )
 	}));
-	console.log('Token: ', token);
+	// console.log('Token: ', token);
 	return token;
-};
+}
 
-generateAdminView = function( request, reply, aToken, error ) {
-	var credentials = request.auth.credentials;
-	var username = credentials.username;
-	var userPermissions = credentials.permissions;
-	var tokBoxRole = permissionsList[userPermissions];
-	var token = ( aToken ) ? aToken : generateToken( credentials );
-	members.findAll( function( err, members ) {
-		if (err) {
-			error = error ? error + '\n'+err : err;
-			return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
-		}
-		else if (members) {
-			console.dir( members );
-			return reply.view( 'admin_panel', { members: members, apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
+// auth cookie should be set before calling serveView()
+function serveView(request, reply) {
+	// check for auth cookie
+	if (request.auth.isAuthenticated) {
+		var creds = request.auth.credentials;
+		// check if membership not 'Active'
+		if (creds.membershipStatus !== 'Active' ) {
+			// reply 'Membership Expired'
+			return reply.view('invalidUser', { error: 'Your membership has expired' });
 		}
 		else {
-			error = error ? error + '\nMembers not found' : 'Members not found';
-			return reply.view( 'admin_panel', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error});
+			// generate TokBox token,
+			var token = generateToken(creds);
+			// assemble local variables for view template
+			var locals = {	apiKey: apiKey,
+							sessionId: sessionId,
+							token: token,
+							membershipLevel: creds.membershipLevel,
+							role: (creds.membershipLevel === 'Instructor') ? 'moderator' : 'publisher',
+							username: creds.username,
+							displayName: creds.firstName + ' ' + creds.lastName,
+						};
+
+			// check for Instructor membership level
+			if (creds.membershipLevel === 'Instructor') {
+				return reply.view('instructor', locals);
+			}
+			// check for Administrator membership level
+			else if (creds.membershipLevel === 'Administrator') {
+				// TODO --ADMIN VIEW---
+				// currently, just client!
+				return reply.view('mummies', locals);
+			}
+			else {
+				return reply.view('mummies', locals);
+			}
 		}
-	});
-};
-
-clientView = function( request, reply ) {
-	var credentials = request.auth.credentials;
-	var username = credentials.username;
-	var userPermissions = credentials.permissions;
-	var tokBoxRole = permissionsList[userPermissions];
-
-	var error = credentials.error ? credentials.error : null;
-	request.auth.session.set('error', null);
-
-	var token = generateToken( credentials );
-
-	if( userPermissions === 'moderator' ) {
-		return reply.view('instructor', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
 	}
-	else if( userPermissions === 'publisher'){
-		return reply.view('mummies', {apiKey: apiKey, sessionId: sessionId, token: token, permissions: userPermissions, role: tokBoxRole, username: username, error: error });
+	// no auth cookie - fallback, shouldn't happen
+	else {
+		return reply.view('invalidUser', { error: 'Server error: serveView() failed' });
 	}
-	else if( userPermissions === 'administrator' ){
-		return generateAdminView( request, reply, token, error );
-	}
-	else{
-		request.auth.session.set( 'error', 'Your user permissions are invalid: ' + userPermissions );
-	}
-};
+
+}
 
 
 ////////////////////
@@ -193,52 +93,11 @@ module.exports = {
 		}
 	},
 
-// TODO remove google auth and route etc. for production.
-	// loginGoogle: {
-	// 	 auth: {
-	// 		strategy: 'google'
-	// 	 },
-	// 	 handler: function (request, reply) {
-	// 		if (request.auth.isAuthenticated) {
-	// 			var gPlus = request.auth.credentials;
-	// 			console.dir(gPlus);
-	// 			var username = gPlus.profile.displayName || gPlus.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
-	// 			var profile = {
-	// 				username 	: username,
-	// 				email 		: gPlus.profile.email,
-	// 				error 		: null
-	// 			};
-	// 			console.log('Profile:');
-	// 			console.dir(profile);
-	// 			return findOrAddUser( request, reply, profile );
-	// 		}
-	// 		else {
-	// 			return reply.redirect('/loggedout');
-	// 		}
-	// 	}
-	// },
-
-	loginFacebook: {
-		 auth: {
-			strategy: 'facebook'
-		 },
-		 handler: function (request, reply) {
-			if (request.auth.isAuthenticated) {
-				var fb = request.auth.credentials;
-				console.dir(fb);
-				var username = fb.profile.displayName || fb.profile.email.replace(/[^\w]/g,'') + (Math.random()*100).toFixed(0);
-				var profile = {
-					username 	: username,
-					email 		: fb.profile.email,
-					error 		: null
-				};
-				console.log('Profile:');
-				console.dir(profile);
-				return findOrAddUser( request, reply, profile );
-			}
-			else {
-				return reply.redirect('/loggedout');
-			}
+	// still needed?
+	loggedoutView: {
+		auth: false,
+		handler: function (request, reply) {
+			return reply.view('loggedout');
 		}
 	},
 
@@ -249,62 +108,82 @@ module.exports = {
 		}
 	},
 
-	loggedoutView: {
-		auth: false,
-		handler: function (request, reply) {
-			return reply.view('loggedout');
-		}
-	},
-
+	// TODO: add custom views for the various login failures/ loggedout
 	homeView: {
+		auth: {
+			mode: 'try'
+		},
 		handler: function (request, reply ){
+			// console.dir(request);
+			console.log('Referer: ',request.headers.referer);
+			var urlObject = url.parse(request.url, true);
+			console.dir(urlObject);
+			// Check if auth cookie already set
 			if (request.auth.isAuthenticated) {
-				var creds = request.auth.credentials;
-				if(creds) {
-					var userPermissions = creds.permissions;
-					if ( !permissionsList.hasOwnProperty(userPermissions) ) {
-						return reply.view('invalidUser', { error: 'You do not have valid permissions' });
-					}
-					else {
-						return clientView( request, reply );
-					}
+				console.log('Auth Cookie Found');
+				if (Object.keys(urlObject.query).length > 0) {
+					reply.redirect('/');
 				}
 				else {
-					return reply.view( 'invalidUser', { error: 'Your do not have the correct credentials.'});
+					serveView(request, reply);
 				}
 			}
 			else {
-				console.log( 'You are not authorised');
-				return reply.view('invalidUser', { error: 'You are not an authorised user.' });
-			}
-		}
-	},
+				console.log('Auth Cookie NOT Found');
 
-	// api routes:
-	memberUpdate  : {
-		handler : function( request, reply ) {
-			// var alert;
-			var data = request.payload.data;
-			members.updateMember( { query: { username: data.username, email: data.email },
-									update: {permissions: data.permissions }
-								  }, function( error, result ) {
-										if( error ) {
-											console.error( error );
-											request.auth.session.set('error', error); //TODO don't pass raw errors to user
-											return reply( 'Error updating member');
-										}
-										else {
-											// update credentials if current user has had permissions changed
-											var creds = request.auth.credentials;
-											if( creds.username === data.username ) {
-												request.auth.session.set('permissions', data.permissions);
-												return reply('Updated administrator. ');
-											}
-											else {
-												return reply('Updated user: ' + data.username );
-											}
-										}
-								  });
+
+				var referer = request.headers.referer;
+				// NB Currently checking referer header for, mostly to try and ensure people are usimg link from MW, not a bookmark
+				// This is NOT SECURE. Needs testing to ensure not broken by people turing off header in browser
+				if (/*!/mummyworkouts\.com/.test(referer) || */ !urlObject.hasOwnProperty('query')) {
+					//reply 'fail' Error message? 'Please use link from mummy workouts, link'
+					return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
+				}
+				else if (/*/mummyworkouts\.com/.test(referer) &&*/ urlObject.query.hasOwnProperty('token') ) {
+					// get user token from qs (Member Mouse email)
+					var token = urlObject.query.token;
+					console.log('Encoded user token: ', token);
+					// NB no need to URL decode - hapi does it automatically
+					var userEmail = new Buffer(token, 'base64');
+					userEmail = userEmail.toString('utf8');
+					console.log('Decoded user token: ', userEmail);
+
+					// make MM API call to check for member
+					MM.getMember(userEmail, function(err, statusCode, memberData){
+						if (err) {
+							// reply error view - error contacting server, retry
+							return reply.view('invalidUser', { error: 'Error contacting membership server.\nPlease refresh the page' });
+						}
+						else if ( (statusCode === '200' /*|| statusCode === '409'*/) && memberData) { //string???
+							// if member - set cookie
+							var profile = {
+								membershipStatus: memberData.status_name,
+								membershipLevel: memberData.membership_level_name,
+								firstName: memberData.first_name,
+								lastName: memberData.last_name,
+								username: memberData.username
+							};
+							request.auth.session.clear();
+							request.auth.session.set(profile);
+							console.log(profile);
+							console.log(request.auth.credentials);
+							// NB Calling serveView directly here failed as cookie not yet fully set (async issue?)
+							// Hence, redirect:
+							reply.redirect('/');
+						}
+						else {
+							request.auth.session.clear(); //????
+							// reply error view - member not found
+							return reply.view('invalidUser', { error: 'Member not found' });
+						}
+
+					});
+				}
+				else {
+					console.error('homeView failed');
+					return reply.view('invalidUser', { error: 'Login failed - invlaid user token or wrong origin.\nPlease return to Mummy Workouts.' });
+				}
+			}
 		}
 	}
 };

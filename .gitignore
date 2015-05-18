@@ -33,7 +33,7 @@ creds.json
 NEWCREDS.json
 OLDCREDS.json
 sessionId.txt
-
+timesheet.txt
 instructor_memberlist.jade
 spectator.jade
 

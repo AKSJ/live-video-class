@@ -1,4 +1,5 @@
 var Hapi 	= require('hapi');
+var Bell 	= require('bell');
 var Cookie 	= require('hapi-auth-cookie');
 var Path 	= require('path');
 var routes 	= require('./routes');
@@ -18,20 +19,35 @@ var server = new Hapi.Server({
 	}
 });
 
-
 server.connection(serverOptions);
 
-server.register([Cookie], function (err) {
+server.register([Bell, Cookie], function (err) {
 	if (err) console.error(err);
 
 	server.auth.strategy('session', 'cookie',{
 		password: config.cookie.password,
 		cookie: 'sid',
-		// redirectTo: '/loggedout',
+		redirectTo: '/loggedout',
 		redirectOnTry: false,
-		isSecure: false,
-		ttl: 1000 * 60 * 60 * 2 // 2 hours
+		isSecure: false
 	});
+
+	// server.auth.strategy('google', 'bell', {
+	// 	provider: 'google',
+	// 	password: config.google.secret,
+	// 	isSecure: false,
+	// 	clientId: config.google.cKey,
+	// 	clientSecret: config.google.cSecret
+	// });
+
+	server.auth.strategy('facebook', 'bell', {
+		provider: 'facebook',
+		password: config.facebook.secret,
+		isSecure: false,
+		clientId: config.facebook.cKey,
+		clientSecret: config.facebook.cSecret
+	});
+
 
 	server.views({
 		engines: {
@@ -63,9 +79,8 @@ server.register({
 	options: goodOptions
 }, function (err) { if (err) console.error(err); });
 
-// server.on('request', function(event){
-// 	console.dir(event);
-// });
-
 module.exports = server;
+
+
+
 
