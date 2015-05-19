@@ -161,7 +161,7 @@ module.exports = {
 						// if different user login attempted, clear session and start again
 						if (newUserEmail !== currentUserEmail) {
 							request.auth.session.clear(); //? redundant?
-							checkMemberMouse(newuserEmail, request, reply);
+							checkMemberMouse(newUserEmail, request, reply);
 						}
 						else {
 							reply.redirect('/');
