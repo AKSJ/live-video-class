@@ -1,13 +1,19 @@
 extends ./layouts/nonavbar.jade
 
+append head
+	link(rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lobster")
+
 block content
 	.container
 		.row
-			.col-md-12
+			.col-md-6.col-md-offset-3(style='text-align:center;')
+				img(src='http://mummyworkouts.com/wp-content/uploads/2014/12/Mummy_Workout_Logo_3.jpg')
+		.row
+			.col-md-6.col-md-offset-3(style='text-align:center;')
 				h1.contact Oops! Your attempt to join the class has failed.
 				br
 				p Check the error mesage above, and refresh the page if asked.
 				p Otherwise, please return to Mummy Workouts and re-try the Join Class button.
 				br
-			  h3 Not a Mummy Workouts member?
+				h3 Not a Mummy Workouts member?
 				p Please become a member at <a href='http://www.mummyworkouts.com'>www.mummyworkouts.com</a>
