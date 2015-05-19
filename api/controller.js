@@ -139,7 +139,6 @@ module.exports = {
 	},
 
 	// TODO: add custom views for the various login failures
-	// TODO: edge case, qs doesnt match cookie. clear cookie
 	homeView: {
 		auth: {
 			mode: 'try'

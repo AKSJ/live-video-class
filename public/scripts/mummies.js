@@ -1,5 +1,5 @@
 
-// OT.setLogLevel(OT.DEBUG);
+// OT.setLogLevel(OT.DEBUG); // <- VERY verbose logging
 
 // Initialize an OpenTok Session object
 var session = OT.initSession( apiKey,sessionId );
@@ -19,7 +19,10 @@ var subscribers = {};
 // Initialize a Publisher, and place it into the element with id='publisher'
 publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', height: '100%', style: {nameDisplayMode: 'off'} });
 
-//Helpers//
+/////////////
+// Helpers //
+/////////////
+
 function unsubscribe(stream){
 	var streamId = stream.streamId;
 	console.log( 'Unsubscribe this Subscriber: ');
@@ -44,6 +47,7 @@ function addModerator( stream ){
 		}
 	});
 }
+
 // Attach event handlers
 session.on({
 
@@ -113,7 +117,7 @@ session.on({
 				console.dir( liveModeratorStream );
 			}
 		}
-		// ??? This could be in the if statement above, but put it out here so clean up happens even if something else goes wrong
+		// NB This could be in the if statement above, but put it out here so clean up happens even if something else goes wrong
 		if (subscribers.hasOwnProperty(destroyedStream.streamId) ) {
 			delete subscribers[destroyedStream.streamId];
 		}
@@ -135,6 +139,8 @@ publisher.on({
 	}
 });
 
+// Attempt to remove the irritating 'trouble connecting to stream' black boxes
+// Not entirely succesful, seem to appear at times other than 1013 errors
 OT.on('exception', function(event){
 	if (event.code === 1013) {
 		console.log('Connection Failed event:');
@@ -143,7 +149,7 @@ OT.on('exception', function(event){
 	}
 });
 // Connect to the Session using the 'token' for permission
-session.connect( token);
+session.connect(token);
 
 
 $('#streamtoggle').click(function(){

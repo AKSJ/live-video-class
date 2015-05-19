@@ -1,6 +1,8 @@
 // TODO Explicitly place subscribers in subscriber-n, rather than reply on subscriber:empty
+// TODO Refactor to avoid variable name reuse - username, role, displayName (+more?)
+// are global vars fromscript tag, but are also used in event listeners
 
-// OT.setLogLevel(OT.DEBUG);
+// OT.setLogLevel(OT.DEBUG); // <- VERY verbose logging
 
 // Initialize an OpenTok Session object
 var session = OT.initSession(apiKey,sessionId);
@@ -12,19 +14,13 @@ console.log('Display Name: ' + displayName);
 console.log('MembershipLevel: ' + membershipLevel);
 console.log('Role: ' + role);
 
-
-//  ----TODO-----
-
-//see NOTES
-// use displayName in mummy list and for publisher/subsciber objects
-
 // Initialize a Publisher, and place it into the element with id='publisher'
 var publisherOptions = {
 							name: displayName,
 							width: '100%',
 							height: '100%',
-							resolution: '1280x720', //max resolution -default 640x480
-							frameRate: 30, //max frame rate
+							resolution: '1280x720', // '1280x720' is max possible resolution -default 640x480
+							frameRate: 30, //30 is max possible frame rate
 							style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/}
 						};
 
@@ -53,8 +49,16 @@ function usernameFreeCheck(stream) {
 // mummies-list helpers
 //////////////////////////
 
-function hyphenate(string) {
-	return string.replace(/\s+/g,'-');
+function makeUsernameId(string) {
+	// spaces to hyphens
+	var usernameId = string.replace(/\s+/g, '-');
+	// strip all characters not valid for css selectors
+	usernameId = usernameId.replace(/[^a-z0-9_-]/gi, '');
+	// check if first character is a number (css first char must match /-_a-z/i )
+	if (/[0-9]/.test(usernameId.charAt(0) ) ) {
+		usernameId = 'id-' + usernameId;
+	}
+	return usernameId;
 }
 
 function sortByName(a,b) {
@@ -79,7 +83,7 @@ function sortMummies() {
 }
 
 function setMummyNoStream(username) {
-	var usernameId = hyphenate(username);
+	var usernameId = makeUsernameId(username);
 	$('#'+usernameId).removeClass('inactive');
 	$('#'+usernameId).removeClass('active');
 	$('#'+usernameId).addClass('no-stream');
@@ -87,7 +91,7 @@ function setMummyNoStream(username) {
 }
 
 function setMummyActive(username) {
-	var usernameId = hyphenate(username);
+	var usernameId = makeUsernameId(username);
 	$('#'+usernameId).removeClass('no-stream');
 	$('#'+usernameId).removeClass('inactive');
 	$('#'+usernameId).addClass('active');
@@ -95,7 +99,7 @@ function setMummyActive(username) {
 }
 
 function setMummyInactive(username) {
-	var usernameId = hyphenate(username);
+	var usernameId = makeUsernameId(username);
 	$('#'+usernameId).removeClass('no-stream');
 	$('#'+usernameId).removeClass('active');
 	$('#'+usernameId).addClass('inactive');
@@ -103,7 +107,7 @@ function setMummyInactive(username) {
 }
 
 function removeMummy(username) {
-	var usernameId = hyphenate(username);
+	var usernameId = makeUsernameId(username);
 	$('#'+usernameId).remove();
 	sortMummies();
 }
@@ -114,7 +118,7 @@ function removeMummy(username) {
 function activateStream(stream) {
 	var connectionData = JSON.parse(stream.connection.data);
 	var username = connectionData.username;
-	var usernameId = hyphenate(username);
+	var usernameId = makeUsernameId(username);
 	mummyData[username].status = 'active';
 	var subContainerId = usernameId + '-subscriber';
 	$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty')[0]);
@@ -138,7 +142,7 @@ function addSubscriber(stream) {
 function unsubscribe(stream){
 	var connectionData = JSON.parse(stream.connection.data);
 	var username = connectionData.username;
-	var usernameId = hyphenate(username);
+	var usernameId = makeUsernameId(username);
 	session.unsubscribe(mummyData[username].subscriber);
 	$('#' + usernameId + '-subscriber').remove();
 	mummyData[username].subscriber = null;
@@ -345,8 +349,10 @@ session.on({
 		// May already exist from stream created event?
 		var connectionData = JSON.parse(event.connection.data);
 		var username = connectionData.username;
-		var usernameId = hyphenate(username);
+		var usernameId = makeUsernameId(username);
 		var role = connectionData.role;
+		var displayName = connectionData.displayName;
+		// check if receving own connection created event
 		var ownConnection = false;
 		if (event.target.connection.connectionId === session.connection.connectionId) ownConnection = true;
 		if (!mummyData.hasOwnProperty(username) && !ownConnection ) {
@@ -369,7 +375,7 @@ session.on({
 		var newStreamId = newStream.streamId;
 		var newStreamConnectionData = JSON.parse(newStream.connection.data);
 		var username = newStreamConnectionData.username;
-		var usernameId = hyphenate(username);
+		var usernameId = makeUsernameId(username);
 		var role = newStreamConnectionData.role;
 
 		// If mummyRef found, update mummyRef and list entry
@@ -401,7 +407,7 @@ session.on({
 		var destroyedStreamId = event.stream.streamId;
 		var connectionData = JSON.parse(destroyedStream.connection.data);
 		var username = connectionData.username;
-		var usernameId = hyphenate(username);
+		var usernameId = makeUsernameId(username);
 		// If stream subscribed, unsub (remove dom)
 		if (mummyData.hasOwnProperty(username) ) {
 			if (mummyData[username].subscriber) {
