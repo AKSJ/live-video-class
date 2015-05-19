@@ -7,7 +7,7 @@ var session = OT.initSession( apiKey,sessionId );
 console.log('Token: ' + token);
 console.log('SessionId: ' + sessionId);
 console.log('Username: ' + username);
-console.log('Display Name: ' + displayName);
+console.log('DisplayName: ' + displayName);
 console.log('MembershipLevel: ' + membershipLevel);
 console.log('Role: ' + role);
 
@@ -17,7 +17,7 @@ var moderators = [];
 var subscribers = {};
 
 // Initialize a Publisher, and place it into the element with id='publisher'
-publisher = OT.initPublisher( 'publisher-div', { name: username, width: '100%', height: '100%', style: {nameDisplayMode: 'off'} });
+publisher = OT.initPublisher( 'publisher-div', { name: displayName, width: '100%', height: '100%', style: {nameDisplayMode: 'off'} });
 
 /////////////
 // Helpers //

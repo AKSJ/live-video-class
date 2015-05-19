@@ -378,6 +378,7 @@ session.on({
 		var username = newStreamConnectionData.username;
 		var usernameId = makeUsernameId(username);
 		var role = newStreamConnectionData.role;
+		var displayName = connectionData.displayName;
 
 		// If mummyRef found, update mummyRef and list entry
 		if (mummyData.hasOwnProperty(username) ) {
@@ -391,7 +392,7 @@ session.on({
 										subscriber: null,
 										status: 'inactive'
 									};
-			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy inactive'}).text(username);
+			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy inactive'}).text(displayName);
 			if (role === 'moderator') { newMummy.addClass('moderator'); }
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies();
