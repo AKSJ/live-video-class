@@ -1,9 +1,9 @@
-var fs 		= require('fs');
+// var fs 		= require('fs');
 var url		= require('url');
-var Path 	= require('path');
+// var Path 	= require('path');
 // var Joi 	= require('joi');
+// var members = require('./models/members.js');
 var opentok = require('./opentok');
-var members = require('./models/members.js');
 var MM 		= require('./memberMouse.js');
 
 var config 		= require('./config');
@@ -194,6 +194,7 @@ module.exports = {
 					checkMemberMouse(userEmail, request, reply);
 				}
 				else {
+					// fallback
 					console.error('homeView failed');
 					return reply.view('invalidUser', { error: 'Login failed.\nPlease return to Mummy Workouts to try again.' });
 				}

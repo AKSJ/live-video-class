@@ -14,11 +14,11 @@ module.exports = {
 	// 			cKey	: 	process.env.GOOGLECKEY 		|| require('./creds.json').google.cKey,
 	// 			cSecret	: 	process.env.GOOGLECSECRET 	|| require('./creds.json').google.cSecret,
 	// },
-	facebook : {
-				secret 	: 	process.env.FBSECRET 		|| require('./creds.json').facebook.secret,
-				cKey	: 	process.env.FBCKEY 			|| require('./creds.json').facebook.cKey,
-				cSecret	: 	process.env.FBCSECRET 		|| require('./creds.json').facebook.cSecret,
-	},
+	// facebook : {
+	// 			secret 	: 	process.env.FBSECRET 		|| require('./creds.json').facebook.secret,
+	// 			cKey	: 	process.env.FBCKEY 			|| require('./creds.json').facebook.cKey,
+	// 			cSecret	: 	process.env.FBCSECRET 		|| require('./creds.json').facebook.cSecret,
+	// },
 	cookie : {
 				password: 	process.env.COOKIESECRET 	|| require('./creds.json').cookieSecret
 	}
