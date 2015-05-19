@@ -26,8 +26,7 @@ server.register([Cookie], function (err) {
 
 	server.auth.strategy('session', 'cookie',{
 		password: config.cookie.password,
-		cookie: 'sid',
-		// redirectTo: '/loggedout',
+		cookie: 'MM_api',
 		redirectOnTry: false,
 		isSecure: false,
 		ttl: 1000 * 60 * 60 * 2 // 2 hours
@@ -63,9 +62,6 @@ server.register({
 	options: goodOptions
 }, function (err) { if (err) console.error(err); });
 
-// server.on('request', function(event){
-// 	console.dir(event);
-// });
 
 module.exports = server;
 

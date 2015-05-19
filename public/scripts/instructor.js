@@ -20,7 +20,7 @@ console.log('Role: ' + role);
 
 // Initialize a Publisher, and place it into the element with id='publisher'
 var publisherOptions = {
-							name: username,
+							name: displayName,
 							width: '100%',
 							height: '100%',
 							resolution: '1280x720', //max resolution -default 640x480
@@ -29,6 +29,10 @@ var publisherOptions = {
 						};
 
 var publisher = OT.initPublisher('publisher', publisherOptions );
+
+//////////////////
+// Data Object //
+/////////////////
 
 // mummyData[username] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive'/'no-stream'}
 var mummyData = {};
@@ -118,7 +122,7 @@ function activateStream(stream) {
 								width: '100%',
 								height: '100%',
 								subscribeToAudio: false,
-								style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/} //buttonDisplay on auto, as on causes central overlay on small screens
+								style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/} //buttonDisplay on auto (i.e. mouseover), as 'on' causes central overlay on small screens
 							};
 	mummyData[username].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
 	// set mummies-list entry class to active
@@ -351,7 +355,7 @@ session.on({
 									subscriber: null,
 									status: 'no-stream'
 								};
-			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy no-stream'}).text(username);
+			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy no-stream'}).text(displayName);
 			if (role === 'moderator') { newMummy.addClass('moderator'); }
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies();

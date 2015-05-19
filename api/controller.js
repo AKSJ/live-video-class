@@ -74,7 +74,37 @@ function serveView(request, reply) {
 	else {
 		return reply.view('invalidUser', { error: 'Server error: serveView() failed' });
 	}
+}
 
+function checkMemberMouse(userEmail, request, reply) {
+	MM.getMember(userEmail, function(err, statusCode, memberData){
+		if (err) {
+			// query string token preserved so client brower refresh possible
+			return reply.view('invalidUser', { error: 'Error contacting membership server.\nPlease refresh the page to retry.' });
+		}
+		else if ( statusCode === '200' && memberData) {
+			// set auth cookie
+			var profile = {
+				membershipStatus: memberData.status_name,
+				membershipLevel: memberData.membership_level_name,
+				firstName: memberData.first_name,
+				lastName: memberData.last_name,
+				username: memberData.username,
+				email: memberData.email
+			};
+			request.auth.session.clear();
+			request.auth.session.set(profile);
+			console.log(profile);
+			console.log(request.auth.credentials);
+			// NB Calling serveView directly here failed as cookie not yet fully set (async issue?)
+			// Hence, redirect: (also, removes query string from browser URL)
+			reply.redirect('/');
+		}
+		else {
+			request.auth.session.clear(); //???? not needed?
+			return reply.view('invalidUser', { error: 'Member not found' });
+		}
+	});
 }
 
 
@@ -93,7 +123,7 @@ module.exports = {
 		}
 	},
 
-	// still needed?
+	// NB Keeping logout/logged out for the moment. But, could remove.
 	loggedoutView: {
 		auth: false,
 		handler: function (request, reply) {
@@ -108,21 +138,39 @@ module.exports = {
 		}
 	},
 
-	// TODO: add custom views for the various login failures/ loggedout
+	// TODO: add custom views for the various login failures
+	// TODO: edge case, qs doesnt match cookie. clear cookie
 	homeView: {
 		auth: {
 			mode: 'try'
 		},
 		handler: function (request, reply ){
-			// console.dir(request);
 			console.log('Referer: ',request.headers.referer);
 			var urlObject = url.parse(request.url, true);
 			console.dir(urlObject);
 			// Check if auth cookie already set
 			if (request.auth.isAuthenticated) {
 				console.log('Auth Cookie Found');
+				// NB Redirect to '/' in order to strip token from user visible url in browser bar
+				// Looks better, and will discourage bookmarking.
 				if (Object.keys(urlObject.query).length > 0) {
-					reply.redirect('/');
+					// first check if different user is trying to log in
+					if (urlObject.query.hasOwnProperty('token') ) {
+						var currentUserEmail = request.auth.credentials.email;
+						var newUserEmail = new Buffer(urlObject.query.token, 'base64');
+						newUserEmail = newUserEmail.toString('utf8');
+						// if different user login attempted, clear session and start again
+						if (newUserEmail !== currentUserEmail) {
+							request.auth.session.clear(); //? redundant?
+							checkMemberMouse(newuserEmail, request, reply);
+						}
+						else {
+							reply.redirect('/');
+						}
+					}
+					else {
+						reply.redirect('/');
+					}
 				}
 				else {
 					serveView(request, reply);
@@ -130,16 +178,11 @@ module.exports = {
 			}
 			else {
 				console.log('Auth Cookie NOT Found');
-
-
-				var referer = request.headers.referer;
-				// NB Currently checking referer header for, mostly to try and ensure people are usimg link from MW, not a bookmark
-				// This is NOT SECURE. Needs testing to ensure not broken by people turing off header in browser
-				if (/*!/mummyworkouts\.com/.test(referer) || */ !urlObject.hasOwnProperty('query')) {
-					//reply 'fail' Error message? 'Please use link from mummy workouts, link'
+				if (!urlObject.query.hasOwnProperty('token') ) {
+					console.error('No query string token found');
 					return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
 				}
-				else if (/*/mummyworkouts\.com/.test(referer) &&*/ urlObject.query.hasOwnProperty('token') ) {
+				else if (urlObject.query.hasOwnProperty('token') ) {
 					// get user token from qs (Member Mouse email)
 					var token = urlObject.query.token;
 					console.log('Encoded user token: ', token);
@@ -149,39 +192,11 @@ module.exports = {
 					console.log('Decoded user token: ', userEmail);
 
 					// make MM API call to check for member
-					MM.getMember(userEmail, function(err, statusCode, memberData){
-						if (err) {
-							// reply error view - error contacting server, retry
-							return reply.view('invalidUser', { error: 'Error contacting membership server.\nPlease refresh the page' });
-						}
-						else if ( (statusCode === '200' /*|| statusCode === '409'*/) && memberData) { //string???
-							// if member - set cookie
-							var profile = {
-								membershipStatus: memberData.status_name,
-								membershipLevel: memberData.membership_level_name,
-								firstName: memberData.first_name,
-								lastName: memberData.last_name,
-								username: memberData.username
-							};
-							request.auth.session.clear();
-							request.auth.session.set(profile);
-							console.log(profile);
-							console.log(request.auth.credentials);
-							// NB Calling serveView directly here failed as cookie not yet fully set (async issue?)
-							// Hence, redirect:
-							reply.redirect('/');
-						}
-						else {
-							request.auth.session.clear(); //????
-							// reply error view - member not found
-							return reply.view('invalidUser', { error: 'Member not found' });
-						}
-
-					});
+					checkMemberMouse(userEmail, request, reply);
 				}
 				else {
 					console.error('homeView failed');
-					return reply.view('invalidUser', { error: 'Login failed - invlaid user token or wrong origin.\nPlease return to Mummy Workouts.' });
+					return reply.view('invalidUser', { error: 'Login failed.\nPlease return to Mummy Workouts to try again.' });
 				}
 			}
 		}

@@ -1,7 +1,6 @@
 // !!!!!!!
 // USE 2MMAPITEST FORMAT
-// much simpler, no need to spoof client (this was an apache mod_security issue)
-
+// much easier
 
 var querystring = require('querystring');
 var request = require('request');

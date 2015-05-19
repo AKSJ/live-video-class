@@ -36,6 +36,3 @@ request.post({
 		}
 	}
 );
-
-
-// WORKS!  no need for client spoofing? retest.
