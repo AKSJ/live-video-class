@@ -378,7 +378,7 @@ session.on({
 		var username = newStreamConnectionData.username;
 		var usernameId = makeUsernameId(username);
 		var role = newStreamConnectionData.role;
-		var displayName = connectionData.displayName;
+		var displayName = newStreamconnectionData.displayName;
 
 		// If mummyRef found, update mummyRef and list entry
 		if (mummyData.hasOwnProperty(username) ) {
