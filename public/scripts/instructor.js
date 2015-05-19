@@ -37,6 +37,7 @@ var mummyData = {};
 //  HELPER FUNCTIONS //
 ///////////////////////
 
+// not currently used - relying on unique usernames from MM, and checking mummyData manually
 function usernameFreeCheck(stream) {
 	var connectionData = JSON.parse(stream.connection.data);
 	var username = connectionData.username;
