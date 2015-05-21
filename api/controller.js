@@ -178,7 +178,8 @@ module.exports = {
 				console.log('Auth Cookie NOT Found');
 				if (!urlObject.query.hasOwnProperty('token') ) {
 					console.error('No query string token found');
-					return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
+					// return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
+					return reply.redirect('http://mummyworkouts.com');
 				}
 				else if (urlObject.query.hasOwnProperty('token') ) {
 					// get user token from qs (Member Mouse email)
