@@ -2,7 +2,7 @@
 //- check for difs with mummies.jade before putting back into use
 extends ./layouts/default.jade
 
-//- NB- The full stop on line 6 is VERY IMPORTANT
+//- NB- The full stop on line 8 is VERY IMPORTANT
 append head
 	link(href='/css/admin.css', rel='stylesheet' type='text/css')
 	script(type='text/javascript').
@@ -11,6 +11,7 @@ append head
 		var token = '#{token}'
 		var membershipLevel = '#{membershipLevel}'
 		var role = '#{role}'
+		var email = '#{email}'
 		var username = '#{username}'
 		var displayName = '#{displayName}'
 	script(src='/scripts/admin.js')

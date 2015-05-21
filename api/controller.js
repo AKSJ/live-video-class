@@ -15,18 +15,17 @@ var apiKey 		= config.openTok.key;
 /////////////
 
 function  generateToken(credentials) {
-	var username = credentials.username;
-	var displayName = credentials.firstName + ' ' + credentials.lastName;
+	var email 			= credentials.email;
+	var username 		= credentials.username;
+	var displayName 	= credentials.firstName + ' ' + credentials.lastName;
 	var membershipLevel = credentials.membershipLevel;
-	var tokBoxRole = (membershipLevel === 'Instructor') ? 'moderator' : 'publisher';
-	console.log( 'Username: ' + username );
-	console.log( 'DisplayName: ' + displayName );
-	console.log( 'MembershipLevel: ' + membershipLevel);
-	console.log( 'TokBox Role: ' + tokBoxRole );
+	var tokBoxRole 		= (membershipLevel === 'Instructor') ? 'moderator' : 'publisher';
+	console.log( 'Token Generated:', '\nEmail: ' + email, '\nUsername: ' + username, '\nDisplayName: ' + displayName, '\nMembershipLevel: ' + membershipLevel, '\nTokBox Role: ' + tokBoxRole );
+
 	var token = opentok.generateToken(sessionId,({
 		role : 			tokBoxRole,
 		expireTime : 	(new Date().getTime() / 1000)+ 60*180, // in 3 hours
-		data : 			JSON.stringify( { 'username' : username, displayName : displayName, 'membershipLevel' : membershipLevel, role: tokBoxRole } )
+		data : 			JSON.stringify( { email: email, 'username' : username, displayName : displayName, 'membershipLevel' : membershipLevel, role: tokBoxRole } )
 	}));
 	// console.log('Token: ', token);
 	return token;

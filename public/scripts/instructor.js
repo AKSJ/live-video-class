@@ -1,6 +1,8 @@
 // TODO Explicitly place subscribers in subscriber-n, rather than reply on subscriber:empty
 // TODO Refactor to avoid variable name reuse - username, role, displayName (+more?)
 // are global vars fromscript tag, but are also used in event listeners
+// TODO refactor all 'username' refs to 'email'. Currently, always setting username = connectionData.email
+
 
 // OT.setLogLevel(OT.DEBUG); // <- VERY verbose logging
 
@@ -9,6 +11,7 @@ var session = OT.initSession(apiKey,sessionId);
 
 console.log('Token: ' + token);
 console.log('SessionId: ' + sessionId);
+console.log('Email: ' + email);
 console.log('Username: ' + username);
 console.log('Display Name: ' + displayName);
 console.log('MembershipLevel: ' + membershipLevel);
@@ -30,6 +33,8 @@ var publisher = OT.initPublisher('publisher', publisherOptions );
 // Data Object //
 /////////////////
 
+// NB 'username' is now derived from clients email address (as must be unique)
+
 // mummyData[username] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive'/'no-stream'}
 var mummyData = {};
 
@@ -38,14 +43,14 @@ var mummyData = {};
 ///////////////////////
 
 // not currently used - relying on unique usernames from MM, and checking mummyData manually
-function usernameFreeCheck(stream) {
-	var connectionData = JSON.parse(stream.connection.data);
-	var username = connectionData.username;
-	if (mummyData.hasOwnProperty(username) ) {
-		return false;
-	}
-	return true;
-}
+// function usernameFreeCheck(stream) {
+// 	var connectionData = JSON.parse(stream.connection.data);
+// 	var username = connectionData.email;
+// 	if (mummyData.hasOwnProperty(username) ) {
+// 		return false;
+// 	}
+// 	return true;
+// }
 
 // mummies-list helpers
 //////////////////////////
@@ -56,6 +61,7 @@ function makeUsernameId(string) {
 	// strip all characters not valid for css selectors
 	usernameId = usernameId.replace(/[^a-z0-9_-]/gi, '');
 	// check if first character is a number (css first char must match /-_a-z/i )
+	// TODO? Just preoend '-id' anyway? no need to check if 1st char is a number..
 	if (/[0-9]/.test(usernameId.charAt(0) ) ) {
 		usernameId = 'id-' + usernameId;
 	}
@@ -118,7 +124,7 @@ function removeMummy(username) {
 
 function activateStream(stream) {
 	var connectionData = JSON.parse(stream.connection.data);
-	var username = connectionData.username;
+	var username = connectionData.email;
 	var usernameId = makeUsernameId(username);
 	mummyData[username].status = 'active';
 	var subContainerId = usernameId + '-subscriber';
@@ -142,7 +148,7 @@ function addSubscriber(stream) {
 
 function unsubscribe(stream){
 	var connectionData = JSON.parse(stream.connection.data);
-	var username = connectionData.username;
+	var username = connectionData.email;
 	var usernameId = makeUsernameId(username);
 	session.unsubscribe(mummyData[username].subscriber);
 	$('#' + usernameId + '-subscriber').remove();
@@ -202,6 +208,7 @@ function fillInFive() {
 
 function nextFive() {
 	console.log('nextFive() called');
+	// fallback to remove annoying subscriber_error elements
 	$('.OT_subscriber_error').remove();
 	usernamesOfAllStreamers = [];
 	usernamesOfActiveStreamers = [];
@@ -258,6 +265,7 @@ function nextFive() {
 
 function prevFive() {
 	console.log('nextFive() called');
+	// fallback to remove annoying suscriber_error elements
 	$('.OT_subscriber_error').remove();
 	usernamesOfAllStreamers = [];
 	usernamesOfActiveStreamers = [];
@@ -349,7 +357,7 @@ session.on({
 		// Check for mummyRef, add if missing.
 		// May already exist from stream created event?
 		var connectionData = JSON.parse(event.connection.data);
-		var username = connectionData.username;
+		var username = connectionData.email;
 		var usernameId = makeUsernameId(username);
 		var role = connectionData.role;
 		var displayName = connectionData.displayName;
@@ -375,7 +383,7 @@ session.on({
 		var newStream = event.stream;
 		var newStreamId = newStream.streamId;
 		var newStreamConnectionData = JSON.parse(newStream.connection.data);
-		var username = newStreamConnectionData.username;
+		var username = newStreamConnectionData.email;
 		var usernameId = makeUsernameId(username);
 		var role = newStreamConnectionData.role;
 		var displayName = newStreamconnectionData.displayName;
@@ -408,7 +416,7 @@ session.on({
 		var destroyedStream = event.stream;
 		var destroyedStreamId = event.stream.streamId;
 		var connectionData = JSON.parse(destroyedStream.connection.data);
-		var username = connectionData.username;
+		var username = connectionData.email;
 		var usernameId = makeUsernameId(username);
 		// If stream subscribed, unsub (remove dom)
 		if (mummyData.hasOwnProperty(username) ) {
@@ -431,7 +439,7 @@ session.on({
 		event.preventDefault();
 
 		var connectionData = JSON.parse(event.connection.data);
-		var username = connectionData.username;
+		var username = connectionData.email;
 		// unsbscribe/clear DOM if needed
 		if (mummyData[username].stream) {
 			unsubscribe(mummyData[username].stream);

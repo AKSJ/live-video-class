@@ -1,6 +1,6 @@
 extends ./layouts/nonavbar.jade
 
-//- NB- The full stop on line 5 is VERY IMPORTANT
+//- NB- The full stop on line 7 is VERY IMPORTANT
 append head
 	link(href='/css/mummies.css', rel='stylesheet' type='text/css')
 
@@ -10,6 +10,7 @@ append head
 		var token = '#{token}'
 		var membershipLevel = '#{membershipLevel}'
 		var role = '#{role}' //should be publisher
+		var email = '#{email}'
 		var username = '#{username}'
 		var displayName = '#{displayName}'
 	script(src='/scripts/mummies.js')

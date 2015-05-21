@@ -6,6 +6,7 @@ var session = OT.initSession( apiKey,sessionId );
 
 console.log('Token: ' + token);
 console.log('SessionId: ' + sessionId);
+console.log('Email: ' + email);
 console.log('Username: ' + username);
 console.log('DisplayName: ' + displayName);
 console.log('MembershipLevel: ' + membershipLevel);
