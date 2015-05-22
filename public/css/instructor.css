@@ -55,7 +55,7 @@ body, html, .container-fluid, .publisher, .subscriber {
 	width: 90%;
 }
 
-button, #logOut {
+button {
     margin: 0 auto;
 }
 

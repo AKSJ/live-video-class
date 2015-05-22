@@ -36,13 +36,13 @@ block content
 					span.glyphicon.glyphicon-pause#pause(aria-hidden='true')
 					span.glyphicon.glyphicon-play.hidden#play(aria-hidden='true')
 			.col-xs-2
-				button.btn.btn-success(type='button', data-toggle='modal', data-target='#mummiesModal')#classList
+				button.btn.btn-success#classList(type='button', data-toggle='modal', data-target='#mummiesModal')
 					span.glyphicon.glyphicon-tasks(aria-hidden='true')
 			.col-xs-2
-				button.btn.btn-info(type='button', data-toggle='modal', data-target='#helpModal')#help
+				button.btn.btn-info#help(type='button', data-toggle='modal', data-target='#helpModal')
 					span.glyphicon.glyphicon-question-sign(aria-hidden='true')
 			.col-xs-2
-				a.btn.btn-warning#logOut(href='/logout', role='button')
+				button.btn.btn-warning#logOut
 					span.glyphicon.glyphicon-log-out(aria-hidden='true')
 			.col-xs-2
 				button.btn.btn-danger#endClass

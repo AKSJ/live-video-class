@@ -18,7 +18,8 @@ var moderators = [];
 var subscribers = {};
 
 // Initialize a Publisher, and place it into the element with id='publisher'
-publisher = OT.initPublisher( 'publisher-div', { name: displayName, width: '100%', height: '100%', style: {nameDisplayMode: 'off'} });
+// insertMode: experimeting with not having to preventDefault on unpubish, would be nice to turn off user webcam light... See streamtoggle below
+publisher = OT.initPublisher( 'publisher-div', { /*insertMode: 'after',*/ name: displayName, width: '100%', height: '100%', style: {nameDisplayMode: 'off'} });
 
 /////////////
 // Helpers //
@@ -141,7 +142,7 @@ publisher.on({
 });
 
 // Attempt to remove the irritating 'trouble connecting to stream' black boxes
-// Not entirely succesful, seem to appear at times other than 1013 errors
+// Not entirely successful, seem to appear at times other than 1013 errors
 OT.on('exception', function(event){
 	if (event.code === 1013) {
 		console.log('Connection Failed event:');
@@ -154,26 +155,31 @@ OT.on('exception', function(event){
 session.connect(token);
 
 
+// trying to turn off users webcam light when unpublish.
+// - setting publishVideo to false doesn't seem to do it
+// - allowing default on unpublish and then re-initing publisher works, but asks for user permission again. not ideal.
 $('#streamtoggle').click(function(){
 	if( $('#streamtoggle').hasClass( 'btn-danger') ) {
 		$('#streamtoggle').removeClass( 'btn-danger');
 		$('#streamtoggle').addClass( 'btn-success');
 		session.unpublish(publisher);
-		publisher.publishVideo(false);
-		publisher.publishAudio(false);
 		$('#blackout-div').removeClass('hidden');
 	}
 	else if( $('#streamtoggle').hasClass( 'btn-success') ) {
 		$('#streamtoggle').removeClass( 'btn-success');
 		$('#streamtoggle').addClass( 'btn-danger');
-		publisher.publishVideo(true);
-		publisher.publishAudio(true);
 		session.publish(publisher);
 		$('#blackout-div').addClass('hidden');
 	}
 });
 
 $('#logOut').click(function(){
-	window.location.pathname = '/logout';
+	var exit = confirm('\nAre you sure you want to exit the class?' +
+						'\n\nIf you wish to rejoin, you must return to the main site and use the Join Class button' +
+						'\n\n\'Cancel\' to remain in the class.\n\'OK\' to exit.');
+	if(exit){
+	// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
+		window.location.replace('/logout');
+	}
 });
 

@@ -41,13 +41,15 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 	overflow: visible;
 }
 
-#streamtoggle, #help {
+#streamtoggle, #help, #logOut {
 	margin-right: 4px;
 }
 
-#logOut {
+/*no longer needed, as logOut now a button*/
+
+/*#logOut {
 	margin-left: 4px;
-}
+}*/
 
 #publisher {
 	position: absolute;

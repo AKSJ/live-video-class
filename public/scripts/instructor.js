@@ -563,31 +563,42 @@ $('#pauseToggle').click(function(){
 $('#kill').click(function(){
 	var usernameToKill = $('.selected').text();
 	var connectionIdToKill;
-	// confirmation dialogue
-	var kill = confirm('Are you sure you want to kick this client?\nThey will be disconnected from the class');
 
-	if (kill) {
-		if (mummyData.hasOwnProperty(usernameToKill) ) {
-			if (mummyData[usernameToKill].stream) {
-					connectionIdToKill = mummyData[usernameToKill].stream.connection.connectionId;
+	if (!usernameToKill) {
+		alert(	'\nNo client selected!' +
+				'\n\nPlease select a name to kick from the list on the left.');
+	}
+	else {
+		// confirmation dialogue
+		var kill = confirm(	'\nAre you sure you want to kick this client?' +
+							'\n\nThey will be disconnected from the class' +
+							'\n\n\'Cancel\' to leave the client in the class.\n\'OK\' to kick the client.');
+
+		if (kill) {
+			if (mummyData.hasOwnProperty(usernameToKill) ) {
+				if (mummyData[usernameToKill].stream) {
+						connectionIdToKill = mummyData[usernameToKill].stream.connection.connectionId;
+				}
 			}
+			unsubscribe(mummyData[usernameToKill].stream);
+			session.forceDisconnect(connectionIdToKill, function(err){
+				if (err) {
+					console.log('Failed to kill connection');
+				}
+				else {
+					console.log('Killed '+ connectionIdToKill);
+					delete mummyData[usernameToKill];
+				}
+			});
 		}
-		unsubscribe(mummyData[usernameToKill].stream);
-		session.forceDisconnect(connectionIdToKill, function(err){
-			if (err) {
-				console.log('Failed to kill connection');
-			}
-			else {
-				console.log('Killed '+ connectionIdToKill);
-				delete mummyData[usernameToKill];
-			}
-		});
 	}
 });
 
 $('#endClass').click(function(){
 	// confirmation dialogue
-	var end = confirm('Are you sure you want to end the class?\nEverybody will be disconnected, including you.');
+	var end = confirm(	'\nAre you sure you want to end the class?' +
+						'\nWarning: this will end the class and kick everyone out of the session.' +
+						'\n\n\'Cancel\' to leave the class running.\n\'OK\' to end the class.');
 
 	if (end) {
 		// kick off all mummies
@@ -597,26 +608,40 @@ $('#endClass').click(function(){
 				 usernamesToKill.push = username;
 			}
 		}
-		usernamesToKill.forEach(function(username){
-			var connectionIdToKill = mummyData[username].stream.connection.connectionId;
-			session.forceDisconnect(connectionIdToKill, function(err){
-				if (err) {
-					console.log('Failed to kill connection');
-				}
-				else {
-					console.log('Killed '+ connectionIdToKill);
-				}
+		if (usernamesToKill.length > 0) {
+			usernamesToKill.forEach(function(username){
+				var connectionIdToKill = mummyData[username].stream.connection.connectionId;
+				session.forceDisconnect(connectionIdToKill, function(err){
+					if (err) {
+						console.log('Failed to kill connection');
+					}
+					else {
+						console.log('Killed '+ connectionIdToKill);
+					}
+				});
 			});
-		});
+		}
 		// disconnect self
 		session.disconnect();
 		// clear mummies-list
 		$('#mummies-list').empty();
 		// clear mummyData;
 		mummyData = {};
+		// added a redirect here, the idea being to make sure the instructor can't stay in the class somehow. Maybe by refreshing their browser
+		// if we keep this, can remove the DOM/data clearing above, but should keep session.disconnect() to make sure we're pplaying nicely with the TokBox session, maybe.
+		window.location.replace('/logout');
 	}
 });
 
+$('#logOut').click(function(){
+	var exit = confirm('\nAre you sure you want to exit the class?' +
+						'\nThis will only log you out. It will NOT end the class' +
+						'\n\n\'Cancel\' to remain in the class.\n\'OK\' to exit.');
+	if(exit){
+	// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
+		window.location.replace('/logout');
+	}
+});
 
 $(document).on('click', '.mummy', function(){
 	$('.mummy').removeClass('selected');

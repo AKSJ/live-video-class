@@ -122,7 +122,8 @@ module.exports = {
 		}
 	},
 
-	// NB Keeping logout/logged out for the moment. But, could remove.
+	// Current plan is to replace out loggedOut/InvalidUser views with redirects to MW.com pages
+	// NB - in that event, consider using 'logout' route to do it / clear auth cookie first
 	loggedoutView: {
 		auth: false,
 		handler: function (request, reply) {
@@ -178,8 +179,8 @@ module.exports = {
 				console.log('Auth Cookie NOT Found');
 				if (!urlObject.query.hasOwnProperty('token') ) {
 					console.error('No query string token found');
-					// return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
-					return reply.redirect('http://mummyworkouts.com');
+					return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
+					// return reply.redirect('http://mummyworkouts.com');
 				}
 				else if (urlObject.query.hasOwnProperty('token') ) {
 					// get user token from qs (Member Mouse email)
