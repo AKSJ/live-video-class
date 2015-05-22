@@ -571,7 +571,7 @@ $('#kill').click(function(){
 	else {
 		// confirmation dialogue
 		var kill = confirm(	'\nAre you sure you want to kick this client?' +
-							'\n\nThey will be disconnected from the class' +
+							'\n\nThey will be disconnected from the class.' +
 							'\n\n\'Cancel\' to leave the client in the class.\n\'OK\' to kick the client.');
 
 		if (kill) {
@@ -597,7 +597,7 @@ $('#kill').click(function(){
 $('#endClass').click(function(){
 	// confirmation dialogue
 	var end = confirm(	'\nAre you sure you want to end the class?' +
-						'\nWarning: this will end the class and kick everyone out of the session.' +
+						'\n\nWarning: this will end the class and kick everyone out of the session.' +
 						'\n\n\'Cancel\' to leave the class running.\n\'OK\' to end the class.');
 
 	if (end) {
@@ -635,7 +635,7 @@ $('#endClass').click(function(){
 
 $('#logOut').click(function(){
 	var exit = confirm('\nAre you sure you want to exit the class?' +
-						'\nThis will only log you out. It will NOT end the class' +
+						'\n\nThis will only log you out. It will NOT end the class' +
 						'\n\n\'Cancel\' to remain in the class.\n\'OK\' to exit.');
 	if(exit){
 	// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
