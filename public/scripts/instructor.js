@@ -635,7 +635,7 @@ $('#endClass').click(function(){
 
 $('#logOut').click(function(){
 	var exit = confirm('\nAre you sure you want to exit the class?' +
-						'\n\nThis will only log you out. It will NOT end the class' +
+						'\n\nThis will only log you out. It will NOT end the class.' +
 						'\n\n\'Cancel\' to remain in the class.\n\'OK\' to exit.');
 	if(exit){
 	// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
