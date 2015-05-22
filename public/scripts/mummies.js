@@ -149,6 +149,7 @@ OT.on('exception', function(event){
 		$('.OT_subscriber_error').remove();
 	}
 });
+
 // Connect to the Session using the 'token' for permission
 session.connect(token);
 
@@ -158,13 +159,21 @@ $('#streamtoggle').click(function(){
 		$('#streamtoggle').removeClass( 'btn-danger');
 		$('#streamtoggle').addClass( 'btn-success');
 		session.unpublish(publisher);
+		publisher.publishVideo(false);
+		publisher.publishAudio(false);
 		$('#blackout-div').removeClass('hidden');
 	}
 	else if( $('#streamtoggle').hasClass( 'btn-success') ) {
 		$('#streamtoggle').removeClass( 'btn-success');
 		$('#streamtoggle').addClass( 'btn-danger');
+		publisher.publishVideo(true);
+		publisher.publishAudio(true);
 		session.publish(publisher);
 		$('#blackout-div').addClass('hidden');
 	}
+});
+
+$('#logOut').click(function(){
+	window.location.pathname = '/logout';
 });
 
