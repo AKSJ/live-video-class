@@ -28,7 +28,8 @@ server.register([Bell, Cookie], function (err) {
 	server.auth.strategy('google', 'bell', {
 		provider: 'google',
 		password: config.google.secret,
-		isSecure: true,
+		// we want isSecure true if https is enabled  i.e. heroku
+		isSecure: process.env.PORT ? true : false,
 		clientId: config.google.cKey,
 		clientSecret: config.google.cSecret
 	});
@@ -37,7 +38,8 @@ server.register([Bell, Cookie], function (err) {
 		password: config.cookie.password,
 		cookie: 'MM_api',
 		redirectOnTry: false,
-		isSecure: true,
+		// we want isSecure true if https is enabled  i.e. heroku
+		isSecure: process.env.PORT ? true : false,
 		ttl: 1000 * 60 * 60 * 2 // 2 hours
 	});
 
@@ -57,6 +59,15 @@ server.register([Bell, Cookie], function (err) {
 	server.route(routes);
 });
 
+if (process.env.PORT) {
+	server.register({
+		register: require('hapi-require-https')
+	}, function(err){
+		console.error('Failed to load hapi-require-https');
+		if (err) console.error(err);
+	});
+}
+
 // GOOD error reporting
 var goodOptions = {
 	// opsInterval: 60 * 1000,
@@ -69,7 +80,11 @@ var goodOptions = {
 server.register({
 	register: require('good'),
 	options: goodOptions
-}, function (err) { if (err) console.error(err); });
+}, function (err) {
+	if (err) {
+		console.error(err);
+	}
+});
 
 
 module.exports = server;

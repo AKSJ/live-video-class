@@ -20,5 +20,8 @@ server.start(function () {
 	// });
 
 	console.log('Server running at:', server.info.uri);
+	if (process.env.PORT) {
+		console.log('process.env.PORT detected.\nCookies isSecure = true\n Http redirected to https');
+	}
 });
 
