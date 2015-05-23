@@ -28,8 +28,7 @@ server.register([Bell, Cookie], function (err) {
 	server.auth.strategy('google', 'bell', {
 		provider: 'google',
 		password: config.google.secret,
-		// we want isSecure true if https is enabled  i.e. heroku
-		isSecure: process.env.PORT ? true : false,
+		isSecure: process.env.PORT ? true : false, // we want isSecure true if https is enabled  i.e on heroku
 		clientId: config.google.cKey,
 		clientSecret: config.google.cSecret
 	});
@@ -37,9 +36,8 @@ server.register([Bell, Cookie], function (err) {
 	server.auth.strategy('session', 'cookie',{
 		password: config.cookie.password,
 		cookie: 'MM_api',
-		redirectOnTry: false,
-		// we want isSecure true if https is enabled  i.e. heroku
-		isSecure: process.env.PORT ? true : false,
+		// redirectOnTry: false,
+		isSecure: process.env.PORT ? true : false, // we want isSecure true if https is enabled  i.e. on heroku
 		ttl: 1000 * 60 * 60 * 2 // 2 hours
 	});
 
@@ -59,6 +57,7 @@ server.register([Bell, Cookie], function (err) {
 	server.route(routes);
 });
 
+// if not local, redirect all http requests to https
 if (process.env.PORT) {
 	server.register({
 		register: require('hapi-require-https')

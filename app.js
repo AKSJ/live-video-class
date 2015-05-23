@@ -1,5 +1,6 @@
 var server 		= require('./api/server');
 
+// only needed if generating sessionIds on the fly.
 // var opentok 	= require('./api/opentok');
 
 // var mongoose 	= require("mongoose");
@@ -19,9 +20,12 @@ server.start(function () {
 	// 	});
 	// });
 
-	console.log('Server running at:', server.info.uri);
+	console.log('Server running at:', server.info.uri, ':', server.info.port);
+
 	if (process.env.PORT) {
-		console.log('process.env.PORT detected.\nCookies isSecure = true\n Http redirected to https');
+		console.log('process.env.PORT detected.' +
+					'\ncookies isSecure = true' +
+					'\nhttp requests redirected to https');
 	}
 });
 
