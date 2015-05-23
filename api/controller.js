@@ -63,14 +63,14 @@ function serveView(request, reply) {
 
 			// check for Instructor membership level
 			if (creds.membershipLevel === 'Instructor') {
-				// return reply.view('instructor', locals);
+				return reply.view('instructor', locals);
 				// return reply.redirect('/login');
 			}
 			// check for Administrator membership level
 			else if (creds.membershipLevel === 'Administrator') {
 				// TODO --ADMIN VIEW---
 				// currently, just client!
-				// return reply.view('mummies', locals);
+				return reply.view('mummies', locals);
 				// return reply.redirect('/login');
 			}
 			else {
