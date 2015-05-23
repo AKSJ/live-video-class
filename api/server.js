@@ -28,7 +28,7 @@ server.register([Bell, Cookie], function (err) {
 	server.auth.strategy('google', 'bell', {
 		provider: 'google',
 		password: config.google.secret,
-		isSecure: false,
+		isSecure: true,
 		clientId: config.google.cKey,
 		clientSecret: config.google.cSecret
 	});
@@ -37,7 +37,7 @@ server.register([Bell, Cookie], function (err) {
 		password: config.cookie.password,
 		cookie: 'MM_api',
 		redirectOnTry: false,
-		isSecure: false,
+		isSecure: true,
 		ttl: 1000 * 60 * 60 * 2 // 2 hours
 	});
 

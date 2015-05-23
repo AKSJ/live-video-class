@@ -45,7 +45,7 @@ function serveView(request, reply) {
 		var creds = request.auth.credentials;
 		// check if membership not 'Active'
 		if (creds.membershipStatus !== 'Active' ) {
-			// reply 'Membership Expired'
+			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
 			return reply.view('invalidUser', { error: 'Your membership has expired' });
 		}
 		else {
