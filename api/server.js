@@ -1,12 +1,13 @@
 var Hapi 	= require('hapi');
 var Cookie 	= require('hapi-auth-cookie');
+var Bell 	= require('bell');
 var Path 	= require('path');
 var routes 	= require('./routes');
 var config 	= require('./config');
 
-var host = 'localhost';
-if (process.env.PORT) host = '0.0.0.0';
-var serverOptions 	= {port: (process.env.PORT || 3000 ), host: '0.0.0.0' };
+// var host = 'localhost';
+// if (process.env.PORT) host = '0.0.0.0';
+var serverOptions 	= {port: (process.env.PORT || 3000 ), host: '0.0.0.0' }; // or host: host
 
 var server = new Hapi.Server({
 	connections: {
@@ -21,8 +22,16 @@ var server = new Hapi.Server({
 
 server.connection(serverOptions);
 
-server.register([Cookie], function (err) {
+server.register([Bell, Cookie], function (err) {
 	if (err) console.error(err);
+
+	server.auth.strategy('google', 'bell', {
+		provider: 'google',
+		password: config.google.secret,
+		isSecure: false,
+		clientId: config.google.cKey,
+		clientSecret: config.google.cSecret
+	});
 
 	server.auth.strategy('session', 'cookie',{
 		password: config.cookie.password,

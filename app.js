@@ -1,9 +1,10 @@
 var server 		= require('./api/server');
-var opentok 	= require('./api/opentok');
 
-var mongoose 	= require("mongoose");
-var config 		= require("./api/config").db;
-var mongodbUri 	= config.dburl;
+// var opentok 	= require('./api/opentok');
+
+// var mongoose 	= require("mongoose");
+// var config 		= require("./api/config").db;
+// var mongodbUri 	= config.dburl;
 
 server.start(function () {
 

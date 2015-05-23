@@ -14,6 +14,9 @@ var apiKey 		= config.openTok.key;
 // Helpers //
 /////////////
 
+////////////
+// Generate a TokBok token to send to the client
+/////////
 function  generateToken(credentials) {
 	var email 			= credentials.email;
 	var username 		= credentials.username;
@@ -30,6 +33,10 @@ function  generateToken(credentials) {
 	// console.log('Token: ', token);
 	return token;
 }
+
+///////////////////////////
+// If cient authenticated, serve the correct page view (if membership not expired)
+//////////////////////////
 
 // auth cookie should be set before calling serveView()
 function serveView(request, reply) {
@@ -56,13 +63,15 @@ function serveView(request, reply) {
 
 			// check for Instructor membership level
 			if (creds.membershipLevel === 'Instructor') {
-				return reply.view('instructor', locals);
+				// return reply.view('instructor', locals);
+				// return reply.redirect('/login');
 			}
 			// check for Administrator membership level
 			else if (creds.membershipLevel === 'Administrator') {
 				// TODO --ADMIN VIEW---
 				// currently, just client!
-				return reply.view('mummies', locals);
+				// return reply.view('mummies', locals);
+				// return reply.redirect('/login');
 			}
 			else {
 				return reply.view('mummies', locals);
@@ -74,6 +83,11 @@ function serveView(request, reply) {
 		return reply.view('invalidUser', { error: 'Server error: serveView() failed' });
 	}
 }
+
+////////////////
+// Make a member mouse API call to MW.com to get user data
+// Set auth cookie if found
+/////////////////
 
 function checkMemberMouse(userEmail, request, reply) {
 	MM.getMember(userEmail, function(err, statusCode, memberData){
@@ -95,7 +109,7 @@ function checkMemberMouse(userEmail, request, reply) {
 			request.auth.session.set(profile);
 			console.log(profile);
 			console.log(request.auth.credentials);
-			// NB Calling serveView directly here failed as cookie not yet fully set (async issue?)
+			// NB Calling serveView directly here failed as cookie not yet fully set? (async issue?)
 			// Hence, redirect: (also, removes query string from browser URL)
 			reply.redirect('/');
 		}
@@ -135,6 +149,32 @@ module.exports = {
 		handler: function (request, reply){
 			request.auth.session.clear();
 			return reply.redirect('/loggedout');
+		}
+	},
+
+	loginGoogle: {
+		auth: {
+			strategy: 'google'
+		 },
+		 handler: function (request, reply) {
+			if (request.auth.isAuthenticated) {
+				var googleCreds = request.auth.credentials;
+				console.dir(googleCreds);
+
+				var profile = {
+					googleEmail : googleCreds.profile.email,
+
+				};
+
+				console.log('Google Profile:');
+				console.dir(profile);
+				request.auth.session.clear();
+				request.auth.session.set(profile);
+				return reply.redirect('/');
+			}
+			else {
+				return reply.redirect('/logout');
+			}
 		}
 	},
 

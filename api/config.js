@@ -9,11 +9,11 @@ module.exports = {
 				secret 	: 	process.env.OPENTOKSECRET 	|| require('./creds.json').openTok.secret,
 				sessionId : process.env.SESSIONID 		|| require('./creds.json').openTok.sessionId
 	},
-	// google : {
-	// 			secret 	: 	process.env.GOOGLESECRET 	|| require('./creds.json').google.secret,
-	// 			cKey	: 	process.env.GOOGLECKEY 		|| require('./creds.json').google.cKey,
-	// 			cSecret	: 	process.env.GOOGLECSECRET 	|| require('./creds.json').google.cSecret,
-	// },
+	google : {
+				secret 	: 	process.env.GOOGLESECRET 	|| require('./creds.json').google.secret,
+				cKey	: 	process.env.GOOGLECKEY 		|| require('./creds.json').google.cKey,
+				cSecret	: 	process.env.GOOGLECSECRET 	|| require('./creds.json').google.cSecret,
+	},
 	// facebook : {
 	// 			secret 	: 	process.env.FBSECRET 		|| require('./creds.json').facebook.secret,
 	// 			cKey	: 	process.env.FBCKEY 			|| require('./creds.json').facebook.cKey,
