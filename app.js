@@ -20,12 +20,18 @@ server.start(function () {
 	// 	});
 	// });
 
-	console.log('Server running at:', server.info.uri, ':', server.info.port);
+	console.log('Server running at:', server.info.uri);
 
 	if (process.env.PORT) {
 		console.log('process.env.PORT detected.' +
 					'\ncookies isSecure = true' +
 					'\nhttp requests redirected to https');
 	}
+	else {
+		console.log('local environment detected.' +
+					'\ncookies isSecure = false' +
+					'\nhttp requests NOT redirected to https');
+	}
+
 });
 

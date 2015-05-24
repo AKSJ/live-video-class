@@ -57,17 +57,47 @@ server.register([Bell, Cookie], function (err) {
 	server.route(routes);
 });
 
+////////////////
+// Yar cookie //
+////////////////
+
+var yarOptions = {
+	cookieOptions: {
+		password: config.cookie.password,
+		isSecure: process.env.PORT ? true : false, // we want isSecure true if https is enabled  i.e on heroku
+	}
+};
+
+server.register({
+	register: require('yar'),
+	options: yarOptions
+},function(err){
+	if (err) {
+		console.error('Failed to load yar');
+		console.error(err);
+	}
+});
+
+
+///////////////////
+// HTTP -> HTTPS //
+///////////////////
 // if not local, redirect all http requests to https
 if (process.env.PORT) {
 	server.register({
 		register: require('hapi-require-https')
 	}, function(err){
-		console.error('Failed to load hapi-require-https');
-		if (err) console.error(err);
+		if (err) {
+			console.error('Failed to load hapi-require-https');
+			console.error(err);
+		}
 	});
 }
 
-// GOOD error reporting
+//////////////////////////
+// GOOD error reporting //
+//////////////////////////
+
 var goodOptions = {
 	// opsInterval: 60 * 1000,
 	reporters: [{
@@ -81,6 +111,7 @@ server.register({
 	options: goodOptions
 }, function (err) {
 	if (err) {
+		console.error('Failed to load good');
 		console.error(err);
 	}
 });
