@@ -5,9 +5,11 @@ var server = new Hapi.Server();
 server.connection({ port: process.env.PORT || 8080 });
 
 var yarOptions = {
-	keyOptions: {
+	name: 'yartest',
+	cookieOptions: {
 		password: 'password',
 		isSecure: process.env.PORT ? true : false, // we want isSecure true if https is enabled  i.e on heroku
+		ttl: 10000 //10 secs
 	}
 };
 
@@ -25,11 +27,14 @@ server.register({
 // NOTES
 ///////////
 
-// Yar sets one cookie, always called 'session' as far as I can tell
+// Yar sets one cookie
 
 // Code dive suggests should be possbile to set all normal hapi session.state cookie options
 // in additon to options mentioned in readme.
-// NB name is not an option
+
+// CONFIRMED - ttl works
+// CONFIRMED - name works
+
 
 server.route({
 	method: 'GET',

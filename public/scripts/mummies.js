@@ -175,11 +175,9 @@ $('#streamtoggle').click(function(){
 
 $('#logOut').click(function(){
 	var exit = confirm('\nAre you sure you want to exit the class?' +
-						'\n\nIf you wish to rejoin, you must return to the main site and use the Join Class button' +
 						'\n\n\'Cancel\' to remain in the class.\n\'OK\' to exit.');
 	if(exit){
 	// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
 		window.location.replace('/logout');
 	}
 });
-
