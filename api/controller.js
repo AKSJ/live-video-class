@@ -198,6 +198,7 @@ function setMemberMouseCookie(userEmail, request, reply) {
 //////////////
 
 function checkQueryString(request, reply) {
+	console.log('checkQueryString() called');
 	var urlObject = url.parse(request.url, true);
 	var mm_api = request.session.get('mm_api');
 	// first check if different user is trying to log in
@@ -213,14 +214,14 @@ function checkQueryString(request, reply) {
 				return reply.redirect('/?token=' + urlObject.query.token);
 			}
 			else {
-				// current users email address in query string. No need to reset cookie. Redirect to string querystring from the url
-				console.log('Email token for current user found. Redirecting to root');
+				// current users email address in query string. No need to reset cookie. Redirect to strip querystring from the url
+				console.log('Email token for current user found. Redirecting to root to strip querystring');
 				reply.redirect('/');
 			}
 		}
 		else {
 			// unwanted query string data, redirect to strip from URL.
-			console.log('Unrecognised query string found. Redirecting to root');
+			console.log('Unrecognised query string found. Redirecting to root o strip querystring');
 			reply.redirect('/');
 		}
 }
@@ -235,7 +236,7 @@ function bothCookiesHandler(request, reply) {
 	var mm_api = request.session.get('mm_api');
 	var googleEmail = request.auth.credentials.googleEmail;
 	var memberMouseEmail = mm_api.email;
-	// check if query string
+	// check if query string present
 	if (Object.keys(urlObject.query).length > 0) {
 		checkQueryString(request, reply);
 	}
@@ -291,7 +292,7 @@ function mmApiOnlyHandler(request, reply) {
 	console.log('mmApiOnlyHandler called');
 	var urlObject = url.parse(request.url, true);
 	var mm_api = request.session.get('mm_api');
-	// NB Redirecting to '/' in order to strip token from user visible url in browser bar
+	// check if query string present
 	if (Object.keys(urlObject.query).length > 0) {
 		checkQueryString(request, reply);
 	}
