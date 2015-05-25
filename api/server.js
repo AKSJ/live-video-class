@@ -36,7 +36,7 @@ server.register([Bell, Cookie], function (err) {
 
 	server.auth.strategy('session', 'cookie',{
 		password: config.cookie.password,
-		cookie: 'MM_api',
+		cookie: 'oauth',
 		// redirectOnTry: false,
 		isSecure: process.env.PORT ? true : false, // we want isSecure true if https is enabled  i.e. on heroku
 		isHttpOnly: true, // security feature to prevent client side scripts interacting with cookie
@@ -64,10 +64,12 @@ server.register([Bell, Cookie], function (err) {
 ////////////////
 
 var yarOptions = {
+	// name: 'mm_api', // name = session
 	cookieOptions: {
 		password: config.cookie.password,
 		isSecure: process.env.PORT ? true : false, // we want isSecure true if https is enabled  i.e on heroku
 		isHttpOnly: true, // security feature to prevent client side scripts interacting with cookie
+		ttl: 1000 * 60 * 60 * 2 // 2 hours
 	}
 };
 
