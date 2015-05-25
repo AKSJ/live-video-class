@@ -20,6 +20,11 @@ module.exports = {
 	// 			cSecret	: 	process.env.FBCSECRET 		|| require('./creds.json').facebook.cSecret,
 	// },
 	cookie : {
-				password: 	process.env.COOKIESECRET 	|| require('./creds.json').cookieSecret
+				password1: 	process.env.COOKIESECRET1 	|| require('./creds.json').cookie.secret1,
+				password2: 	process.env.COOKIESECRET2 	|| require('./creds.json').cookie.secret2
+	},
+	mm : {
+				key: 		process.env.MMKEY 			|| require('./creds.json').mm.key,
+				secret: 	process.env.MMSECRET 		|| require('./creds.json').mm.secret
 	}
 };

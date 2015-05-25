@@ -1,12 +1,12 @@
 var request = require('request');
-
+var config = require('./config');
 
 // returns callback(error, responseCode, memberData)
 function getMember(userEmail, callback) {
 
 	var requestObject = {
-				apikey: 'gZD524b',
-				apisecret: 'zc4IGKe',
+				apikey: config.mm.key,
+				apisecret: config.mm.secret,
 				email: userEmail
 			};
 
@@ -28,10 +28,10 @@ function getMember(userEmail, callback) {
 				console.error(err);
 				return callback(err);
 			}
-				else if (res.statusCode !== 200 && res.statusCode !== 409 ) {
+			else if (res.statusCode !== 200 && res.statusCode !== 409 ) {
 				console.error('ERROR - StatusCode: ', res.statusCode);
 				console.error('Message: : ', body );
-				return callback(body);
+				return callback(body); // body will be error message
 			}
 			else {
 				if (body) {

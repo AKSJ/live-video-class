@@ -4,10 +4,11 @@
 
 var querystring = require('querystring');
 var request = require('request');
+var config = require('../api/config');
 
 var realUserRequest = {
-			apikey: 'gZD524b',
-			apisecret: 'zc4IGKe',
+			apikey: config.mm.key,
+			apisecret: config.mm.secret,
 			// member_id: '35',
 			email: 'tinnovamail@gmail.com'
 		};
@@ -15,15 +16,15 @@ var realUserRequest = {
 // ID has priority, so if id wrong, fails 409. If ID right and email wrong, suceeds 200.
 
 var fakeUserRequest = {
-			apikey: 'gZD524b',
-			apisecret: 'zc4IGKe',
+			apikey: config.mm.key,
+			apisecret: config.mm.secret,
 			// member_id: ''
 			email: 'thecatinthehat@gmail.com'
 		};
 
 var oneDayExpiryRequest = {
-			apikey: 'gZD524b',
-			apisecret: 'zc4IGKe',
+			apikey: config.mm.key,
+			apisecret: config.mm.secret,
 			// member_id: ''
 			email: 'adamkowalczyk+onedaytest@gmail.com'
 		};
@@ -38,7 +39,7 @@ request({
 		'Content-Type': 'application/x-www-form-urlencoded',
 		'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:24.0) Gecko/20100101 Firefox/24.0'
 	},
-	uri: 'http://mummyworkouts.com/wp-content/plugins/membermouse/api/request.php?q=/getMember',
+	uri: 'https://mummyworkouts.com/wp-content/plugins/membermouse/api/request.php?q=/getMember',
 	body: realUser,
 	method: 'POST'
 	}, function (err, res, body) {

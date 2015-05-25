@@ -1,8 +1,9 @@
 var request = require('request');
+var config = require('../api/config');
 
 var realUserRequest = {
-			apikey: 'gZD524b',
-			apisecret: 'zc4IGKe',
+			apikey: config.mm.key,
+			apisecret: config.mm.secret,
 			// member_id: '35',
 			email: 'tinnovamail@gmail.com'
 		};
@@ -13,7 +14,7 @@ request.post({
 		// Look out for 406 errors...!
 		'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:24.0) Gecko/20100101 Firefox/24.0'
 	},
-	url: 'http://mummyworkouts.com/wp-content/plugins/membermouse/api/request.php?q=/getMember',
+	url: 'https://mummyworkouts.com/wp-content/plugins/membermouse/api/request.php?q=/getMember',
 	form: realUserRequest
 	},
 	function(err, res, body)  {
