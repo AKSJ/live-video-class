@@ -250,6 +250,7 @@ function bothCookiesHandler(request, reply) {
 
 function mmApiOnlyHandler(request, reply) {
 	console.log('mmApiOnlyHandler called');
+	var urlObject = url.parse(request.url, true);
 	var mm_api = request.session.get('mm_api');
 	// NB Redirecting to '/' in order to strip token from user visible url in browser bar
 	if (Object.keys(urlObject.query).length > 0) {
@@ -293,6 +294,7 @@ function mmApiOnlyHandler(request, reply) {
 
 function noCookieHandler(request, reply) {
 	console.log('noCookieHandler() called');
+	var urlObject = url.parse(request.url, true);
 	// fail if no query string token and no mm_api cookie
 	if (!urlObject.query.hasOwnProperty('token') || !urlObject.query.token  ) { //double check to account for e.g. token: undefined
 		console.error('No query string token found');
@@ -400,7 +402,6 @@ module.exports = {
 			mode: 'try'
 		},
 		handler: function (request, reply ){
-			var urlObject = url.parse(request.url, true);
 			// console.dir(urlObject);
 			// console.log('Referer: ',request.headers.referer); <- no point trying to check referer. Not reliable.
 
