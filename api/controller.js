@@ -191,17 +191,56 @@ function setMemberMouseCookie(userEmail, request, reply) {
 	});
 }
 
+///////////////
+// deal with query string if one or both cookies already set
+// check if query string contains a new user, or just the same one
+// if new email, clear cookie(s) and redirect with query string intact. If same user, redirect to remove query string
+//////////////
+
+function checkQueryString(request, reply) {
+	var urlObject = url.parse(request.url, true);
+	var mm_api = request.session.get('mm_api');
+	// first check if different user is trying to log in
+		if (urlObject.query.hasOwnProperty('token') && urlObject.query.token ) { //double check to account for e.g. token: undefined
+			var currentUserEmail = mm_api.email;
+			var newUserEmail = new Buffer(urlObject.query.token, 'base64');
+			newUserEmail = newUserEmail.toString('utf8');
+			// if different user login attempted, clear mm_api and start again
+			if (newUserEmail !== currentUserEmail) {
+				console.log('Email token for different user found. Clearing cookies and redirecting to root');
+				request.session.clear('mm_api'); //? redundant?
+				request.auth.session.clear(); // in case trying to change from e.g. instructor to client
+				return reply.redirect('/?token=' + urlObject.query.token);
+			}
+			else {
+				// current users email address in query string. No need to reset cookie. Redirect to string querystring from the url
+				console.log('Email token for current user found. Redirecting to root');
+				reply.redirect('/');
+			}
+		}
+		else {
+			// unwanted query string data, redirect to strip from URL.
+			console.log('Unrecognised query string found. Redirecting to root');
+			reply.redirect('/');
+		}
+}
+
 ///////////////////////////
 // homeView sub handlers //
 ///////////////////////////
 
 function bothCookiesHandler(request, reply) {
 	console.log('bothCookiesHandler() called');
+	var urlObject = url.parse(request.url, true);
 	var mm_api = request.session.get('mm_api');
 	var googleEmail = request.auth.credentials.googleEmail;
 	var memberMouseEmail = mm_api.email;
+	// check if query string
+	if (Object.keys(urlObject.query).length > 0) {
+		checkQueryString(request, reply);
+	}
 	// check if email addresses match
-	if (googleEmail !== memberMouseEmail) {
+	else if (googleEmail !== memberMouseEmail) {
 		// fail! emails don't match
 		console.error('MMAPI email and googleEmail don\'t match!');
 		request.session.clear('mm_api');
@@ -254,29 +293,7 @@ function mmApiOnlyHandler(request, reply) {
 	var mm_api = request.session.get('mm_api');
 	// NB Redirecting to '/' in order to strip token from user visible url in browser bar
 	if (Object.keys(urlObject.query).length > 0) {
-		// first check if different user is trying to log in
-		if (urlObject.query.hasOwnProperty('token') && urlObject.query.token ) { //double check to account for e.g. token: undefined
-			var currentUserEmail = mm_api.email;
-			var newUserEmail = new Buffer(urlObject.query.token, 'base64');
-			newUserEmail = newUserEmail.toString('utf8');
-			// if different user login attempted, clear mm_api and start again
-			if (newUserEmail !== currentUserEmail) {
-				console.log('Email token for different user found. Attempting to log in new user');
-				request.session.clear('mm_api'); //? redundant?
-				request.auth.session.clear(); // in case trying to change from e.g. instructor to client
-				setMemberMouseCookie(newUserEmail, request, reply);
-			}
-			else {
-				// current users email address in query string. No need to reset cookie.
-				console.log('Email token for current user found. Redirecting to root');
-				reply.redirect('/');
-			}
-		}
-		else {
-			// unwanted query string data, redirect to strip from URL.
-			console.log('Unrecognised query string found. Redirecting to root');
-			reply.redirect('/');
-		}
+		checkQueryString(request, reply);
 	}
 	else {
 		// url is clean and mm_api cookie set.
