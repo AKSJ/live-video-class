@@ -12,7 +12,7 @@ function getMember(userEmail, callback) {
 
 	// requestObject.email = userEmail;
 
-	var APIurl = 'http://mummyworkouts.com/wp-content/plugins/membermouse/api/request.php?q=/getMember';
+	var APIurl = 'https://mummyworkouts.com/wp-content/plugins/membermouse/api/request.php?q=/getMember';
 
 	request.post({
 		headers: {
