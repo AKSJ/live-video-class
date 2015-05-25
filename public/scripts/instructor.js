@@ -440,12 +440,13 @@ session.on({
 
 		var connectionData = JSON.parse(event.connection.data);
 		var username = connectionData.email;
-		// unsbscribe/clear DOM if needed
-		if (mummyData[username].stream) {
-			unsubscribe(mummyData[username].stream);
-		}
-		// remove mummyRef
+
 		if (mummyData.hasOwnProperty(username) ) {
+			// unsbscribe/clear DOM if needed
+			if (mummyData[username].stream) {
+				unsubscribe(mummyData[username].stream);
+			}
+			// remove mummyRef
 			delete mummyData[username];
 		}
 		// remove mummies-list entry
