@@ -16,10 +16,10 @@ var apiKey 		= config.openTok.key;
 // 1. Yar cookie 'session' used to track results of a call to the Member Mouse API at MW.com. results stored in 'mm_api' key
 // 2. Hapi-auth-coookie cookie 'oauth' used to track results of google oauth login
 
-// 1. Currently not secure, needs a time based hash (at least)
-// 2. Compared against 'mm_api' to check email addresses match. An additional call to MM API is made to confirm info in 'mm_api' cookie?
+// 1. Currently not secure, needs a time based hash (at least). Consider encrpypting token properly -mcrypt?. Conisder incorporating time based hash INTO encrypted token
+// 2. Compared against 'mm_api' to check email addresses match. An additional call to MM API is made to confirm googleEmail is valid secure user
 
-// TODO abstract homeView into 3 functions noCookieHandler() mmApiOnlyHandler() bothCookiesHandler()
+
 
 // TODO
 // 1. Are we sending unecessary local vars to templates? Most not needed
@@ -191,6 +191,134 @@ function setMemberMouseCookie(userEmail, request, reply) {
 	});
 }
 
+///////////////////////////
+// homeView sub handlers //
+///////////////////////////
+
+function bothCookiesHandler(request, reply) {
+	console.log('bothCookiesHandler() called');
+	var mm_api = request.session.get('mm_api');
+	var googleEmail = request.auth.credentials.googleEmail;
+	var memberMouseEmail = mm_api.email;
+	// check if email addresses match
+	if (googleEmail !== memberMouseEmail) {
+		// fail! emails don't match
+		console.error('MMAPI email and googleEmail don\'t match!');
+		request.session.clear('mm_api');
+		request.auth.session.clear();
+		return reply.view('invalidUser', { error: 'Error during secure login. Email addresses do not match.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
+	}
+	else {
+		// email addresses match!
+		console.log('MMAPI email and googleEmail match!');
+		// make a second MM API query to check googleEmail is still a valid instructor
+		// not possbile to check against original values, as they're only record is mm_api, which is what we're fallback checking
+		// Reasoning: mm_api cookie could be faked? (DOES THIS MAKE SENSE??) Defense in depth, fallback in case we did something stupid elsewhere!
+		MM.getMember(googleEmail, function(err, statusCode, memberData){
+			console.log('Double checking MM API for googleEmail credentials');
+			if (err) {
+				console.error('MM API error: ', err);
+				request.session.clear('mm_api');
+				request.auth.session.clear();
+				return reply.view('invalidUser', { error: 'Error during secure login. Email verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
+			}
+			else if (statusCode === '200' && memberData) {
+				// bool to check contents of MM query with googleEmail still valid for secure view
+				var membershipLevelCheck = (memberData.membership_level_name === 'Instructor' || memberData.membership_level_name === 'Administrator') ? true : false;
+				if ( membershipLevelCheck ) {
+					console.log('googleEmail membershipLevel confirmation succesful!');
+					// attempt to serve Instructor/Administrator view
+					serveSecureView(request, reply);
+				}
+				else {
+					// membe somehow lacks correct membershipLevel
+					console.error('googleEmail membershipLevel confirmation failed! - member not Instructor/Administrator');
+					request.auth.session.clear();
+					return reply.redirect('/');
+				}
+			}
+			else {
+				// member somehow not found. hax!!
+				console.error('googleEmail membershipLevel confirmation failed! - member not found');
+				request.session.clear('mm_api');
+				request.auth.session.clear();
+				return reply.view('invalidUser', { error: 'Error during secure login. Secondary account verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
+			}
+		});
+	}
+}
+
+function mmApiOnlyHandler(request, reply) {
+	console.log('mmApiOnlyHandler called');
+	var mm_api = request.session.get('mm_api');
+	// NB Redirecting to '/' in order to strip token from user visible url in browser bar
+	if (Object.keys(urlObject.query).length > 0) {
+		// first check if different user is trying to log in
+		if (urlObject.query.hasOwnProperty('token') && urlObject.query.token ) { //double check to account for e.g. token: undefined
+			var currentUserEmail = mm_api.email;
+			var newUserEmail = new Buffer(urlObject.query.token, 'base64');
+			newUserEmail = newUserEmail.toString('utf8');
+			// if different user login attempted, clear mm_api and start again
+			if (newUserEmail !== currentUserEmail) {
+				console.log('Email token for different user found. Attempting to log in new user');
+				request.session.clear('mm_api'); //? redundant?
+				request.auth.session.clear(); // in case trying to change from e.g. instructor to client
+				setMemberMouseCookie(newUserEmail, request, reply);
+			}
+			else {
+				// current users email address in query string. No need to reset cookie.
+				console.log('Email token for current user found. Redirecting to root');
+				reply.redirect('/');
+			}
+		}
+		else {
+			// unwanted query string data, redirect to strip from URL.
+			console.log('Unrecognised query string found. Redirecting to root');
+			reply.redirect('/');
+		}
+	}
+	else {
+		// url is clean and mm_api cookie set.
+		if (mm_api.membershipLevel === 'Instructor' || mm_api.membershipLevel === 'Administrator') {
+			// user is an Instructor or Admin. Redirect for secure login to aquire oauth cookie
+			console.log('Instructor/Administrator detected. Redirecting to secure login');
+			return reply.redirect('/login');
+		}
+		else {
+			// Attempt to serve client view
+			serveClientView(request, reply);
+		}
+	}
+}
+
+function noCookieHandler(request, reply) {
+	console.log('noCookieHandler() called');
+	// fail if no query string token and no mm_api cookie
+	if (!urlObject.query.hasOwnProperty('token') || !urlObject.query.token  ) { //double check to account for e.g. token: undefined
+		console.error('No query string token found');
+		return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
+		// return reply.redirect('http://mummyworkouts.com');
+	}
+	else if (urlObject.query.hasOwnProperty('token') && urlObject.query.token ) { //double check to account for e.g. token: undefined
+		// get user token from qs (Member Mouse email)
+		var token = urlObject.query.token;
+		console.log('Encoded user token: ', token);
+		// NB no need to URL decode - hapi does it automatically
+		var userEmail = new Buffer(token, 'base64');
+		userEmail = userEmail.toString('utf8');
+		console.log('Decoded user token: ', userEmail);
+
+		// make MM API call to check for member
+		setMemberMouseCookie(userEmail, request, reply);
+	}
+	else {
+		// fallback
+		console.error('fallback! homeView() failed');
+		return reply.view('invalidUser', { error: 'Login failed.\nPlease return to Mummy Workouts to try again.' });
+	}
+}
+
+
 ////////////////////
 // Route Handlers //
 ////////////////////
@@ -267,7 +395,6 @@ module.exports = {
 		}
 	},
 
-	// TODO: add custom views for the various login failures
 	homeView: {
 		auth: {
 			mode: 'try'
@@ -275,134 +402,29 @@ module.exports = {
 		handler: function (request, reply ){
 			var urlObject = url.parse(request.url, true);
 			// console.dir(urlObject);
-			// console.log('Referer: ',request.headers.referer);
+			// console.log('Referer: ',request.headers.referer); <- no point trying to check referer. Not reliable.
 
 			// get mm_api cookie
 			var mm_api = request.session.get('mm_api');
 
-			// check if oauth cokkie and mm_api is set
+			// check if oauth cookie and mm_api is set
 			if (request.auth.isAuthenticated && mm_api) {
 				// user has logged in with MW.com link and google oauth
 				console.log('mm_api and auth Cookies BOTH Found');
-				var googleEmail = request.auth.credentials.googleEmail;
-				var memberMouseEmail = mm_api.email;
-				// check if email addresses match
-				if (googleEmail !== memberMouseEmail) {
-					// fail! emails don't match
-					console.error('MMAPI email and googleEmail don\'t match!');
-					request.session.clear('mm_api');
-					request.auth.session.clear();
-					return reply.view('invalidUser', { error: 'Error during secure login. Email addresses do not match.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
-				}
-				else {
-					// email addresses match!
-					console.log('MMAPI email and googleEmail match!');
-					// make a second MM API query to check googleEmail is still a valid instructor
-					// not possbile to check against original values, as they're only record is mm_api, which is what we're fallback checking
-					// Reasoning: mm_api cookie could be faked? (DOES THIS MAKE SENSE??) Defense in depth, fallback in case we did something stupid elsewhere!
-					MM.getMember(googleEmail, function(err, statusCode, memberData){
-						console.log('Double checking MM API for googleEmail credentials');
-						if (err) {
-							console.error('MM API error: ', err);
-							request.session.clear('mm_api');
-							request.auth.session.clear();
-							return reply.view('invalidUser', { error: 'Error during secure login. Email verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
-						}
-						else if (statusCode === '200' && memberData) {
-							// bool to check contents of MM query with googleEmail still valid for secure view
-							var membershipLevelCheck = (memberData.membership_level_name === 'Instructor' || memberData.membership_level_name === 'Administrator') ? true : false;
-							if ( membershipLevelCheck ) {
-								console.log('googleEmail membershipLevel confirmation succesful!');
-								// attempt to serve Instructor/Administrator view
-								serveSecureView(request, reply);
-							}
-							else {
-								// membe somehow lacks correct membershipLevel
-								console.error('googleEmail membershipLevel confirmation failed! - member not Instructor/Administrator');
-								request.auth.session.clear();
-								return reply.redirect('/');
-							}
-						}
-						else {
-							// member somehow not found. hax!!
-							console.error('googleEmail membershipLevel confirmation failed! - member not found');
-							request.session.clear('mm_api');
-							request.auth.session.clear();
-							return reply.view('invalidUser', { error: 'Error during secure login. Secondary account verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
-						}
-					});
-
-				}
+				bothCookiesHandler(request, reply);
 			}
 			// check if only 'mm_api' cookie already set
 			else if (mm_api) {
 				console.log('Only mm_api Cookie Found');
-				// NB Redirecting to '/' in order to strip token from user visible url in browser bar
-				if (Object.keys(urlObject.query).length > 0) {
-					// first check if different user is trying to log in
-					if (urlObject.query.hasOwnProperty('token') && urlObject.query.token ) { //double check to account for e.g. token: undefined
-						var currentUserEmail = mm_api.email;
-						var newUserEmail = new Buffer(urlObject.query.token, 'base64');
-						newUserEmail = newUserEmail.toString('utf8');
-						// if different user login attempted, clear mm_api and start again
-						if (newUserEmail !== currentUserEmail) {
-							console.log('Email token for different user found. Attempting to log in new user');
-							request.session.clear('mm_api'); //? redundant?
-							request.auth.session.clear(); // in case trying to change from e.g. instructor to client
-							setMemberMouseCookie(newUserEmail, request, reply);
-						}
-						else {
-							// current users email address in query string. No need to reset cookie.
-							console.log('Email token for current user found. Redirecting to root');
-							reply.redirect('/');
-						}
-					}
-					else {
-						// unwanted query string data, redirect to strip from URL.
-						console.log('Unrecognised query string found. Redirecting to root');
-						reply.redirect('/');
-					}
-				}
-				else {
-					// url clean and mm_api cookie set.
-					if (mm_api.membershipLevel === 'Instructor' || mm_api.membershipLevel === 'Administrator') {
-						// user is an Instructor or Admin. Redirect for secure login
-						console.log('Instructor/Administrator detected. Redirecting to secure login');
-						return reply.redirect('/login');
-					}
-					else {
-					// Attempt to serve client view
-					serveClientView(request, reply);
-					}
-				}
+				mmApiOnlyHandler(request, reply);
 			}
 			// else no cookies set
 			else {
 				console.log('mm_api Cookie NOT Found, oauth Cookie NOT found');
-				// fail if no query string token and no mm_api cookie
-				if (!urlObject.query.hasOwnProperty('token') || !urlObject.query.token  ) { //double check to account for e.g. token: undefined
-					console.error('No query string token found');
-					return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
-					// return reply.redirect('http://mummyworkouts.com');
-				}
-				else if (urlObject.query.hasOwnProperty('token') && urlObject.query.token ) { //double check to account for e.g. token: undefined
-					// get user token from qs (Member Mouse email)
-					var token = urlObject.query.token;
-					console.log('Encoded user token: ', token);
-					// NB no need to URL decode - hapi does it automatically
-					var userEmail = new Buffer(token, 'base64');
-					userEmail = userEmail.toString('utf8');
-					console.log('Decoded user token: ', userEmail);
-
-					// make MM API call to check for member
-					setMemberMouseCookie(userEmail, request, reply);
-				}
-				else {
-					// fallback
-					console.error('fallback! homeView() failed');
-					return reply.view('invalidUser', { error: 'Login failed.\nPlease return to Mummy Workouts to try again.' });
-				}
+				noCookieHandler(request, reply);
 			}
 		}
 	}
 };
+
+
