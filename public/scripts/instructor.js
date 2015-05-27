@@ -376,7 +376,7 @@ session.on({
 		console.log(event);
 
 		var stream = event.stream;
-		var streamId = stream.streamId;
+		// var streamId = stream.streamId;  //not used?
 		var connectionData = JSON.parse(stream.connection.data);
 		var mummyId = makeMummyId(connectionData.email);
 		var role = connectionData.role;
@@ -432,7 +432,7 @@ session.on({
 		event.preventDefault();
 
 		var connectionData = JSON.parse(event.connection.data);
-		var mummyId = connectionData.email;
+		var mummyId = makeMummyId(connectionData.email);
 
 		if (mummyData.hasOwnProperty(mummyId) ) {
 			// unsbscribe/clear DOM if needed
@@ -555,8 +555,12 @@ $('#pauseToggle').click(function(){
 	}
 });
 
+/////////////////////
+// Kick mummy button
+/////////////////////
+
 $('#kill').click(function(){
-	var mummyIdToKill = $('.selected').text();
+	var mummyIdToKill = $('.selected').attr('id');
 	var connectionIdToKill;
 
 	if (!mummyIdToKill) {
@@ -589,6 +593,10 @@ $('#kill').click(function(){
 		}
 	}
 });
+
+/////////////////////
+// End class button
+/////////////////////
 
 $('#endClass').click(function(){
 	// confirmation dialogue
@@ -629,6 +637,10 @@ $('#endClass').click(function(){
 	}
 });
 
+/////////////////////
+// Exit class button
+/////////////////////
+
 $('#logOut').click(function(){
 	var exit = confirm('\nAre you sure you want to exit the class?' +
 						'\n\nThis will only log you out. It will NOT end the class.' +
@@ -639,13 +651,17 @@ $('#logOut').click(function(){
 	}
 });
 
+/////////////////////
+// Select mummy list entry click handler
+/////////////////////
+
 $(document).on('click', '.mummy', function(){
 	$('.mummy').removeClass('selected');
 	$(this).addClass('selected');
 });
 
 /////////////////////////////////
-// Un-mute / re-mute click handler
+// Sunscriber un-mute / re-mute click handler
 /////////////////////////////////
 $(document).on('click', '.OT_subscriber', function(){
 	console.log(mummyData);
