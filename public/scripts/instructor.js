@@ -650,10 +650,13 @@ $(document).on('click', '.mummy', function(){
 	$(this).addClass('selected');
 });
 
+// TODO strip 'id' from usernameId if present
+// correctly reverse the makeUsernameId function. Impossible? Use usenameId for username
 $(document).on('click', '.OT_subscriber', function(){
+	console.log(mummyData);
 	if ($(this).hasClass('selected-subscriber') ){
 		$('.OT_subscriber').removeClass('selected-subscriber');
-		var usernameToMute = $(this).attr('id').replace(/-subscriber/,'');
+		var usernameToMute = $(this).attr('id').replace(/-subscriber$/,'');
 		usernameToMute = usernameToMute.replace(/-/g, ' ');
 		var subscriberToMute;
 		console.log('Muting:');
@@ -664,7 +667,7 @@ $(document).on('click', '.OT_subscriber', function(){
 	else {
 		$('.OT_subscriber').removeClass('selected-subscriber');
 		$(this).addClass('selected-subscriber');
-		var selectedUsername = $(this).attr('id').replace(/-subscriber/,'');
+		var selectedUsername = $(this).attr('id').replace(/-subscriber$/,'');
 		selectedUsername = selectedUsername.replace(/-/g, ' ');
 		var subscriberToHear;
 		if (mummyData[selectedUsername].subscriber) subscriberToHear = mummyData[selectedUsername].subscriber;
