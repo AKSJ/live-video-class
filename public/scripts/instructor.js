@@ -1,7 +1,8 @@
 // TODO Explicitly place subscribers in subscriber-n, rather than reply on subscriber:empty
 // TODO Refactor to avoid variable name reuse - username, role, displayName (+more?)
-// are global vars fromscript tag, but are also used in event listeners
-// TODO refactor all 'username' refs to 'email'. Currently, always setting username = connectionData.email
+// are global vars from script tag, but are also used in event listeners
+
+// TODO stop passing username local as no longer used. Check which other locals are also not used.
 
 
 // OT.setLogLevel(OT.DEBUG); // <- VERY verbose logging
@@ -33,20 +34,20 @@ var publisher = OT.initPublisher('publisher', publisherOptions );
 // Data Object //
 /////////////////
 
-// NB 'username' is now derived from clients email address (as must be unique)
+// NB 'mummyId' is now derived from clients email address (as must be unique)
 
-// mummyData[username] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive'/'no-stream'}
+// mummyData[mummyId] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive'/'no-stream'}
 var mummyData = {};
 
 ///////////////////////
 //  HELPER FUNCTIONS //
 ///////////////////////
 
-// not currently used - relying on unique usernames from MM, and checking mummyData manually
-// function usernameFreeCheck(stream) {
+// not currently used - relying on unique mummyIds from MM, and checking mummyData manually
+// function mummyIdFreeCheck(stream) {
 // 	var connectionData = JSON.parse(stream.connection.data);
-// 	var username = connectionData.email;
-// 	if (mummyData.hasOwnProperty(username) ) {
+// 	var mummyId = connectionData.email;
+// 	if (mummyData.hasOwnProperty(mummyId) ) {
 // 		return false;
 // 	}
 // 	return true;
@@ -55,17 +56,18 @@ var mummyData = {};
 // mummies-list helpers
 //////////////////////////
 
-function makeUsernameId(string) {
+function makeMummyId(string) {
 	// spaces to hyphens
-	var usernameId = string.replace(/\s+/g, '-');
+	var mummyIdId = string.replace(/\s+/g, '-');
 	// strip all characters not valid for css selectors
-	usernameId = usernameId.replace(/[^a-z0-9_-]/gi, '');
+	mummyIdId = mummyIdId.replace(/[^a-z0-9_-]/gi, '');
 	// check if first character is a number (css first char must match /-_a-z/i )
-	// TODO? Just preoend '-id' anyway? no need to check if 1st char is a number..
-	if (/[0-9]/.test(usernameId.charAt(0) ) ) {
-		usernameId = 'id-' + usernameId;
-	}
-	return usernameId;
+	// if (/[0-9]/.test(mummyId.charAt(0) ) ) {
+	//	mummyId = 'id-' + mummyId;
+	// }
+	// NB - no need for check, prepending 'id-' in all cases
+	mummyId = 'id-' + mummyId;
+	return mummyIdId;
 }
 
 function sortByName(a,b) {
@@ -89,33 +91,29 @@ function sortMummies() {
 	mummiesList.append(noStreamMummies);
 }
 
-function setMummyNoStream(username) {
-	var usernameId = makeUsernameId(username);
-	$('#'+usernameId).removeClass('inactive');
-	$('#'+usernameId).removeClass('active');
-	$('#'+usernameId).addClass('no-stream');
+function setMummyNoStream(mummyId) {
+	$('#'+mummyId).removeClass('inactive');
+	$('#'+mummyId).removeClass('active');
+	$('#'+mummyId).addClass('no-stream');
 	sortMummies();
 }
 
-function setMummyActive(username) {
-	var usernameId = makeUsernameId(username);
-	$('#'+usernameId).removeClass('no-stream');
-	$('#'+usernameId).removeClass('inactive');
-	$('#'+usernameId).addClass('active');
+function setMummyActive(mummyId) {
+	$('#'+mummyId).removeClass('no-stream');
+	$('#'+mummyId).removeClass('inactive');
+	$('#'+mummyId).addClass('active');
 	sortMummies();
 }
 
-function setMummyInactive(username) {
-	var usernameId = makeUsernameId(username);
-	$('#'+usernameId).removeClass('no-stream');
-	$('#'+usernameId).removeClass('active');
-	$('#'+usernameId).addClass('inactive');
+function setMummyInactive(mummyId) {
+	$('#'+mummyId).removeClass('no-stream');
+	$('#'+mummyId).removeClass('active');
+	$('#'+mummyId).addClass('inactive');
 	sortMummies();
 }
 
-function removeMummy(username) {
-	var usernameId = makeUsernameId(username);
-	$('#'+usernameId).remove();
+function removeMummy(mummyId) {
+	$('#'+mummyId).remove();
 	sortMummies();
 }
 
@@ -124,10 +122,9 @@ function removeMummy(username) {
 
 function activateStream(stream) {
 	var connectionData = JSON.parse(stream.connection.data);
-	var username = connectionData.email;
-	var usernameId = makeUsernameId(username);
-	mummyData[username].status = 'active';
-	var subContainerId = usernameId + '-subscriber';
+	var mummyId = makeMummyId(connectionData.email);
+	mummyData[mummyId].status = 'active';
+	var subContainerId = mummyId + '-subscriber';
 	$('<div/>').attr('id',subContainerId).appendTo($('.subscriber:empty')[0]);
 	var subscriberOptions = {
 								width: '100%',
@@ -135,9 +132,9 @@ function activateStream(stream) {
 								subscribeToAudio: false,
 								style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/} //buttonDisplay on auto (i.e. mouseover), as 'on' causes central overlay on small screens
 							};
-	mummyData[username].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
+	mummyData[mummyId].subscriber = session.subscribe(stream, subContainerId, subscriberOptions);
 	// set mummies-list entry class to active
-	setMummyActive(username);
+	setMummyActive(mummyId);
 }
 
 function addSubscriber(stream) {
@@ -148,61 +145,60 @@ function addSubscriber(stream) {
 
 function unsubscribe(stream){
 	var connectionData = JSON.parse(stream.connection.data);
-	var username = connectionData.email;
-	var usernameId = makeUsernameId(username);
-	session.unsubscribe(mummyData[username].subscriber);
-	$('#' + usernameId + '-subscriber').remove();
-	mummyData[username].subscriber = null;
-	mummyData[username].status = 'inactive';
-	setMummyInactive(username);
+	var mummyId = makeMummyId(connectionData.email);
+	session.unsubscribe(mummyData[mummyId].subscriber);
+	$('#' + mummyId + '-subscriber').remove();
+	mummyData[mummyId].subscriber = null;
+	mummyData[mummyId].status = 'inactive';
+	setMummyInactive(mummyId);
 }
 
 function fillInFive() {
 	console.log('fillInFive() called');
-	var usernamesWithStreams = [];
-	var usernamesToSubscribeTo;
+	var mummyIdsWithStreams = [];
+	var mummyIdsToSubscribeTo;
 	// find all available streams
-	for (var username in mummyData) {
-		if (mummyData[username].stream) {
-			usernamesWithStreams.push(username);
+	for (var mummyId in mummyData) {
+		if (mummyData[mummyId].stream) {
+			mummyIdsWithStreams.push(mummyId);
 		}
 	}
-	usernamesWithStreams.sort();
+	mummyIdsWithStreams.sort();
 	// find all currently subscribed to streams
-	var activeUsernames = [];
-		for (var username2 in mummyData) {
-			if (mummyData[username2].subscriber) {
-				activeUsernames.push(username2);
+	var activeMummyIds = [];
+		for (var mummyId2 in mummyData) {
+			if (mummyData[mummyId2].subscriber) {
+				activeMummyIds.push(mummyId2);
 			}
 		}
-	activeUsernames.sort();
+	activeMummyIds.sort();
 	//  if <= 5 streams available, use them
-	if (usernamesWithStreams.length <= 5) {
-		usernamesToSubscribeTo = usernamesWithStreams;
+	if (mummyIdsWithStreams.length <= 5) {
+		mummyIdsToSubscribeTo = mummyIdsWithStreams;
 	}
-	//  if > 5 streams available, find lowest active username, go up 5 from there
+	//  if > 5 streams available, find lowest active mummyId, go up 5 from there
 	else {
-		var lowestActiveUsername = activeUsernames[0];
-		var lowestActiveUsernameIndex = usernamesWithStreams.indexOf(lowestActiveUsername);
+		var lowestActiveMummyId = activeMummyIds[0];
+		var lowestActiveMummyIdIndex = mummyIdsWithStreams.indexOf(lowestActiveMummyId);
 		// Check if 5 more after lowest active - if not, use last 5 available
-		if (usernamesWithStreams.slice(lowestActiveUsernameIndex, lowestActiveUsernameIndex + 5).length > 5) {
-			usernamesToSubscribeTo = usernamesWithStreams.slice(lowestActiveUsernameIndex, lowestActiveUsernameIndex + 5);
+		if (mummyIdsWithStreams.slice(lowestActiveMummyIdIndex, lowestActiveMummyIdIndex + 5).length > 5) {
+			mummyIdsToSubscribeTo = mummyIdsWithStreams.slice(lowestActiveMummyIdIndex, lowestActiveMummyIdIndex + 5);
 		}
 		else {
-			usernamesToSubscribeTo = usernamesWithStreams.slice(usernamesWithStreams.length - 5);
+			mummyIdsToSubscribeTo = mummyIdsWithStreams.slice(mummyIdsWithStreams.length - 5);
 		}
 	}
 	// unsub all active
 	console.log('Unsubscribing: ');
-	console.log(activeUsernames);
-	activeUsernames.forEach(function(username){
-		unsubscribe(mummyData[username].stream);
+	console.log(activeMummyIds);
+	activeMummyIds.forEach(function(mummyId){
+		unsubscribe(mummyData[mummyId].stream);
 	});
 	// sub to new streams
 	console.log('Subscribing to: ');
-	console.log(usernamesToSubscribeTo);
-	usernamesToSubscribeTo.forEach(function(username){
-		addSubscriber(mummyData[username].stream);
+	console.log(mummyIdsToSubscribeTo);
+	mummyIdsToSubscribeTo.forEach(function(mummyId){
+		addSubscriber(mummyData[mummyId].stream);
 	});
 }
 
@@ -210,56 +206,56 @@ function nextFive() {
 	console.log('nextFive() called');
 	// fallback to remove annoying subscriber_error elements
 	$('.OT_subscriber_error').remove();
-	usernamesOfAllStreamers = [];
-	usernamesOfActiveStreamers = [];
-	for (var username in mummyData) {
-		if (mummyData[username].stream) {
-			usernamesOfAllStreamers.push(username);
-			if (mummyData[username].status === 'active') {
-				usernamesOfActiveStreamers.push(username);
+	mummyIdsOfAllStreamers = [];
+	mummyIdsOfActiveStreamers = [];
+	for (var mummyId in mummyData) {
+		if (mummyData[mummyId].stream) {
+			mummyIdsOfAllStreamers.push(mummyId);
+			if (mummyData[mummyId].status === 'active') {
+				mummyIdsOfActiveStreamers.push(mummyId);
 			}
 		}
 	}
-	usernamesOfAllStreamers.sort();
-	usernamesOfActiveStreamers.sort();
+	mummyIdsOfAllStreamers.sort();
+	mummyIdsOfActiveStreamers.sort();
 	console.log('All streamers: ');
-	console.log(usernamesOfAllStreamers);
+	console.log(mummyIdsOfAllStreamers);
 	console.log('Active streamers: ');
-	console.log(usernamesOfActiveStreamers);
-	var usernamesToSubscribeTo;
-	var lastPossibleUsername = usernamesOfAllStreamers[usernamesOfAllStreamers.length - 1];
+	console.log(mummyIdsOfActiveStreamers);
+	var mummyIdsToSubscribeTo;
+	var lastPossibleMummyId = mummyIdsOfAllStreamers[mummyIdsOfAllStreamers.length - 1];
 	// check if < 5 streams avaiable. If so, display all
-	if (usernamesOfAllStreamers.length <= 5 ) {
+	if (mummyIdsOfAllStreamers.length <= 5 ) {
 		console.log('Fewer than 5 available streams, displaying all');
-		usernamesToSubscribeTo = usernamesOfAllStreamers;
+		mummyIdsToSubscribeTo = mummyIdsOfAllStreamers;
 	}
-	// Check if last username in allStreamers currently active, if so, start again from begining
-	else if (usernamesOfActiveStreamers.indexOf(lastPossibleUsername) !== -1) {
+	// Check if last mummyId in allStreamers currently active, if so, start again from begining
+	else if (mummyIdsOfActiveStreamers.indexOf(lastPossibleMummyId) !== -1) {
 		console.log('Reached end of list. Wrapping around to start.');
-		usernamesToSubscribeTo = usernamesOfAllStreamers.slice(0,5);
+		mummyIdsToSubscribeTo = mummyIdsOfAllStreamers.slice(0,5);
 	}
 	else {
-		// find highest username currently displayed, and it's index in allStreamers
-		var lastActiveUsername = usernamesOfActiveStreamers[usernamesOfActiveStreamers.length - 1];
-		var lastActiveUsernameIndex = usernamesOfAllStreamers.indexOf(lastActiveUsername);
+		// find highest mummyId currently displayed, and it's index in allStreamers
+		var lastActivemummyId = mummyIdsOfActiveStreamers[mummyIdsOfActiveStreamers.length - 1];
+		var lastActivemummyIdIndex = mummyIdsOfAllStreamers.indexOf(lastActiveMummyId);
 		// check if there are 5 more names after lastActive in allStreamers, if so, fetch
-		if ( lastActiveUsernameIndex < usernamesOfAllStreamers.length - 6 ) {
-			usernamesToSubscribeTo = usernamesOfAllStreamers.slice(lastActiveUsernameIndex + 1, lastActiveUsernameIndex + 6);
+		if ( lastActiveMummyIdIndex < mummyIdsOfAllStreamers.length - 6 ) {
+			mummyIdsToSubscribeTo = mummyIdsOfAllStreamers.slice(lastActiveMummyIdIndex + 1, lastActiveMummyIdIndex + 6);
 		}
 		else { //fetch last 5 names
 			console.log('Near end of list, fetching last 5 names');
-			usernamesToSubscribeTo = usernamesOfAllStreamers.slice(usernamesOfAllStreamers.length - 5);
+			mummyIdsToSubscribeTo = mummyIdsOfAllStreamers.slice(mummyIdsOfAllStreamers.length - 5);
 		}
 	}
 	// unsubscribe active streams
-	usernamesOfActiveStreamers.forEach(function(username){
-		unsubscribe(mummyData[username].stream);
+	mummyIdsOfActiveStreamers.forEach(function(mummyId){
+		unsubscribe(mummyData[mummyId].stream);
 	});
 	// subscribe to new streams
 	console.log('Subscribing to: ');
-	console.log(usernamesToSubscribeTo);
-	usernamesToSubscribeTo.forEach(function(username){
-		addSubscriber(mummyData[username].stream);
+	console.log(mummyIdsToSubscribeTo);
+	mummyIdsToSubscribeTo.forEach(function(mummyId){
+		addSubscriber(mummyData[mummyId].stream);
 	});
 }
 
@@ -267,69 +263,69 @@ function prevFive() {
 	console.log('nextFive() called');
 	// fallback to remove annoying suscriber_error elements
 	$('.OT_subscriber_error').remove();
-	usernamesOfAllStreamers = [];
-	usernamesOfActiveStreamers = [];
-	for (var username in mummyData) {
-		if (mummyData[username].stream) {
-			usernamesOfAllStreamers.push(username);
-			if (mummyData[username].status === 'active') {
-				usernamesOfActiveStreamers.push(username);
+	mummyIdsOfAllStreamers = [];
+	mummyIdsOfActiveStreamers = [];
+	for (var mummyId in mummyData) {
+		if (mummyData[mummyId].stream) {
+			mummyIdsOfAllStreamers.push(mummyId);
+			if (mummyData[mummyId].status === 'active') {
+				mummyIdsOfActiveStreamers.push(mummyId);
 			}
 		}
 	}
-	usernamesOfAllStreamers.sort();
-	usernamesOfActiveStreamers.sort();
+	mummyIdsOfAllStreamers.sort();
+	mummyIdsOfActiveStreamers.sort();
 	console.log('All streamers: ');
-	console.log(usernamesOfAllStreamers);
+	console.log(mummyIdsOfAllStreamers);
 	console.log('Active streamers: ');
-	console.log(usernamesOfActiveStreamers);
-	var usernamesToSubscribeTo;
-	var firstPossibleUsername = usernamesOfAllStreamers[0];
+	console.log(mummyIdsOfActiveStreamers);
+	var mummyIdsToSubscribeTo;
+	var firstPossibleMummyId = mummyIdsOfAllStreamers[0];
 	// check if < 5 streams avaiable. If so, display all
-	if (usernamesOfAllStreamers.length <= 5 ) {
+	if (mummyIdsOfAllStreamers.length <= 5 ) {
 		console.log('Fewer than 5 available streams, displaying all');
-		usernamesToSubscribeTo = usernamesOfAllStreamers;
+		mummyIdsToSubscribeTo = mummyIdsOfAllStreamers;
 	}
-	// Check if first username in allStreamers currently active, if so, wrap around to end
-	else if (usernamesOfActiveStreamers.indexOf(firstPossibleUsername) !== -1) {
+	// Check if first mummyId in allStreamers currently active, if so, wrap around to end
+	else if (mummyIdsOfActiveStreamers.indexOf(firstPossibleMummyId) !== -1) {
 		console.log('Reached start of list. Wrapping around to end.');
-		usernamesToSubscribeTo = usernamesOfAllStreamers.slice(usernamesOfAllStreamers.length - 5);
+		mummyIdsToSubscribeTo = mummyIdsOfAllStreamers.slice(mummyIdsOfAllStreamers.length - 5);
 	}
 	else {
-		// find lowest username currently displayed and it's index in allStreamers
-		var firstActiveUsername = usernamesOfActiveStreamers[0];
-		var firstActiveUsernameIndex = usernamesOfAllStreamers.indexOf(firstActiveUsername);
+		// find lowest mummyId currently displayed and it's index in allStreamers
+		var firstActiveMummyId = mummyIdsOfActiveStreamers[0];
+		var firstActiveMummyIdIndex = mummyIdsOfAllStreamers.indexOf(firstActiveMummyId);
 		// check if there are > 5 lower names to get, if so, fetch
-		if ( firstActiveUsernameIndex >= 5 ) {
-			usernamesToSubscribeTo = usernamesOfAllStreamers.slice(firstActiveUsernameIndex - 5, firstActiveUsernameIndex);
+		if ( firstActiveMummyIdIndex >= 5 ) {
+			mummyIdsToSubscribeTo = mummyIdsOfAllStreamers.slice(firstActiveMummyIdIndex - 5, firstActiveMummyIdIndex);
 		}
 		else { //else fetch first 5 names
 			console.log('Near start of list, fetching first 5 names');
-			usernamesToSubscribeTo = usernamesOfAllStreamers.slice(0,5);
+			mummyIdsToSubscribeTo = mummyIdsOfAllStreamers.slice(0,5);
 		}
 	}
 	// unsubscribe active streams
-	usernamesOfActiveStreamers.forEach(function(username){
-		unsubscribe(mummyData[username].stream);
+	mummyIdsOfActiveStreamers.forEach(function(mummyId){
+		unsubscribe(mummyData[mummyId].stream);
 	});
 	// subscribe to new streams
 	console.log('Subscribing to: ');
-	console.log(usernamesToSubscribeTo);
-	usernamesToSubscribeTo.forEach(function(username){
-		addSubscriber(mummyData[username].stream);
+	console.log(mummyIdsToSubscribeTo);
+	mummyIdsToSubscribeTo.forEach(function(mummyId){
+		addSubscriber(mummyData[mummyId].stream);
 	});
 }
 
 function displayLoop() {
 	console.log('displayLoop() called');
 	// check if > 5 streams. If not, do nothing.
-	usernamesOfAllStreamers = [];
-	for (var username in mummyData) {
-		if (mummyData[username].stream) {
-			usernamesOfAllStreamers.push(username);
+	mummyIdsOfAllStreamers = [];
+	for (var mummyId in mummyData) {
+		if (mummyData[mummyId].stream) {
+			mummyIdsOfAllStreamers.push(mummyId);
 		}
 	}
-	if (usernamesOfAllStreamers.length > 5) {
+	if (mummyIdsOfAllStreamers.length > 5) {
 		nextFive();
 	}
 	else {
@@ -357,20 +353,19 @@ session.on({
 		// Check for mummyRef, add if missing.
 		// May already exist from stream created event?
 		var connectionData = JSON.parse(event.connection.data);
-		var username = connectionData.email;
-		var usernameId = makeUsernameId(username);
+		var mummyId = makeMummyId(connectionData.email);
 		var role = connectionData.role;
 		var displayName = connectionData.displayName;
 		// check if receving own connection created event
 		var ownConnection = false;
 		if (event.target.connection.connectionId === session.connection.connectionId) ownConnection = true;
-		if (!mummyData.hasOwnProperty(username) && !ownConnection ) {
-			mummyData[username] = 	{
+		if (!mummyData.hasOwnProperty(mummyId) && !ownConnection ) {
+			mummyData[mummyId] = 	{
 									stream: null,
 									subscriber: null,
 									status: 'no-stream'
 								};
-			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy no-stream'}).text(displayName);
+			var newMummy = $('<li/>').attr({id: mummyId, 'class': 'mummy no-stream'}).text(displayName);
 			if (role === 'moderator') { newMummy.addClass('moderator'); }
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies();
@@ -383,24 +378,23 @@ session.on({
 		var stream = event.stream;
 		var streamId = stream.streamId;
 		var connectionData = JSON.parse(stream.connection.data);
-		var username = connectionData.email;
-		var usernameId = makeUsernameId(username);
+		var mummyId = makeMummyId(connectionData.email);
 		var role = connectionData.role;
 		var displayName = connectionData.displayName;
 
 		// If mummyRef found, update mummyRef and list entry
-		if (mummyData.hasOwnProperty(username) ) {
-			mummyData[username].stream = stream;
-			mummyData[username].status = 'inactive';
-			setMummyInactive(username);
+		if (mummyData.hasOwnProperty(mummyId) ) {
+			mummyData[mummyId].stream = stream;
+			mummyData[mummyId].status = 'inactive';
+			setMummyInactive(mummyId);
 		}
 		else { // add new mummyRef and list entry
-			mummyData[username] = 	{
+			mummyData[mummyId] = 	{
 										stream: stream,
 										subscriber: null,
 										status: 'inactive'
 									};
-			var newMummy = $('<li/>').attr({id: usernameId, 'class': 'mummy inactive'}).text(displayName);
+			var newMummy = $('<li/>').attr({id: mummyId, 'class': 'mummy inactive'}).text(displayName);
 			if (role === 'moderator') { newMummy.addClass('moderator'); }
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies();
@@ -416,19 +410,18 @@ session.on({
 		var destroyedStream = event.stream;
 		var destroyedStreamId = event.stream.streamId;
 		var connectionData = JSON.parse(destroyedStream.connection.data);
-		var username = connectionData.email;
-		var usernameId = makeUsernameId(username);
+		var mummyId = makeMummyId(connectionData.email);
 		// If stream subscribed, unsub (remove dom)
-		if (mummyData.hasOwnProperty(username) ) {
-			if (mummyData[username].subscriber) {
+		if (mummyData.hasOwnProperty(mummyId) ) {
+			if (mummyData[mummyId].subscriber) {
 				unsubscribe(destroyedStream);
 			}
 			// update mummyRef
-			mummyData[username].subscriber = null;
-			mummyData[username].stream = null;
-			mummyData[username].status = 'no-stream';
+			mummyData[mummyId].subscriber = null;
+			mummyData[mummyId].stream = null;
+			mummyData[mummyId].status = 'no-stream';
 			// update mummies list entry
-			setMummyNoStream(username);
+			setMummyNoStream(mummyId);
 			// try and keep 5 streams on screen
 			fillInFive();
 		}
@@ -439,18 +432,18 @@ session.on({
 		event.preventDefault();
 
 		var connectionData = JSON.parse(event.connection.data);
-		var username = connectionData.email;
+		var mummyId = connectionData.email;
 
-		if (mummyData.hasOwnProperty(username) ) {
+		if (mummyData.hasOwnProperty(mummyId) ) {
 			// unsbscribe/clear DOM if needed
-			if (mummyData[username].stream) {
-				unsubscribe(mummyData[username].stream);
+			if (mummyData[mummyId].stream) {
+				unsubscribe(mummyData[mummyId].stream);
 			}
 			// remove mummyRef
-			delete mummyData[username];
+			delete mummyData[mummyId];
 		}
 		// remove mummies-list entry
-		removeMummy(username);
+		removeMummy(mummyId);
 	},
 });
 
@@ -563,10 +556,10 @@ $('#pauseToggle').click(function(){
 });
 
 $('#kill').click(function(){
-	var usernameToKill = $('.selected').text();
+	var mummyIdToKill = $('.selected').text();
 	var connectionIdToKill;
 
-	if (!usernameToKill) {
+	if (!mummyIdToKill) {
 		alert(	'\nNo client selected!' +
 				'\n\nPlease select a name to kick from the list on the left.');
 	}
@@ -577,19 +570,20 @@ $('#kill').click(function(){
 							'\n\n\'Cancel\' to leave the client in the class.\n\'OK\' to kick the client.');
 
 		if (kill) {
-			if (mummyData.hasOwnProperty(usernameToKill) ) {
-				if (mummyData[usernameToKill].stream) {
-						connectionIdToKill = mummyData[usernameToKill].stream.connection.connectionId;
+			if (mummyData.hasOwnProperty(mummyIdToKill) ) {
+				if (mummyData[mummyIdToKill].stream) {
+						connectionIdToKill = mummyData[mummyIdToKill].stream.connection.connectionId;
 				}
 			}
-			unsubscribe(mummyData[usernameToKill].stream);
+			unsubscribe(mummyData[mummyIdToKill].stream);
 			session.forceDisconnect(connectionIdToKill, function(err){
 				if (err) {
 					console.log('Failed to kill connection');
 				}
 				else {
 					console.log('Killed '+ connectionIdToKill);
-					delete mummyData[usernameToKill];
+					// delete mummyData[mummyIdToKill];
+					// don't delete mummyRef? allow connectionDestroyed event to handle delete/removeMummy etc.
 				}
 			});
 		}
@@ -604,15 +598,15 @@ $('#endClass').click(function(){
 
 	if (end) {
 		// kick off all mummies
-		var usernamesToKill = [];
-		for (var username in mummyData) {
-			if (mummyData[username].stream) {
-				 usernamesToKill.push = username;
+		var mummyIdsToKill = [];
+		for (var mummyId in mummyData) {
+			if (mummyData[mummyId].stream) {
+				 mummyIdsToKill.push = mummyId;
 			}
 		}
-		if (usernamesToKill.length > 0) {
-			usernamesToKill.forEach(function(username){
-				var connectionIdToKill = mummyData[username].stream.connection.connectionId;
+		if (mummyIdsToKill.length > 0) {
+			mummyIdsToKill.forEach(function(mummyId){
+				var connectionIdToKill = mummyData[mummyId].stream.connection.connectionId;
 				session.forceDisconnect(connectionIdToKill, function(err){
 					if (err) {
 						console.log('Failed to kill connection');
@@ -650,33 +644,32 @@ $(document).on('click', '.mummy', function(){
 	$(this).addClass('selected');
 });
 
-// TODO strip 'id' from usernameId if present
-// correctly reverse the makeUsernameId function. Impossible? Use usenameId for username
+/////////////////////////////////
+// Un-mute / re-mute click handler
+/////////////////////////////////
 $(document).on('click', '.OT_subscriber', function(){
 	console.log(mummyData);
 	if ($(this).hasClass('selected-subscriber') ){
 		$('.OT_subscriber').removeClass('selected-subscriber');
-		var usernameToMute = $(this).attr('id').replace(/-subscriber$/,'');
-		usernameToMute = usernameToMute.replace(/-/g, ' ');
+		var mummyIdToMute = $(this).attr('id').replace(/-subscriber$/,'');
 		var subscriberToMute;
 		console.log('Muting:');
 		console.log(subscriberToMute);
-		if (mummyData[usernameToMute].subscriber) subscriberToMute = mummyData[usernameToMute].subscriber;
+		if (mummyData[mummyIdToMute].subscriber) subscriberToMute = mummyData[mummyIdToMute].subscriber;
 		if (subscriberToMute) subscriberToMute.subscribeToAudio(false);
 	}
 	else {
 		$('.OT_subscriber').removeClass('selected-subscriber');
 		$(this).addClass('selected-subscriber');
-		var selectedUsername = $(this).attr('id').replace(/-subscriber$/,'');
-		selectedUsername = selectedUsername.replace(/-/g, ' ');
+		var selectedMummyId = $(this).attr('id').replace(/-subscriber$/,'');
 		var subscriberToHear;
-		if (mummyData[selectedUsername].subscriber) subscriberToHear = mummyData[selectedUsername].subscriber;
+		if (mummyData[selectedMummyId].subscriber) subscriberToHear = mummyData[selectedMummyId].subscriber;
 		console.log('Unmuting:');
 		console.log(subscriberToHear);
 		var subscribersToMute = [];
-		for (var username in mummyData) {
-			if (mummyData[username].subscriber && username !== selectedUsername) {
-				subscribersToMute.push(mummyData[username].subscriber);
+		for (var mummyId in mummyData) {
+			if (mummyData[mummyId].subscriber && mummyId !== selectedMummyId) {
+				subscribersToMute.push(mummyData[mummyId].subscriber);
 			}
 		}
 		if (subscriberToHear) subscriberToHear.subscribeToAudio(true);

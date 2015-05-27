@@ -83,6 +83,7 @@ function serveClientView(request, reply) {
 							membershipLevel: mm_api.membershipLevel,
 							role: 'publisher',
 							username: mm_api.username,
+							email: mm_api.email,
 							displayName: mm_api.firstName + ' ' + mm_api.lastName,
 						};
 			console.log('Serving client view');
@@ -132,6 +133,7 @@ function serveSecureView(request, reply) {
 							membershipLevel: mm_api.membershipLevel,
 							role: (mm_api.membershipLevel === 'Instructor') ? 'moderator' : 'publisher',
 							username: mm_api.username,
+							email: mm_api.email,
 							displayName: mm_api.firstName + ' ' + mm_api.lastName,
 						};
 			if (mm_api.membershipLevel === 'Instructor') {
