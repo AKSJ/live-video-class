@@ -236,8 +236,8 @@ function nextFive() {
 	}
 	else {
 		// find highest mummyId currently displayed, and it's index in allStreamers
-		var lastActivemummyId = mummyIdsOfActiveStreamers[mummyIdsOfActiveStreamers.length - 1];
-		var lastActivemummyIdIndex = mummyIdsOfAllStreamers.indexOf(lastActiveMummyId);
+		var lastActiveMummyId = mummyIdsOfActiveStreamers[mummyIdsOfActiveStreamers.length - 1];
+		var lastActiveMummyIdIndex = mummyIdsOfAllStreamers.indexOf(lastActiveMummyId);
 		// check if there are 5 more names after lastActive in allStreamers, if so, fetch
 		if ( lastActiveMummyIdIndex < mummyIdsOfAllStreamers.length - 6 ) {
 			mummyIdsToSubscribeTo = mummyIdsOfAllStreamers.slice(lastActiveMummyIdIndex + 1, lastActiveMummyIdIndex + 6);
