@@ -260,7 +260,7 @@ function nextFive() {
 }
 
 function prevFive() {
-	console.log('nextFive() called');
+	console.log('prevFive() called');
 	// fallback to remove annoying suscriber_error elements
 	$('.OT_subscriber_error').remove();
 	mummyIdsOfAllStreamers = [];
