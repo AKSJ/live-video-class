@@ -380,23 +380,23 @@ session.on({
 	streamCreated: function(event) {
 		console.log(event);
 
-		var newStream = event.stream;
-		var newStreamId = newStream.streamId;
-		var newStreamConnectionData = JSON.parse(newStream.connection.data);
-		var username = newStreamConnectionData.email;
+		var stream = event.stream;
+		var streamId = stream.streamId;
+		var connectionData = JSON.parse(stream.connection.data);
+		var username = connectionData.email;
 		var usernameId = makeUsernameId(username);
-		var role = newStreamConnectionData.role;
-		var displayName = newStreamconnectionData.displayName;
+		var role = connectionData.role;
+		var displayName = connectionData.displayName;
 
 		// If mummyRef found, update mummyRef and list entry
 		if (mummyData.hasOwnProperty(username) ) {
-			mummyData[username].stream = newStream;
+			mummyData[username].stream = stream;
 			mummyData[username].status = 'inactive';
 			setMummyInactive(username);
 		}
 		else { // add new mummyRef and list entry
 			mummyData[username] = 	{
-										stream: newStream,
+										stream: stream,
 										subscriber: null,
 										status: 'inactive'
 									};
@@ -406,7 +406,7 @@ session.on({
 			sortMummies();
 		}
 		// Call addSubscriber to subscribe if < 5 streams currently displayed
-		addSubscriber(newStream);
+		addSubscriber(stream);
 	},
 
 	streamDestroyed: function(event) {
@@ -459,6 +459,7 @@ publisher.on({
 		// Check if stream is our own. We want to leave it in place if so.
 		console.log('Publisher Event:');
 		console.log(event);
+		// TODO add 'if session/ if session hasOWnProerpty connection to prevent not defined error whenown connection breaks
 		if (event.stream.connection.connectionId === session.connection.connectionId) {
 			console.log('ConnectionId match');
 			event.preventDefault();
@@ -469,7 +470,7 @@ publisher.on({
 
 // Remove 'Cannot connect to stream' boxes from DOM on connection error
 // If left, they clutter the display.
-// ??? - Reason for frequency of these errors unclear. Seems to happen on cliet browser exit/refresh.
+// ??? - Reason for frequency of these errors unclear. Seems to happen on client browser exit/refresh.
 // ??? - Do streamDestroyed/connectionDestroyed events also trigger? If not, mummyData needs tidy up here.
 OT.on('exception', function(event){
 	if (event.code === 1013) {
@@ -510,7 +511,7 @@ var timer = setInterval(function(){
 ///////////////
 
 // TODO check num avail streams. Do nothing if <=5. Disable? How to renable? piggyback 15sec set interval
-// BUT, prevent handy use of arrow button to reset bad layout
+// BUT, would prevent handy use of arrow button to reset bad layout
 $('#nextFive').click(function(){
 	// get next 5 streams
 	nextFive();
