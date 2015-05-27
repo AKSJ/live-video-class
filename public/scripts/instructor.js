@@ -58,16 +58,16 @@ var mummyData = {};
 
 function makeMummyId(string) {
 	// spaces to hyphens
-	var mummyIdId = string.replace(/\s+/g, '-');
+	var mummyId = string.replace(/\s+/g, '-');
 	// strip all characters not valid for css selectors
-	mummyIdId = mummyIdId.replace(/[^a-z0-9_-]/gi, '');
+	mummyId = mummyId.replace(/[^a-z0-9_-]/gi, '');
 	// check if first character is a number (css first char must match /-_a-z/i )
 	// if (/[0-9]/.test(mummyId.charAt(0) ) ) {
 	//	mummyId = 'id-' + mummyId;
 	// }
 	// NB - no need for check, prepending 'id-' in all cases
 	mummyId = 'id-' + mummyId;
-	return mummyIdId;
+	return mummyId;
 }
 
 function sortByName(a,b) {
