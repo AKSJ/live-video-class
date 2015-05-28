@@ -337,7 +337,6 @@ function displayLoop() {
 //  Event Listeners //
 //////////////////////
 
-
 session.on({
 
 	sessionConnected: function(event) {
@@ -473,8 +472,12 @@ OT.on('exception', function(event){
 	}
 });
 
-
+////////////////////////////////
+// Session Connect!
+///////////////////////////////
 session.connect(token);
+////////////////////////////////
+
 
 // Instructor video toggles -currently removed
 // $('#stopStream').click(function(){
@@ -496,7 +499,7 @@ session.connect(token);
 // var timer = intervalId for use with clearInterval
 var timer = setInterval(function(){
 	displayLoop();
-}, 15000);
+}, 15000);  // <- 15 seconds
 
 
 ///////////////
@@ -532,6 +535,9 @@ $('#prevFive').click(function(){
 	}
 });
 
+////////
+// Pause/play button - class member auto scroll
+////////
 $('#pauseToggle').click(function(){
 	if ( $(this).hasClass('paused') ) {
 		$(this).removeClass('paused');
@@ -651,6 +657,10 @@ $('#logOut').click(function(){
 	}
 });
 
+////////////////////
+// Click Handlers //
+////////////////////
+
 /////////////////////
 // Select mummy list entry click handler
 /////////////////////
@@ -663,6 +673,9 @@ $(document).on('click', '.mummy', function(){
 /////////////////////////////////
 // Sunscriber un-mute / re-mute click handler
 /////////////////////////////////
+
+// TODO add pause auto scroll on un-mute / Resume on mute?
+
 $(document).on('click', '.OT_subscriber', function(){
 	console.log(mummyData);
 	if ($(this).hasClass('selected-subscriber') ){
