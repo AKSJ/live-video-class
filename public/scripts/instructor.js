@@ -39,6 +39,8 @@ var publisher = OT.initPublisher('publisher', publisherOptions );
 // mummyData[mummyId] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive'/'no-stream'}
 var mummyData = {};
 
+var archiveId;
+
 ///////////////////////
 //  HELPER FUNCTIONS //
 ///////////////////////
@@ -369,6 +371,17 @@ session.on({
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies();
 		}
+		/////////////////////////////////////////////
+		if (ownConnection) {
+			$.post('/start', {sessionId: sessionId, name: displayName})
+			.done(function(data){
+				console.log('Archive Started');
+				archiveId = data;
+			})
+			.fail(function(){
+				console.log('Archive Start FAILED');
+			});
+		}
 	},
 
 	streamCreated: function(event) {
@@ -652,8 +665,20 @@ $('#logOut').click(function(){
 						'\n\nThis will only log you out. It will NOT end the class.' +
 						'\n\n\'Cancel\' to remain in the class.\n\'OK\' to exit.');
 	if(exit){
-	// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
-		window.location.replace('/logout');
+		if (archiveId) {
+			$.post('/stop', {archiveId: archiveId})
+			.done(function(){
+				console.log('Archive Stopped');
+			})
+			.fail(function(){
+				console.log('Archive Stop FAILED');
+			})
+			.always(function(){
+				window.location.replace('/logout');
+			});
+		}
+		// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
+		// window.location.replace('/logout');
 	}
 });
 

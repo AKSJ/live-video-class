@@ -64,7 +64,7 @@ server.register([Bell, Cookie], function (err) {
 ////////////////
 
 var yarOptions = {
-	// name: 'mm_api', // name = session <-default
+	// name : session <- default
 	cookieOptions: {
 		password: config.cookie.password2,
 		isSecure: process.env.PORT ? true : false, // we want isSecure true if https is enabled  i.e on heroku
@@ -104,7 +104,7 @@ if (process.env.PORT) {
 //////////////////////////
 
 var goodOptions = {
-	// opsInterval: 60 * 1000,
+	// opsInterval: 60 * 1000, // <- not currently logging ops
 	reporters: [{
 		reporter: require('good-console'),
 		events: {log: '*', error: '*', response: '*'}

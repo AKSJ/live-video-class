@@ -1,8 +1,8 @@
 // var fs 		= require('fs');
-var url		= require('url');
 // var Path 	= require('path');
 // var Joi 	= require('joi');
 // var members = require('./models/members.js');
+var url		= require('url');
 var opentok = require('./opentok');
 var MM 		= require('./memberMouse.js');
 
@@ -445,7 +445,67 @@ module.exports = {
 				noCookieHandler(request, reply);
 			}
 		}
+	},
+
+	startArchive: {
+		auth: {
+			mode: 'try'
+		},
+		handler: function (request, reply ){
+			var mm_api = request.session.get('mm_api');
+			if (request.auth.isAuthenticated && mm_api) {
+				console.log(request.payload);
+				var sessionIdToArchive = payload.sessionId;
+				var instructorName = payload.name;
+				var classDate = new Date().toString();
+				var archiveName = instructorName + ' - ' + classDate;
+
+				var archiveOptions = {
+					name: archiveName,
+					outputMode: 'individual'
+				};
+
+				opentok.startArchive(sessionIdToRecord, archiveOptions , function(err, archive) {
+					if (err) {
+						console.error(err);
+						return reply(err).code(500);
+					}
+					else {
+						// The id property is useful to save off into a database
+						console.log("new archive:" + archive.id);
+						console.dir(archive);
+						return reply(archive.id).code(500);
+					}
+				});
+			}
+		}
+	},
+
+	stopArchive: {
+		auth: {
+			mode: 'try'
+		},
+		handler: function (request, reply ){
+			var mm_api = request.session.get('mm_api');
+			if (request.auth.isAuthenticated && mm_api) {
+				console.log(request.payload);
+				var archiveIdToStop = payload.archiveId;
+				opentok.stopArchive(archiveIdToStop, function(err, archive) {
+  					if (err) {
+  						console.error(err);
+  						return reply(err).code(500);
+  					}
+  					else {
+  						console.log("Stopped archive:" + archive.id);
+  						return reply("Stopped archive:" + archive.id);
+  					}
+				});
+			}
+		}
 	}
 };
+
+
+
 
 

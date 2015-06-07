@@ -7,5 +7,7 @@ module.exports = [
 	{path: '/login/google', 			method: 'GET', 		config: controller.loginGoogle},
 	{path: '/logout', 					method: 'GET', 		config: controller.logout},
 	{path: '/loggedout',				method: 'GET',		config: controller.loggedoutView},
+	{path: '/start',					method: 'POST',		config: controller.startArchive},
+	{path: '/stop',						method: 'POST',		config: controller.stopArchive}
 ];
 
