@@ -30,5 +30,8 @@ module.exports = {
 	},
 	s2member: {
 				key: 		process.env.S2MEMBERKEY		||	require('./creds.json').s2member.key
+	},
+	hmac: {
+				secret: 	process.env.HMACSECRET		|| 	require('./creds.json').hmac.secret
 	}
 };

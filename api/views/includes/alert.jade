@@ -1,11 +1,11 @@
-if error
+if alert_error
 	.container(style='text-align:center;')
-		.alert.alert-danger(role='alert') #{error}
+		.alert.alert-danger(role='alert') #{alert_error}
 
-if success
+if alert_success
 	.container(style='text-align:center;')
-		.alert.alert-success(role='alert') #{success}
+		.alert.alert-success(role='alert') #{alert_success}
 
-if message
+if alert_message
 	.container(style='text-align:center;')
-		.alert.alert-info(role='alert') #{message}
+		.alert.alert-info(role='alert') #{alert_message}

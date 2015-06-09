@@ -3,6 +3,7 @@
 // var Joi 	= require('joi');
 // var members = require('./models/members.js');
 var url		= require('url');
+var crypto = require('crypto');
 var opentok = require('./opentok');
 var s2m 	= require('./s2member.js');
 
@@ -16,13 +17,13 @@ var apiKey 		= config.openTok.key;
 // 1. Yar cookie 'session' used to track results of a call to the Member Mouse API at MW.com. results stored in 's2m_api' key
 // 2. Hapi-auth-coookie cookie 'oauth' used to track results of google oauth login
 
-// 1. Currently not secure, needs a time based hash (at least). Consider encrpypting token properly -mcrypt?. Conisder incorporating time based hash INTO encrypted token
+// 1. Currently not secure, needs a time based hash (at least). Consider encrypting token properly -mcrypt?. Conisder incorporating time based hash INTO encrypted token
 // 2. Compared against 's2m_api' to check email addresses match. An additional call to MM API is made to confirm googleEmail is valid secure user
 
 
 
 // TODO
-// 1. Are we sending unecessary local vars to templates? Most not needed
+// 1. Are we sending unnecessary local vars to templates? Most not needed
 
 /////////////
 // Helpers //
@@ -48,6 +49,17 @@ function  generateToken(cookie) {
 	return token;
 }
 
+///////
+// generate hmac with shared secret
+//////
+function getHmac(value) {
+	var secret = config.hmac.secret;
+	var hmac = crypto.createHmac('sha512', secret);
+	hmac.update(value);
+	var result = hmac.digest('hex');
+	return result;
+}
+
 ///////////////////////////
 // Try and serve client view if s2m_api set
 // If client is Instructor or Administrator, redirect to google login and retry
@@ -64,9 +76,9 @@ function serveClientView(request, reply) {
 		if (s2m_api.membershipLevel === 0) {
 			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
 			console.error('serveClientView() failed - membership expired');
-			return reply.view('invalidUser', { error: 'Your membership has expired' });
+			return reply.view('invalidUser', { alert_error: 'Your membership has expired' });
 		}
-		// check for Instructor or Adminstrator membership level
+		// check for Instructor or Administrator membership level
 		if (s2m_api.membershipLevel === 10 || s2m_api.membershipLevel === 9) {
 			// FALLBACK - this is accounted for in homeView
 			// redirect to google oauth login
@@ -93,7 +105,7 @@ function serveClientView(request, reply) {
 	// no yar cookie - fallback, shouldn't happen
 	else {
 		console.error('serveClientView() failed - cookie missing');
-		return reply.view('invalidUser', { error: 'Server error: serveClientView() failed' });
+		return reply.view('invalidUser', { alert_error: 'Server error: serveClientView() failed' });
 	}
 }
 
@@ -110,13 +122,13 @@ function serveSecureView(request, reply) {
 	// check for yar cookie and auth cookie
 	if (s2m_api && request.auth.isAuthenticated) {
 		// check if membership is level 0. MW.com access only, no live classes
-		// TODO - this step is redundant, as serveSecureView only called if mlevel ==9/10. doublecheck and remove
+		// TODO - this step is redundant, as serveSecureView only called if mlevel ==9/10. double check and remove
 		if (s2m_api.membershipLevel === 0 ) {
 			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
 			console.error('serveSecureView() failed - membership expired');
-			return reply.view('invalidUser', { error: 'Your membership has expired' });
+			return reply.view('invalidUser', { alert_error: 'Your membership has expired' });
 		}
-		// check for missing Instructor or Adminstrator membership level
+		// check for missing Instructor or Administrator membership level
 		if (s2m_api.membershipLevel !== 10 && s2m_api.membershipLevel !== 9) {
 			// FALLBACK - this is accounted for in homeView
 			// redirect to homeView as client
@@ -142,7 +154,7 @@ function serveSecureView(request, reply) {
 				return reply.view('instructor', locals);
 			}
 			else if (s2m_api.membershipLevel === 10) {
-				console.log('Serving adminsitrator view');
+				console.log('Serving administrator view');
 				// NB Admin view currently just client view
 				return reply.view('mummies', locals);
 			}
@@ -151,7 +163,7 @@ function serveSecureView(request, reply) {
 	else {
 		// fallback - cookies not set
 		console.error('serveSecureView() failed - cookies missing');
-		return reply.view('invalidUser', { error: 'Server error: serveSecureView() failed' });
+		return reply.view('invalidUser', { alert_error: 'Server error: serveSecureView() failed' });
 	}
 }
 
@@ -166,7 +178,7 @@ function setS2MemberCookie(userEmail, request, reply) {
 		if (err) {
 			// query string token preserved so client brower refresh possible
 			console.error('s2member API call error: ', err);
-			return reply.view('invalidUser', { error: 'Error contacting membership server.\nPlease refresh the page to retry.' });
+			return reply.view('invalidUser', { alert_error: 'Error contacting membership server.\nPlease refresh the page to retry.' });
 		}
 		else if (memberData) {
 			// set yar cookie 's2m_api' key
@@ -188,7 +200,7 @@ function setS2MemberCookie(userEmail, request, reply) {
 		else {
 			console.log('Member not found!');
 			request.session.clear('s2m_api'); //???? not needed?
-			return reply.view('invalidUser', { error: 'Member not found' });
+			return reply.view('invalidUser', { alert_error: 'Member not found' });
 		}
 	});
 }
@@ -248,7 +260,7 @@ function bothCookiesHandler(request, reply) {
 		console.error('s2m API email and googleEmail don\'t match!');
 		request.session.clear('s2m_api');
 		request.auth.session.clear();
-		return reply.view('invalidUser', { error: 'Error during secure login. Email addresses do not match.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
+		return reply.view('invalidUser', { alert_error: 'Error during secure login. Email addresses do not match.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
 	}
 	else {
 		// email addresses match!
@@ -262,7 +274,7 @@ function bothCookiesHandler(request, reply) {
 				console.error('s2m API error: ', err);
 				request.session.clear('s2m_api');
 				request.auth.session.clear();
-				return reply.view('invalidUser', { error: 'Error during secure login. Email verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
+				return reply.view('invalidUser', { alert_error: 'Error during secure login. Email verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
 			}
 			else if (memberData) {
 				// bool to check contents of MM query with googleEmail still valid for secure view
@@ -284,7 +296,7 @@ function bothCookiesHandler(request, reply) {
 				console.error('googleEmail membershipLevel confirmation failed! - member not found');
 				request.session.clear('s2m_api');
 				request.auth.session.clear();
-				return reply.view('invalidUser', { error: 'Error during secure login. Secondary account verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
+				return reply.view('invalidUser', { alert_error: 'Error during secure login. Secondary account verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
 			}
 		});
 	}
@@ -317,13 +329,42 @@ function noCookieHandler(request, reply) {
 	console.log('noCookieHandler() called');
 	var urlObject = url.parse(request.url, true);
 	// fail if no query string token and no s2m_api cookie
-	if (!urlObject.query.hasOwnProperty('token') || !urlObject.query.token  ) { //double check to account for e.g. token: undefined
+
+
+	// console.log(urlObject);
+	// var hash = getHmac(urlObject.query.time);
+	// console.log(hash);
+	// console.log('hash match: ', hash === urlObject.query.hash);
+	// var time = Math.round( new Date().getTime()/1000); //epoch time in seconds
+	// console.log('time: ', time);
+	// console.log('in time limit? ', (time - urlObject.query.time < 30) );
+
+	if (!urlObject.query.hasOwnProperty('time') || !urlObject.query.time || !urlObject.query.hasOwnProperty('hash') || !urlObject.query.hash ) {
+		console.error('No query string time or hash found');
+		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
+	}
+	else if (!urlObject.query.hasOwnProperty('token') || !urlObject.query.token  ) { //double check to account for e.g. token: undefined
 		console.error('No query string token found');
-		return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
+		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
 		// return reply.redirect('http://mummyworkouts.com');
 	}
-	else if (urlObject.query.hasOwnProperty('token') && urlObject.query.token ) { //double check to account for e.g. token: undefined
-		// get user token from qs (Member Mouse email)
+	else if (urlObject.query.hasOwnProperty('token') && urlObject.query.token && urlObject.query.hasOwnProperty('time') && urlObject.query.time && urlObject.query.hasOwnProperty('hash') && urlObject.query.hash ) { //double check to account for e.g. token: undefined
+		// check timeStamp and validity of hash
+		var timeStamp = urlObject.query.time;
+		var localTime = Math.round( new Date().getTime()/1000 ); //epoch time in seconds, as in php 'time()'
+		var remoteHash = urlObject.query.hash;
+		var localHash = getHmac(timeStamp);
+		// check if timeStamp less than 1 day old (86400 seconds)
+		console.log('Timestamp is ', (parseInt(localTime,10) - timeStamp), 'seconds old' );
+
+		var timeStampIsValid = ( parseInt(localTime, 10) - timeStamp < 86400) ? true : false;
+		console.log('timeStampIsValid? ', timeStampIsValid);
+
+		// check if hmac hashes match
+		var timeStampHashesMatch = (remoteHash === localHash) ? true : false;
+		console.log('timeStampHashesMatch?', timeStampHashesMatch);
+
+		// get user token from qs (Mummyworkouts.com email)
 		var token = urlObject.query.token;
 		console.log('Encoded user token: ', token);
 		// NB no need to URL decode - hapi does it automatically
@@ -331,13 +372,19 @@ function noCookieHandler(request, reply) {
 		userEmail = userEmail.toString('utf8');
 		console.log('Decoded user token: ', userEmail);
 
-		// make s2m API call to check for member
-		setS2MemberCookie(userEmail, request, reply);
+		if (timeStampIsValid && timeStampHashesMatch) {
+			// make s2m API call to check for member
+			setS2MemberCookie(userEmail, request, reply);
+		}
+		else {
+			console.error('Link has expired, or wrong hmac secret');
+		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
+		}
 	}
 	else {
 		// fallback
 		console.error('fallback! homeView() failed');
-		return reply.view('invalidUser', { error: 'Login failed.\nPlease return to Mummy Workouts to try again.' });
+		return reply.view('invalidUser', { alert_error: 'Login failed.\nPlease return to Mummy Workouts to try again.' });
 	}
 }
 
@@ -448,12 +495,14 @@ module.exports = {
 		}
 	},
 
+	// TODO joi validate payloads?
 	startArchive: {
 		auth: {
 			mode: 'try'
 		},
 		handler: function (request, reply ){
 			var s2m_api = request.session.get('s2m_api');
+			// double auth required as only instructor should be accessing these routes
 			if (request.auth.isAuthenticated && s2m_api) {
 				console.log(request.payload);
 				var sessionIdToArchive = payload.sessionId;
@@ -488,6 +537,7 @@ module.exports = {
 		},
 		handler: function (request, reply ){
 			var s2m_api = request.session.get('s2m_api');
+			// double auth required as only instructor should be accessing these routes
 			if (request.auth.isAuthenticated && s2m_api) {
 				console.log(request.payload);
 				var archiveIdToStop = payload.archiveId;
