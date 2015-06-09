@@ -60,12 +60,12 @@ function serveClientView(request, reply) {
 	var s2m_api = request.session.get('s2m_api');
 	// check for yar cookie
 	if (s2m_api) {
-		// check if membership not 'Active'  !!! No longer possible with s2member. Double check...
-		// if (false) {
-		// 	// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
-		// 	console.error('serveClientView() failed - membership expired');
-		// 	return reply.view('invalidUser', { error: 'Your membership has expired' });
-		// }
+		// check if membership is level 0. MW.com access only, no live classes
+		if (s2m_api.membershipLevel === 0) {
+			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
+			console.error('serveClientView() failed - membership expired');
+			return reply.view('invalidUser', { error: 'Your membership has expired' });
+		}
 		// check for Instructor or Adminstrator membership level
 		if (s2m_api.membershipLevel === 10 || s2m_api.membershipLevel === 9) {
 			// FALLBACK - this is accounted for in homeView
@@ -109,13 +109,13 @@ function serveSecureView(request, reply) {
 	var s2m_api = request.session.get('s2m_api');
 	// check for yar cookie and auth cookie
 	if (s2m_api && request.auth.isAuthenticated) {
-
-		// !!! No longer possbile to check membership expiry?
-		// if (s2m_api.membershipStatus !== 'Active' ) {
-		// 	// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
-		// 	console.error('serveSecureView() failed - membership expired');
-		// 	return reply.view('invalidUser', { error: 'Your membership has expired' });
-		// }
+		// check if membership is level 0. MW.com access only, no live classes
+		// TODO - this step is redundant, as serveSecureView only called if mlevel ==9/10. doublecheck and remove
+		if (s2m_api.membershipLevel === 0 ) {
+			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
+			console.error('serveSecureView() failed - membership expired');
+			return reply.view('invalidUser', { error: 'Your membership has expired' });
+		}
 		// check for missing Instructor or Adminstrator membership level
 		if (s2m_api.membershipLevel !== 10 && s2m_api.membershipLevel !== 9) {
 			// FALLBACK - this is accounted for in homeView
