@@ -7,7 +7,8 @@ module.exports = {
 	openTok: {
 				key 	: 	process.env.OPENTOKKEY 		|| require('./creds.json').openTok.key,
 				secret 	: 	process.env.OPENTOKSECRET 	|| require('./creds.json').openTok.secret,
-				sessionId : process.env.SESSIONID 		|| require('./creds.json').openTok.sessionId
+				sessionId : process.env.SESSIONID 		|| require('./creds.json').openTok.sessionId,
+				archiveSessionId : process.env.ARCHIVESESSIONID 		|| require('./creds.json').openTok.archiveSessionId
 	},
 	google : {
 				secret 	: 	process.env.GOOGLESECRET 	|| require('./creds.json').google.secret,
@@ -26,5 +27,8 @@ module.exports = {
 	mm : {
 				key: 		process.env.MMKEY 			|| require('./creds.json').mm.key,
 				secret: 	process.env.MMSECRET 		|| require('./creds.json').mm.secret
+	},
+	s2member: {
+				key: 		process.env.S2MEMBERKEY		||	require('./creds.json').s2member.key
 	}
 };
