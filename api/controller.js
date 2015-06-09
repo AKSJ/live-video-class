@@ -4,7 +4,7 @@
 // var members = require('./models/members.js');
 var url		= require('url');
 var opentok = require('./opentok');
-var MM 		= require('./memberMouse.js');
+var s2m 	= require('./s2member.js');
 
 var config 		= require('./config');
 var sessionId 	= config.openTok.sessionId;
@@ -13,11 +13,11 @@ var apiKey 		= config.openTok.key;
 // NOTES //
 
 // Auth strategy is a little complicated, with 2 cookies involved:
-// 1. Yar cookie 'session' used to track results of a call to the Member Mouse API at MW.com. results stored in 'mm_api' key
+// 1. Yar cookie 'session' used to track results of a call to the Member Mouse API at MW.com. results stored in 's2m_api' key
 // 2. Hapi-auth-coookie cookie 'oauth' used to track results of google oauth login
 
 // 1. Currently not secure, needs a time based hash (at least). Consider encrpypting token properly -mcrypt?. Conisder incorporating time based hash INTO encrypted token
-// 2. Compared against 'mm_api' to check email addresses match. An additional call to MM API is made to confirm googleEmail is valid secure user
+// 2. Compared against 's2m_api' to check email addresses match. An additional call to MM API is made to confirm googleEmail is valid secure user
 
 
 
@@ -34,9 +34,9 @@ var apiKey 		= config.openTok.key;
 function  generateToken(cookie) {
 	var email 			= cookie.email;
 	var username 		= cookie.username;
-	var displayName 	= cookie.firstName + ' ' + cookie.lastName;
+	var displayName 	= cookie.displayName;
 	var membershipLevel = cookie.membershipLevel;
-	var tokBoxRole 		= (membershipLevel === 'Instructor') ? 'moderator' : 'publisher';
+	var tokBoxRole 		= (membershipLevel === 9) ? 'moderator' : 'publisher';
 	console.log( 'Token Generated:', '\nEmail: ' + email, '\nUsername: ' + username, '\nDisplayName: ' + displayName, '\nMembershipLevel: ' + membershipLevel, '\nTokBox Role: ' + tokBoxRole );
 
 	var token = opentok.generateToken(sessionId,({
@@ -49,7 +49,7 @@ function  generateToken(cookie) {
 }
 
 ///////////////////////////
-// Try and serve client view if mm_api set
+// Try and serve client view if s2m_api set
 // If client is Instructor or Administrator, redirect to google login and retry
 //////////////////////////
 
@@ -57,17 +57,17 @@ function  generateToken(cookie) {
 function serveClientView(request, reply) {
 	console.log('serveClientView() called');
 	// get yar cookie
-	var mm_api = request.session.get('mm_api');
+	var s2m_api = request.session.get('s2m_api');
 	// check for yar cookie
-	if (mm_api) {
-		// check if membership not 'Active'
-		if (mm_api.membershipStatus !== 'Active' ) {
-			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
-			console.error('serveClientView() failed - membership expired');
-			return reply.view('invalidUser', { error: 'Your membership has expired' });
-		}
+	if (s2m_api) {
+		// check if membership not 'Active'  !!! No longer possible with s2member. Double check...
+		// if (false) {
+		// 	// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
+		// 	console.error('serveClientView() failed - membership expired');
+		// 	return reply.view('invalidUser', { error: 'Your membership has expired' });
+		// }
 		// check for Instructor or Adminstrator membership level
-		else if (mm_api.membershipLevel === 'Instructor' || mm_api.membershipLevel === 'Administrator') {
+		if (s2m_api.membershipLevel === 10 || s2m_api.membershipLevel === 9) {
 			// FALLBACK - this is accounted for in homeView
 			// redirect to google oauth login
 			console.error('serveClientView() failed - wrong membershipLevel. Redirecting to secure login');
@@ -75,16 +75,16 @@ function serveClientView(request, reply) {
 		}
 		else {
 			// generate TokBox token,
-			var token = generateToken(mm_api);
+			var token = generateToken(s2m_api);
 			// assemble local variables for view template
 			var locals = {	apiKey: apiKey,
 							sessionId: sessionId,
 							token: token,
-							membershipLevel: mm_api.membershipLevel,
+							membershipLevel: s2m_api.membershipLevel,
 							role: 'publisher',
-							username: mm_api.username,
-							email: mm_api.email,
-							displayName: mm_api.firstName + ' ' + mm_api.lastName,
+							username: s2m_api.username,
+							email: s2m_api.email,
+							displayName: s2m_api.displayName,
 						};
 			console.log('Serving client view');
 			return reply.view('mummies', locals);
@@ -99,24 +99,25 @@ function serveClientView(request, reply) {
 
 //////////////////////
 // Try and serve a secure view i.e. instructor or admin
-// Make a second MMapi check, to ensure email address in mm_api cookie hasn't been tampered with
+// Make a second MMapi check, to ensure email address in s2m_api cookie hasn't been tampered with
 ///////////////////////
 
 // yar cookie and oauth cookie should be set before calling serveSecureView()
 function serveSecureView(request, reply) {
 	console.log('serveSecureView() called');
 	// get yar cookie
-	var mm_api = request.session.get('mm_api');
+	var s2m_api = request.session.get('s2m_api');
 	// check for yar cookie and auth cookie
-	if (mm_api && request.auth.isAuthenticated) {
+	if (s2m_api && request.auth.isAuthenticated) {
 
-		if (mm_api.membershipStatus !== 'Active' ) {
-			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
-			console.error('serveSecureView() failed - membership expired');
-			return reply.view('invalidUser', { error: 'Your membership has expired' });
-		}
+		// !!! No longer possbile to check membership expiry?
+		// if (s2m_api.membershipStatus !== 'Active' ) {
+		// 	// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
+		// 	console.error('serveSecureView() failed - membership expired');
+		// 	return reply.view('invalidUser', { error: 'Your membership has expired' });
+		// }
 		// check for missing Instructor or Adminstrator membership level
-		else if (mm_api.membershipLevel !== 'Instructor' && mm_api.membershipLevel !== 'Administrator') {
+		if (s2m_api.membershipLevel !== 10 && s2m_api.membershipLevel !== 9) {
 			// FALLBACK - this is accounted for in homeView
 			// redirect to homeView as client
 			console.error('serveSecureView() failed - wrong membershipLevel');
@@ -125,22 +126,22 @@ function serveSecureView(request, reply) {
 		}
 		else {
 			// generate TokBox token,
-			var token = generateToken(mm_api);
+			var token = generateToken(s2m_api);
 			// assemble local variables for view template
 			var locals = {	apiKey: apiKey,
 							sessionId: sessionId,
 							token: token,
-							membershipLevel: mm_api.membershipLevel,
-							role: (mm_api.membershipLevel === 'Instructor') ? 'moderator' : 'publisher',
-							username: mm_api.username,
-							email: mm_api.email,
-							displayName: mm_api.firstName + ' ' + mm_api.lastName,
+							membershipLevel: s2m_api.membershipLevel,
+							role: (s2m_api.membershipLevel === 9) ? 'moderator' : 'publisher',
+							username: s2m_api.username,
+							email: s2m_api.email,
+							displayName: s2m_api.displayName,
 						};
-			if (mm_api.membershipLevel === 'Instructor') {
+			if (s2m_api.membershipLevel === 9) {
 				console.log('Serving instructor view');
 				return reply.view('instructor', locals);
 			}
-			else if (mm_api.membershipLevel === 'Administrator') {
+			else if (s2m_api.membershipLevel === 10) {
 				console.log('Serving adminsitrator view');
 				// NB Admin view currently just client view
 				return reply.view('mummies', locals);
@@ -156,38 +157,37 @@ function serveSecureView(request, reply) {
 
 ////////////////
 // Make a member mouse API call to MW.com to get user data
-// Set yar cookie 'mm_api' if found
+// Set yar cookie 's2m_api' if found
 /////////////////
 
-function setMemberMouseCookie(userEmail, request, reply) {
-	console.log('setMemberMouseCookie() called');
-	MM.getMember(userEmail, function(err, statusCode, memberData){
+function setS2MemberCookie(userEmail, request, reply) {
+	console.log('setS2MemberCookie() called');
+	s2m.getMember(userEmail, function(err, memberData){
 		if (err) {
 			// query string token preserved so client brower refresh possible
-			console.error('MM API call error: ', err);
+			console.error('s2member API call error: ', err);
 			return reply.view('invalidUser', { error: 'Error contacting membership server.\nPlease refresh the page to retry.' });
 		}
-		else if ( statusCode === '200' && memberData) {
-			// set yar cookie 'mm_api' key
-			var mmData = {
-				membershipStatus: memberData.status_name,
-				membershipLevel: memberData.membership_level_name,
-				firstName: memberData.first_name,
-				lastName: memberData.last_name,
-				username: memberData.username,
-				email: memberData.email
+		else if (memberData) {
+			// set yar cookie 's2m_api' key
+			var s2mData = {
+				// membershipStatus: memberData.status_name,
+				membershipLevel: memberData.level,
+				displayName: memberData.data.display_name,
+				username: memberData.data.user_login,
+				email: memberData.data.user_email
 			};
-			request.session.clear('mm_api');
-			request.session.set('mm_api', mmData);
+			request.session.clear('s2m_api');
+			request.session.set('s2m_api', s2mData);
 			console.log('Member found!');
-			console.log('mm_api cookie set: ', mmData);
+			console.log('s2m_api cookie set: ', s2mData);
 			// NB Calling serveClientView directly here failed as cookie not yet fully set? (async issue?)
 			// Hence, redirect: (also, removes query string from browser URL)
 			reply.redirect('/');
 		}
 		else {
 			console.log('Member not found!');
-			request.session.clear('mm_api'); //???? not needed?
+			request.session.clear('s2m_api'); //???? not needed?
 			return reply.view('invalidUser', { error: 'Member not found' });
 		}
 	});
@@ -202,16 +202,16 @@ function setMemberMouseCookie(userEmail, request, reply) {
 function checkQueryString(request, reply) {
 	console.log('checkQueryString() called');
 	var urlObject = url.parse(request.url, true);
-	var mm_api = request.session.get('mm_api');
+	var s2m_api = request.session.get('s2m_api');
 	// first check if different user is trying to log in
 		if (urlObject.query.hasOwnProperty('token') && urlObject.query.token ) { //double check to account for e.g. token: undefined
-			var currentUserEmail = mm_api.email;
+			var currentUserEmail = s2m_api.email;
 			var newUserEmail = new Buffer(urlObject.query.token, 'base64');
 			newUserEmail = newUserEmail.toString('utf8');
-			// if different user login attempted, clear mm_api and start again
+			// if different user login attempted, clear s2m_api and start again
 			if (newUserEmail !== currentUserEmail) {
 				console.log('Email token for different user found. Clearing cookies and redirecting to root');
-				request.session.clear('mm_api'); //? redundant?
+				request.session.clear('s2m_api'); //? redundant?
 				request.auth.session.clear(); // in case trying to change from e.g. instructor to client
 				return reply.redirect('/?token=' + urlObject.query.token);
 			}
@@ -223,7 +223,7 @@ function checkQueryString(request, reply) {
 		}
 		else {
 			// unwanted query string data, redirect to strip from URL.
-			console.log('Unrecognised query string found. Redirecting to root o strip querystring');
+			console.log('Unrecognised query string found. Redirecting to root to strip querystring');
 			reply.redirect('/');
 		}
 }
@@ -235,45 +235,45 @@ function checkQueryString(request, reply) {
 function bothCookiesHandler(request, reply) {
 	console.log('bothCookiesHandler() called');
 	var urlObject = url.parse(request.url, true);
-	var mm_api = request.session.get('mm_api');
+	var s2m_api = request.session.get('s2m_api');
 	var googleEmail = request.auth.credentials.googleEmail;
-	var memberMouseEmail = mm_api.email;
+	var s2MemberEmail = s2m_api.email;
 	// check if query string present
 	if (Object.keys(urlObject.query).length > 0) {
 		checkQueryString(request, reply);
 	}
 	// check if email addresses match
-	else if (googleEmail !== memberMouseEmail) {
+	else if (googleEmail !== s2MemberEmail) {
 		// fail! emails don't match
-		console.error('MMAPI email and googleEmail don\'t match!');
-		request.session.clear('mm_api');
+		console.error('s2m API email and googleEmail don\'t match!');
+		request.session.clear('s2m_api');
 		request.auth.session.clear();
 		return reply.view('invalidUser', { error: 'Error during secure login. Email addresses do not match.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
 	}
 	else {
 		// email addresses match!
-		console.log('MMAPI email and googleEmail match!');
+		console.log('s2m API email and googleEmail match!');
 		// make a second MM API query to check googleEmail is still a valid instructor
-		// not possbile to check against original values, as they're only record is mm_api, which is what we're fallback checking
-		// Reasoning: mm_api cookie could be faked? (DOES THIS MAKE SENSE??) Defense in depth, fallback in case we did something stupid elsewhere!
-		MM.getMember(googleEmail, function(err, statusCode, memberData){
-			console.log('Double checking MM API for googleEmail credentials');
+		// not possbile to check against original values, as they're only record is s2m_api, which is what we're fallback checking
+		// Reasoning: s2m_api cookie could be faked? (DOES THIS MAKE SENSE??) Defense in depth, fallback in case we did something stupid elsewhere!
+		s2m.getMember(googleEmail, function(err, memberData){
+			console.log('Double checking s2m API for googleEmail credentials');
 			if (err) {
-				console.error('MM API error: ', err);
-				request.session.clear('mm_api');
+				console.error('s2m API error: ', err);
+				request.session.clear('s2m_api');
 				request.auth.session.clear();
 				return reply.view('invalidUser', { error: 'Error during secure login. Email verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
 			}
-			else if (statusCode === '200' && memberData) {
+			else if (memberData) {
 				// bool to check contents of MM query with googleEmail still valid for secure view
-				var membershipLevelCheck = (memberData.membership_level_name === 'Instructor' || memberData.membership_level_name === 'Administrator') ? true : false;
+				var membershipLevelCheck = (memberData.level === 10 || memberData.level === 9) ? true : false;
 				if ( membershipLevelCheck ) {
 					console.log('googleEmail membershipLevel confirmation succesful!');
 					// attempt to serve Instructor/Administrator view
 					serveSecureView(request, reply);
 				}
 				else {
-					// membe somehow lacks correct membershipLevel
+					// member somehow lacks correct membershipLevel
 					console.error('googleEmail membershipLevel confirmation failed! - member not Instructor/Administrator');
 					request.auth.session.clear();
 					return reply.redirect('/');
@@ -282,7 +282,7 @@ function bothCookiesHandler(request, reply) {
 			else {
 				// member somehow not found. hax!!
 				console.error('googleEmail membershipLevel confirmation failed! - member not found');
-				request.session.clear('mm_api');
+				request.session.clear('s2m_api');
 				request.auth.session.clear();
 				return reply.view('invalidUser', { error: 'Error during secure login. Secondary account verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
 			}
@@ -293,14 +293,15 @@ function bothCookiesHandler(request, reply) {
 function mmApiOnlyHandler(request, reply) {
 	console.log('mmApiOnlyHandler called');
 	var urlObject = url.parse(request.url, true);
-	var mm_api = request.session.get('mm_api');
+	var s2m_api = request.session.get('s2m_api');
 	// check if query string present
 	if (Object.keys(urlObject.query).length > 0) {
 		checkQueryString(request, reply);
 	}
 	else {
-		// url is clean and mm_api cookie set.
-		if (mm_api.membershipLevel === 'Instructor' || mm_api.membershipLevel === 'Administrator') {
+		// url is clean and s2m_api cookie set.
+		// NB membershipLevel 10 == Administrator, 9 === Instructor
+		if (s2m_api.membershipLevel === 10 || s2m_api.membershipLevel === 9) {
 			// user is an Instructor or Admin. Redirect for secure login to aquire oauth cookie
 			console.log('Instructor/Administrator detected. Redirecting to secure login');
 			return reply.redirect('/login');
@@ -315,7 +316,7 @@ function mmApiOnlyHandler(request, reply) {
 function noCookieHandler(request, reply) {
 	console.log('noCookieHandler() called');
 	var urlObject = url.parse(request.url, true);
-	// fail if no query string token and no mm_api cookie
+	// fail if no query string token and no s2m_api cookie
 	if (!urlObject.query.hasOwnProperty('token') || !urlObject.query.token  ) { //double check to account for e.g. token: undefined
 		console.error('No query string token found');
 		return reply.view('invalidUser', { error: 'Please return to Mummy Workouts and retry the join class button.' });
@@ -330,8 +331,8 @@ function noCookieHandler(request, reply) {
 		userEmail = userEmail.toString('utf8');
 		console.log('Decoded user token: ', userEmail);
 
-		// make MM API call to check for member
-		setMemberMouseCookie(userEmail, request, reply);
+		// make s2m API call to check for member
+		setS2MemberCookie(userEmail, request, reply);
 	}
 	else {
 		// fallback
@@ -369,7 +370,7 @@ module.exports = {
 		auth: false,
 		handler: function (request, reply){
 			// clear yar cookie
-			request.session.clear('mm_api');
+			request.session.clear('s2m_api');
 			// clear oauth cookie
 			request.auth.session.clear();
 			return reply.redirect('/loggedout');
@@ -379,13 +380,13 @@ module.exports = {
 	loginView: {
 		auth: false,
 		handler: function (request, reply) {
-			var mm_api = request.session.get('mm_api');
-			if (mm_api) {
-				return reply.view('google', {mmEmail: mm_api.email});
+			var s2m_api = request.session.get('s2m_api');
+			if (s2m_api) {
+				return reply.view('google', {mmEmail: s2m_api.email});
 			}
-			// loginView shold only be accessed once mm_api set
+			// loginView shold only be accessed once s2m_api set
 			else {
-				console.log('mm_api cookie missing! Redirect to root.');
+				console.log('s2m_api cookie missing! Redirect to root.');
 				return reply.redirect('/');
 			}
 		}
@@ -425,23 +426,23 @@ module.exports = {
 			// console.dir(urlObject);
 			// console.log('Referer: ',request.headers.referer); <- no point trying to check referer. Not reliable.
 
-			// get mm_api cookie
-			var mm_api = request.session.get('mm_api');
+			// get s2m_api cookie
+			var s2m_api = request.session.get('s2m_api');
 
-			// check if oauth cookie and mm_api is set
-			if (request.auth.isAuthenticated && mm_api) {
+			// check if oauth cookie and s2m_api is set
+			if (request.auth.isAuthenticated && s2m_api) {
 				// user has logged in with MW.com link and google oauth
-				console.log('mm_api and auth Cookies BOTH Found');
+				console.log('s2m_api and auth Cookies BOTH Found');
 				bothCookiesHandler(request, reply);
 			}
-			// check if only 'mm_api' cookie already set
-			else if (mm_api) {
-				console.log('Only mm_api Cookie Found');
+			// check if only 's2m_api' cookie already set
+			else if (s2m_api) {
+				console.log('Only s2m_api Cookie Found');
 				mmApiOnlyHandler(request, reply);
 			}
 			// else no cookies set
 			else {
-				console.log('mm_api Cookie NOT Found, oauth Cookie NOT found');
+				console.log('s2m_api Cookie NOT Found, oauth Cookie NOT found');
 				noCookieHandler(request, reply);
 			}
 		}
@@ -452,8 +453,8 @@ module.exports = {
 			mode: 'try'
 		},
 		handler: function (request, reply ){
-			var mm_api = request.session.get('mm_api');
-			if (request.auth.isAuthenticated && mm_api) {
+			var s2m_api = request.session.get('s2m_api');
+			if (request.auth.isAuthenticated && s2m_api) {
 				console.log(request.payload);
 				var sessionIdToArchive = payload.sessionId;
 				var instructorName = payload.name;
@@ -486,8 +487,8 @@ module.exports = {
 			mode: 'try'
 		},
 		handler: function (request, reply ){
-			var mm_api = request.session.get('mm_api');
-			if (request.auth.isAuthenticated && mm_api) {
+			var s2m_api = request.session.get('s2m_api');
+			if (request.auth.isAuthenticated && s2m_api) {
 				console.log(request.payload);
 				var archiveIdToStop = payload.archiveId;
 				opentok.stopArchive(archiveIdToStop, function(err, archive) {
