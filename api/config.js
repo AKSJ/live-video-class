@@ -24,10 +24,10 @@ module.exports = {
 				password1: 	process.env.COOKIESECRET1 	|| require('./creds.json').cookie.secret1,
 				password2: 	process.env.COOKIESECRET2 	|| require('./creds.json').cookie.secret2
 	},
-	mm : {
-				key: 		process.env.MMKEY 			|| require('./creds.json').mm.key,
-				secret: 	process.env.MMSECRET 		|| require('./creds.json').mm.secret
-	},
+	// mm : {
+	// 			key: 		process.env.MMKEY 			|| require('./creds.json').mm.key,
+	// 			secret: 	process.env.MMSECRET 		|| require('./creds.json').mm.secret
+	// },
 	s2member: {
 				key: 		process.env.S2MEMBERKEY		||	require('./creds.json').s2member.key
 	},
