@@ -233,7 +233,8 @@ function bothCookiesHandler(request, reply) {
 		reply.redirect(request.url.href);
 	}
 	// check if email addresses match
-	else if (googleEmail !== s2MemberEmail) {
+	// lower case to avoid capitalisation issues!
+	else if (googleEmail.toLowerCase() !== s2MemberEmail.toLowerCase()) {
 		// fail! emails don't match
 		console.error('s2m API email and googleEmail don\'t match!');
 		request.session.clear('s2m_api');
@@ -243,40 +244,44 @@ function bothCookiesHandler(request, reply) {
 	else {
 		// email addresses match!
 		console.log('s2m API email and googleEmail match!');
+		serveSecureView(request, reply);
+
+		// TODO fix secondary login check for case where capitalisation doesnt match
+
 		// make a second s2member API query to check googleEmail is still a valid instructor
 		// not possbile to check against original values, as they're only record is s2m_api, which is what we're fallback checking
 		// Reasoning: s2m_api cookie could be faked? (DOES THIS MAKE SENSE??) Defense in depth, fallback in case we did something stupid elsewhere!
-		s2m.getMember(googleEmail, function(err, memberData){
-			console.log('Double checking s2m API for googleEmail credentials');
-			if (err) {
-				console.error('s2m API error: ', err);
-				request.session.clear('s2m_api');
-				request.auth.session.clear();
-				return reply.view('invalidUser', { alert_error: 'Error during secure login. Email verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
-			}
-			else if (memberData) {
-				// bool to check contents of s2member query with googleEmail still valid for secure view
-				var membershipLevelCheck = (memberData.level === 10 || memberData.level === 9) ? true : false;
-				if ( membershipLevelCheck ) {
-					console.log('googleEmail membershipLevel confirmation succesful!');
-					// attempt to serve Instructor/Administrator view
-					serveSecureView(request, reply);
-				}
-				else {
-					// member somehow lacks correct membershipLevel
-					console.error('googleEmail membershipLevel confirmation failed! - member not Instructor/Administrator');
-					request.auth.session.clear();
-					return reply.redirect('/');
-				}
-			}
-			else {
-				// member somehow not found. hax!!
-				console.error('googleEmail membershipLevel confirmation failed! - member not found');
-				request.session.clear('s2m_api');
-				request.auth.session.clear();
-				return reply.view('invalidUser', { alert_error: 'Error during secure login. Secondary account verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
-			}
-		});
+		// s2m.getMember(googleEmail, function(err, memberData){
+		// 	console.log('Double checking s2m API for googleEmail credentials');
+		// 	if (err) {
+		// 		console.error('s2m API error: ', err);
+		// 		request.session.clear('s2m_api');
+		// 		request.auth.session.clear();
+		// 		return reply.view('invalidUser', { alert_error: 'Error during secure login. Email verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
+		// 	}
+		// 	else if (memberData) {
+		// 		// bool to check contents of s2member query with googleEmail still valid for secure view
+		// 		var membershipLevelCheck = (memberData.level === 10 || memberData.level === 9) ? true : false;
+		// 		if ( membershipLevelCheck ) {
+		// 			console.log('googleEmail membershipLevel confirmation succesful!');
+		// 			// attempt to serve Instructor/Administrator view
+		// 			serveSecureView(request, reply);
+		// 		}
+		// 		else {
+		// 			// member somehow lacks correct membershipLevel
+		// 			console.error('googleEmail membershipLevel confirmation failed! - member not Instructor/Administrator');
+		// 			request.auth.session.clear();
+		// 			return reply.redirect('/');
+		// 		}
+		// 	}
+		// 	else {
+		// 		// member somehow not found. hax!!
+		// 		console.error('googleEmail membershipLevel confirmation failed! - member not found');
+		// 		request.session.clear('s2m_api');
+		// 		request.auth.session.clear();
+		// 		return reply.view('invalidUser', { alert_error: 'Error during secure login. Secondary account verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
+		// 	}
+		// });
 	}
 }
 
