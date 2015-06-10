@@ -1,6 +1,6 @@
 // TODO Explicitly place subscribers in subscriber-n, rather than reply on subscriber:empty
 // TODO Refactor to avoid variable name reuse - username, role, displayName (+more?)
-// are global vars from script tag, but are also used in event listeners
+// are global vars from script tag, but are also used in event listeners..
 
 // TODO stop passing username local as no longer used. Check which other locals are also not used.
 
@@ -652,7 +652,24 @@ $('#endClass').click(function(){
 		mummyData = {};
 		// added a redirect here, the idea being to make sure the instructor can't stay in the class somehow. Maybe by refreshing their browser
 		// if we keep this, can remove the DOM/data clearing above, but should keep session.disconnect() to make sure we're pplaying nicely with the TokBox session, maybe.
-		window.location.replace('/logout');
+		if (archiveId) {
+			$.post('/stop', {archiveId: archiveId})
+			.done(function(){
+				archiveId = null;
+				console.log('Archive Stopped');
+				window.location.replace('/logout');
+			})
+			.fail(function(){
+				console.log('Archive Stop FAILED');
+				// leave window anyway. Archive will time out after 60 seconds
+				window.location.replace('/logout');
+			});
+		}
+		else {
+			// using location.replace as it effectively disables the back button, encouraging clients to rejoin the class via MW.com
+			// TODO clear cookies to force return to MW.com?
+			window.location.replace('/logout');
+		}
 	}
 });
 
@@ -668,17 +685,21 @@ $('#logOut').click(function(){
 		if (archiveId) {
 			$.post('/stop', {archiveId: archiveId})
 			.done(function(){
+				archiveId = null;
 				console.log('Archive Stopped');
+				window.location.replace('/logout');
 			})
 			.fail(function(){
 				console.log('Archive Stop FAILED');
-			})
-			.always(function(){
+				// leave window anyway. Archive will time out after 60 seconds
 				window.location.replace('/logout');
 			});
 		}
-		// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
-		// window.location.replace('/logout');
+		else {
+			// using location.replace as it effectively disables the back button, encouraging clients to rejoin the class via MW.com
+			// NB - auth cookies cleared by server
+			window.location.replace('/logout');
+		}
 	}
 });
 
@@ -696,7 +717,7 @@ $(document).on('click', '.mummy', function(){
 });
 
 /////////////////////////////////
-// Sunscriber un-mute / re-mute click handler
+// Subscriber un-mute / re-mute click handler
 /////////////////////////////////
 
 // TODO add pause auto scroll on un-mute / Resume on mute?
@@ -732,22 +753,3 @@ $(document).on('click', '.OT_subscriber', function(){
 		});
 	}
 });
-
-///////////////
-// DEV TOOLS //
-///////////////
-
-// $('#getStreamData').click(function(){
-// 	console.log(mummyData);
-// });
-
-// $('#getEmptySubscribers').click(function(){
-// 	console.log($('.subscriber:empty'));
-// 	console.log('Empty Subscriber Div length: ',$('.subscriber:empty').length);
-// });
-
-// Not currently used
-// $('#help').click(function(){
-// 	$('.help').toggleClass('hidden');
-// });
-

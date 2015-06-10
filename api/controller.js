@@ -1,8 +1,8 @@
-// var fs 		= require('fs');
-// var Path 	= require('path');
+// TODO: use Joi for post routes?
 // var Joi 	= require('joi');
+// TODO: use monogoDB to keep logs? e.g. attendance
 // var members = require('./models/members.js');
-var url		= require('url');
+
 var crypto = require('crypto');
 var opentok = require('./opentok');
 var s2m 	= require('./s2member.js');
@@ -14,11 +14,16 @@ var apiKey 		= config.openTok.key;
 // NOTES //
 
 // Auth strategy is a little complicated, with 2 cookies involved:
-// 1. Yar cookie 'session' used to track results of a call to the Member Mouse API at MW.com. results stored in 's2m_api' key
-// 2. Hapi-auth-coookie cookie 'oauth' used to track results of google oauth login
+// 1. Yar cookie 'session' used to track results of a call to the Semember API at MW.com. results stored in 's2m_api' key
+// 		s2member API call only made if timestamp within validity period, and HMAC of timestamp matches
+//		In this way, the shared secret acts as an API key.
+// NB. Incoming link qs includes:
+// a) user email address 'token' (base64 encoded)
+// b) php time stamp 'time' (epoch time in seconds)
+// c) SHA512 HMAC hash of time stamp made using shared secret 'hash'
 
-// 1. Currently not secure, needs a time based hash (at least). Consider encrypting token properly -mcrypt?. Conisder incorporating time based hash INTO encrypted token
-// 2. Compared against 's2m_api' to check email addresses match. An additional call to MM API is made to confirm googleEmail is valid secure user
+// 2. Hapi-auth-coookie cookie 'oauth' used to track results of google oauth login.
+//	Compared against 's2m_api' to check email addresses match. An additional call to s2member API is made to confirm googleEmail is valid secure user
 
 
 
@@ -42,7 +47,7 @@ function  generateToken(cookie) {
 
 	var token = opentok.generateToken(sessionId,({
 		role : 			tokBoxRole,
-		expireTime : 	(new Date().getTime() / 1000)+ 60*180, // in 3 hours
+		expireTime : 	(new Date().getTime() / 1000)+ 60*120, // in 2 hours
 		data : 			JSON.stringify( { email: email, 'username' : username, displayName : displayName, 'membershipLevel' : membershipLevel, role: tokBoxRole } )
 	}));
 	// console.log('Token: ', token);
@@ -56,6 +61,7 @@ function getHmac(value) {
 	var secret = config.hmac.secret;
 	var hmac = crypto.createHmac('sha512', secret);
 	hmac.update(value);
+	// output as hex to match php hmac output
 	var result = hmac.digest('hex');
 	return result;
 }
@@ -75,8 +81,9 @@ function serveClientView(request, reply) {
 		// check if membership is level 0. MW.com access only, no live classes
 		if (s2m_api.membershipLevel === 0) {
 			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
+			request.session.clear('s2m_api');
 			console.error('serveClientView() failed - membership expired');
-			return reply.view('invalidUser', { alert_error: 'Your membership has expired' });
+			return reply.view('invalidUser', { alert_error: 'Your Live Class access has expired.' });
 		}
 		// check for Instructor or Administrator membership level
 		if (s2m_api.membershipLevel === 10 || s2m_api.membershipLevel === 9) {
@@ -125,8 +132,8 @@ function serveSecureView(request, reply) {
 		// TODO - this step is redundant, as serveSecureView only called if mlevel ==9/10. double check and remove
 		if (s2m_api.membershipLevel === 0 ) {
 			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
-			console.error('serveSecureView() failed - membership expired');
-			return reply.view('invalidUser', { alert_error: 'Your membership has expired' });
+			console.error('serveSecureView() failed - membershipLevel 0');
+			return reply.view('invalidUser', { alert_error: 'Your Live Class access has expired.' });
 		}
 		// check for missing Instructor or Administrator membership level
 		if (s2m_api.membershipLevel !== 10 && s2m_api.membershipLevel !== 9) {
@@ -168,7 +175,7 @@ function serveSecureView(request, reply) {
 }
 
 ////////////////
-// Make a member mouse API call to MW.com to get user data
+// Make a s2member API call to MW.com to get user data
 // Set yar cookie 's2m_api' if found
 /////////////////
 
@@ -205,40 +212,6 @@ function setS2MemberCookie(userEmail, request, reply) {
 	});
 }
 
-///////////////
-// deal with query string if one or both cookies already set
-// check if query string contains a new user, or just the same one
-// if new email, clear cookie(s) and redirect with query string intact. If same user, redirect to remove query string
-//////////////
-
-function checkQueryString(request, reply) {
-	console.log('checkQueryString() called');
-	var urlObject = url.parse(request.url, true);
-	var s2m_api = request.session.get('s2m_api');
-	// first check if different user is trying to log in
-		if (urlObject.query.hasOwnProperty('token') && urlObject.query.token ) { //double check to account for e.g. token: undefined
-			var currentUserEmail = s2m_api.email;
-			var newUserEmail = new Buffer(urlObject.query.token, 'base64');
-			newUserEmail = newUserEmail.toString('utf8');
-			// if different user login attempted, clear s2m_api and start again
-			if (newUserEmail !== currentUserEmail) {
-				console.log('Email token for different user found. Clearing cookies and redirecting to root');
-				request.session.clear('s2m_api'); //? redundant?
-				request.auth.session.clear(); // in case trying to change from e.g. instructor to client
-				return reply.redirect('/?token=' + urlObject.query.token);
-			}
-			else {
-				// current users email address in query string. No need to reset cookie. Redirect to strip querystring from the url
-				console.log('Email token for current user found. Redirecting to root to strip querystring');
-				reply.redirect('/');
-			}
-		}
-		else {
-			// unwanted query string data, redirect to strip from URL.
-			console.log('Unrecognised query string found. Redirecting to root to strip querystring');
-			reply.redirect('/');
-		}
-}
 
 ///////////////////////////
 // homeView sub handlers //
@@ -246,13 +219,18 @@ function checkQueryString(request, reply) {
 
 function bothCookiesHandler(request, reply) {
 	console.log('bothCookiesHandler() called');
-	var urlObject = url.parse(request.url, true);
+	var query = request.url.query;
 	var s2m_api = request.session.get('s2m_api');
 	var googleEmail = request.auth.credentials.googleEmail;
 	var s2MemberEmail = s2m_api.email;
 	// check if query string present
-	if (Object.keys(urlObject.query).length > 0) {
-		checkQueryString(request, reply);
+	if (Object.keys(query).length > 0) {
+		console.log('Query string detected. Clear cookies and redirect');
+		// If url is decorated, someone is trying a new login. Clear cookies, and start again.
+		// New login ensures 2 hour session/token validity
+		request.session.clear('s2m_api');
+		request.auth.session.clear();
+		reply.redirect(request.url.href);
 	}
 	// check if email addresses match
 	else if (googleEmail !== s2MemberEmail) {
@@ -265,7 +243,7 @@ function bothCookiesHandler(request, reply) {
 	else {
 		// email addresses match!
 		console.log('s2m API email and googleEmail match!');
-		// make a second MM API query to check googleEmail is still a valid instructor
+		// make a second s2member API query to check googleEmail is still a valid instructor
 		// not possbile to check against original values, as they're only record is s2m_api, which is what we're fallback checking
 		// Reasoning: s2m_api cookie could be faked? (DOES THIS MAKE SENSE??) Defense in depth, fallback in case we did something stupid elsewhere!
 		s2m.getMember(googleEmail, function(err, memberData){
@@ -277,7 +255,7 @@ function bothCookiesHandler(request, reply) {
 				return reply.view('invalidUser', { alert_error: 'Error during secure login. Email verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
 			}
 			else if (memberData) {
-				// bool to check contents of MM query with googleEmail still valid for secure view
+				// bool to check contents of s2member query with googleEmail still valid for secure view
 				var membershipLevelCheck = (memberData.level === 10 || memberData.level === 9) ? true : false;
 				if ( membershipLevelCheck ) {
 					console.log('googleEmail membershipLevel confirmation succesful!');
@@ -302,13 +280,18 @@ function bothCookiesHandler(request, reply) {
 	}
 }
 
-function mmApiOnlyHandler(request, reply) {
-	console.log('mmApiOnlyHandler called');
-	var urlObject = url.parse(request.url, true);
+function s2mApiOnlyHandler(request, reply) {
+	console.log('s2mApiOnlyHandler called');
+	var query = request.url.query;
 	var s2m_api = request.session.get('s2m_api');
 	// check if query string present
-	if (Object.keys(urlObject.query).length > 0) {
-		checkQueryString(request, reply);
+	if (Object.keys(query).length > 0) {
+		console.log('Query string detected. Clear cookies and redirect');
+		// If url is decorated, someone is trying a new login. Clear cookies, and start again.
+		// New login ensures 2 hour session/token validity
+		request.session.clear('s2m_api');
+		request.auth.session.clear(); // redundant
+		reply.redirect(request.url.href);
 	}
 	else {
 		// url is clean and s2m_api cookie set.
@@ -327,36 +310,31 @@ function mmApiOnlyHandler(request, reply) {
 
 function noCookieHandler(request, reply) {
 	console.log('noCookieHandler() called');
-	var urlObject = url.parse(request.url, true);
+	var query = request.url.query;
 	// fail if no query string token and no s2m_api cookie
-
-
-	// console.log(urlObject);
-	// var hash = getHmac(urlObject.query.time);
-	// console.log(hash);
-	// console.log('hash match: ', hash === urlObject.query.hash);
-	// var time = Math.round( new Date().getTime()/1000); //epoch time in seconds
-	// console.log('time: ', time);
-	// console.log('in time limit? ', (time - urlObject.query.time < 30) );
-
-	if (!urlObject.query.hasOwnProperty('time') || !urlObject.query.time || !urlObject.query.hasOwnProperty('hash') || !urlObject.query.hash ) {
-		console.error('No query string time or hash found');
+	if (!query.hasOwnProperty('hash') || !query.hash) {
+		console.error('No query string timehash found');
 		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
 	}
-	else if (!urlObject.query.hasOwnProperty('token') || !urlObject.query.token  ) { //double check to account for e.g. token: undefined
-		console.error('No query string token found');
+	else if (!query.hasOwnProperty('time') || !query.time) {
+		console.error('No query string time found');
+		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
+	}
+	else if (!query.hasOwnProperty('token') || !query.token) { //double check to account for e.g. token: undefined
+		console.error('No query string email token found');
 		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
 		// return reply.redirect('http://mummyworkouts.com');
 	}
-	else if (urlObject.query.hasOwnProperty('token') && urlObject.query.token && urlObject.query.hasOwnProperty('time') && urlObject.query.time && urlObject.query.hasOwnProperty('hash') && urlObject.query.hash ) { //double check to account for e.g. token: undefined
+	// TODO: double check of props here is redundant. remove, make an else and remove fallback
+	else if (query.hasOwnProperty('token') && query.token && query.hasOwnProperty('time') && query.time && query.hasOwnProperty('hash') && query.hash ) { //double check to account for e.g. token: undefined
 		// check timeStamp and validity of hash
-		var timeStamp = urlObject.query.time;
+		var timeStamp = query.time;
 		var localTime = Math.round( new Date().getTime()/1000 ); //epoch time in seconds, as in php 'time()'
-		var remoteHash = urlObject.query.hash;
+		var remoteHash = query.hash;
 		var localHash = getHmac(timeStamp);
 		// check if timeStamp less than 1 day old (86400 seconds)
 		console.log('Timestamp is ', (parseInt(localTime,10) - timeStamp), 'seconds old' );
-
+		console.log('Timestamp validity is 86400 seconds (1 day)');
 		var timeStampIsValid = ( parseInt(localTime, 10) - timeStamp < 86400) ? true : false;
 		console.log('timeStampIsValid? ', timeStampIsValid);
 
@@ -365,7 +343,7 @@ function noCookieHandler(request, reply) {
 		console.log('timeStampHashesMatch?', timeStampHashesMatch);
 
 		// get user token from qs (Mummyworkouts.com email)
-		var token = urlObject.query.token;
+		var token = query.token;
 		console.log('Encoded user token: ', token);
 		// NB no need to URL decode - hapi does it automatically
 		var userEmail = new Buffer(token, 'base64');
@@ -378,7 +356,7 @@ function noCookieHandler(request, reply) {
 		}
 		else {
 			console.error('Link has expired, or wrong hmac secret');
-		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
+			return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
 		}
 	}
 	else {
@@ -429,7 +407,7 @@ module.exports = {
 		handler: function (request, reply) {
 			var s2m_api = request.session.get('s2m_api');
 			if (s2m_api) {
-				return reply.view('google', {mmEmail: s2m_api.email});
+				return reply.view('google', {s2mEmail: s2m_api.email});
 			}
 			// loginView shold only be accessed once s2m_api set
 			else {
@@ -470,9 +448,6 @@ module.exports = {
 			mode: 'try'
 		},
 		handler: function (request, reply ){
-			// console.dir(urlObject);
-			// console.log('Referer: ',request.headers.referer); <- no point trying to check referer. Not reliable.
-
 			// get s2m_api cookie
 			var s2m_api = request.session.get('s2m_api');
 
@@ -485,7 +460,7 @@ module.exports = {
 			// check if only 's2m_api' cookie already set
 			else if (s2m_api) {
 				console.log('Only s2m_api Cookie Found');
-				mmApiOnlyHandler(request, reply);
+				s2mApiOnlyHandler(request, reply);
 			}
 			// else no cookies set
 			else {
@@ -505,8 +480,8 @@ module.exports = {
 			// double auth required as only instructor should be accessing these routes
 			if (request.auth.isAuthenticated && s2m_api) {
 				console.log(request.payload);
-				var sessionIdToArchive = payload.sessionId;
-				var instructorName = payload.name;
+				var sessionIdToArchive = request.payload.sessionId;
+				var instructorName = request.payload.name;
 				var classDate = new Date().toString();
 				var archiveName = instructorName + ' - ' + classDate;
 
@@ -515,16 +490,15 @@ module.exports = {
 					outputMode: 'individual'
 				};
 
-				opentok.startArchive(sessionIdToRecord, archiveOptions , function(err, archive) {
+				opentok.startArchive(sessionIdToArchive, archiveOptions , function(err, archive) {
 					if (err) {
 						console.error(err);
-						return reply(err).code(500);
+						return reply(err).statusCode(500);
 					}
 					else {
-						// The id property is useful to save off into a database
 						console.log("new archive:" + archive.id);
 						console.dir(archive);
-						return reply(archive.id).code(500);
+						return reply(archive.id);
 					}
 				});
 			}
@@ -540,11 +514,11 @@ module.exports = {
 			// double auth required as only instructor should be accessing these routes
 			if (request.auth.isAuthenticated && s2m_api) {
 				console.log(request.payload);
-				var archiveIdToStop = payload.archiveId;
+				var archiveIdToStop = request.payload.archiveId;
 				opentok.stopArchive(archiveIdToStop, function(err, archive) {
   					if (err) {
   						console.error(err);
-  						return reply(err).code(500);
+  						return reply(err).statusCode(500);
   					}
   					else {
   						console.log("Stopped archive:" + archive.id);
@@ -555,8 +529,3 @@ module.exports = {
 		}
 	}
 };
-
-
-
-
-

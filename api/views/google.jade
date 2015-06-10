@@ -18,8 +18,8 @@ block content
 				p Please ensure that your browser is not already signed into a different google account.
 				p You can check if you are already signed in to google by visiting the <a href='https://accounts.google.com/' target='_blank'>google accounts</a> page.
 				br
-				if (mmEmail)
-					h4 You must login with #{mmEmail}
+				if (s2mEmail)
+					h4 You must login with #{s2mEmail}
 		.row
 			.col-md-6.col-md-offset-3(style='text-align:center;')
 				a.btn.btn-success#login(href='/login/google', role='button') Login with Google

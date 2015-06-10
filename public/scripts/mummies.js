@@ -53,10 +53,7 @@ function addModerator( stream ){
 // Attach event handlers
 session.on({
 
-	// This function runs when session.connect() asynchronously completes
 	sessionConnected: function(event) {
-		// Publish the publisher (this will trigger 'streamCreated' on other
-		// clients)
 		console.log(event);
 		console.log('Session Connection data:');
 		console.log(session.connection);
@@ -101,9 +98,8 @@ session.on({
 		console.log( 'Destroyed Stream: ');
 		console.dir( destroyedStream );
 
-		// var destroyedStreamId = event.stream.streamId;
 		unsubscribe(destroyedStream);
-		// var stream = event.stream;
+
 		console.log( 'Live Moderator Stream: ');
 		console.dir( liveModeratorStream );
 		if( connectionData.role === 'moderator'  && liveModeratorStream.streamId === destroyedStream.streamId) {
@@ -177,7 +173,8 @@ $('#logOut').click(function(){
 	var exit = confirm('\nAre you sure you want to exit the class?' +
 						'\n\n\'Cancel\' to remain in the class.\n\'OK\' to exit.');
 	if(exit){
-	// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
+		// using location.replace as it effectively disables the back button, forcing clients to rejoin the class via MW.com
+		// NB - auth cookies cleared by server
 		window.location.replace('/logout');
 	}
 });
