@@ -8,7 +8,7 @@ module.exports = {
 				key 	: 	process.env.OPENTOKKEY 		|| require('./creds.json').openTok.key,
 				secret 	: 	process.env.OPENTOKSECRET 	|| require('./creds.json').openTok.secret,
 				sessionId : process.env.SESSIONID 		|| require('./creds.json').openTok.sessionId,
-				archiveSessionId : process.env.ARCHIVESESSIONID 		|| require('./creds.json').openTok.archiveSessionId
+				archiveSessionId : process.env.ARCHIVESESSIONID 	|| require('./creds.json').openTok.archiveSessionId
 	},
 	google : {
 				secret 	: 	process.env.GOOGLESECRET 	|| require('./creds.json').google.secret,

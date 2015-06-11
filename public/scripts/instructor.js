@@ -4,19 +4,23 @@
 
 // TODO stop passing username local as no longer used. Check which other locals are also not used.
 
-
-// OT.setLogLevel(OT.DEBUG); // <- VERY verbose logging
-
-// Initialize an OpenTok Session object
-var session = OT.initSession(apiKey,sessionId);
-
+// Global vars passed to view template
 console.log('Token: ' + token);
 console.log('SessionId: ' + sessionId);
+console.log('ArchiveToken: ' + archiveToken);
+console.log('ArchiveSessionId: ' + archiveSessionId);
 console.log('Email: ' + email);
 console.log('Username: ' + username);
 console.log('Display Name: ' + displayName);
 console.log('MembershipLevel: ' + membershipLevel);
 console.log('Role: ' + role);
+
+// OT.setLogLevel(OT.DEBUG); // <- VERY verbose logging
+
+// Initialize an OpenTok Session object
+var session = OT.initSession(apiKey, sessionId);
+// Initialize a second OpenTok Session object to be recorded
+var archiveSession = OT.initSession(apiKey, archiveSessionId);
 
 // Initialize a Publisher, and place it into the element with id='publisher'
 var publisherOptions = {
@@ -30,6 +34,20 @@ var publisherOptions = {
 
 var publisher = OT.initPublisher('publisher', publisherOptions );
 
+
+//
+var archivePublisherOptions = {
+							name: displayName,
+							// width: '100%',
+							// height: '100%',
+							// resolution: '1280x720', // recording is always 640x480 == default res
+							frameRate: 30, //30 is max possible frame rate
+							style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
+						};
+
+// Initialize a second publisher to be recorded, and append to DOM (default -> null)
+var archivePublisher = OT.initPublisher(null, archivePublisherOptions );
+
 //////////////////
 // Data Object //
 /////////////////
@@ -38,7 +56,7 @@ var publisher = OT.initPublisher('publisher', publisherOptions );
 
 // mummyData[mummyId] = {stream:{}/null, subscriber:{}/null, status: 'active'/'inactive'/'no-stream'}
 var mummyData = {};
-
+// Id of started archive
 var archiveId;
 
 ///////////////////////
@@ -371,17 +389,6 @@ session.on({
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies();
 		}
-		/////////////////////////////////////////////
-		if (ownConnection) {
-			$.post('/start', {sessionId: sessionId, name: displayName})
-			.done(function(data){
-				console.log('Archive Started');
-				archiveId = data;
-			})
-			.fail(function(){
-				console.log('Archive Start FAILED');
-			});
-		}
 	},
 
 	streamCreated: function(event) {
@@ -485,10 +492,42 @@ OT.on('exception', function(event){
 	}
 });
 
+
+archiveSession.on({
+
+	sessionConnected: function(event) {
+		console.log(event);
+		console.log('Archive Session Connection data:');
+		console.log(session.connection);
+		console.log('Arhive Publisher properties:');
+		console.log(archivePublisher);
+		session.publish(archivePublisher);
+	},
+
+	connectionCreated: function(event) {
+		// leave ownConnetion check, to prevent sending extra requests if other instructors join by mistakr
+		var ownConnection = false;
+		if (event.target.connection.connectionId === archiveSession.connection.connectionId) ownConnection = true;
+
+		if (ownConnection) {
+			$.post('/start', {sessionId: archiveSessionId, name: displayName})
+			.done(function(data){
+				console.log('Archive Started');
+				archiveId = data;
+			})
+			.fail(function(){
+				console.log('Archive Start FAILED');
+			});
+		}
+	},
+
+});
+
 ////////////////////////////////
 // Session Connect!
 ///////////////////////////////
 session.connect(token);
+archiveSession.connect(archiveToken);
 ////////////////////////////////
 
 
@@ -657,19 +696,18 @@ $('#endClass').click(function(){
 			.done(function(){
 				archiveId = null;
 				console.log('Archive Stopped');
-				window.location.replace('/logout');
+				// window.location.replace('/logout');
 			})
 			.fail(function(){
 				console.log('Archive Stop FAILED');
 				// leave window anyway. Archive will time out after 60 seconds
-				window.location.replace('/logout');
+				// window.location.replace('/logout');
 			});
 		}
-		else {
-			// using location.replace as it effectively disables the back button, encouraging clients to rejoin the class via MW.com
-			// TODO clear cookies to force return to MW.com?
-			window.location.replace('/logout');
-		}
+		// leave window without waiting for AJAX reply - not needed unless debugging
+		// using location.replace as it effectively disables the back button, encouraging clients to rejoin the class via MW.com
+		// NB - auth cookies cleared by server
+		window.location.replace('/logout');
 	}
 });
 
@@ -687,19 +725,18 @@ $('#logOut').click(function(){
 			.done(function(){
 				archiveId = null;
 				console.log('Archive Stopped');
-				window.location.replace('/logout');
+				// window.location.replace('/logout');
 			})
 			.fail(function(){
 				console.log('Archive Stop FAILED');
 				// leave window anyway. Archive will time out after 60 seconds
-				window.location.replace('/logout');
+				// window.location.replace('/logout');
 			});
 		}
-		else {
-			// using location.replace as it effectively disables the back button, encouraging clients to rejoin the class via MW.com
-			// NB - auth cookies cleared by server
-			window.location.replace('/logout');
-		}
+		// leave window without waiting for AJAX reply - not needed unless debugging
+		// using location.replace as it effectively disables the back button, encouraging clients to rejoin the class via MW.com
+		// NB - auth cookies cleared by server
+		window.location.replace('/logout');
 	}
 });
 

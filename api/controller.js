@@ -7,9 +7,10 @@ var crypto = require('crypto');
 var opentok = require('./opentok');
 var s2m 	= require('./s2member.js');
 
-var config 		= require('./config');
-var sessionId 	= config.openTok.sessionId;
-var apiKey 		= config.openTok.key;
+var config 			= require('./config');
+var sessionId 		= config.openTok.sessionId;
+var archiveSessionId = config.openTok.archiveSessionId;
+var apiKey 			= config.openTok.key;
 
 // NOTES //
 
@@ -37,7 +38,7 @@ var apiKey 		= config.openTok.key;
 ////////////
 // Generate a TokBok token to send to the client
 /////////
-function  generateToken(cookie) {
+function  generateToken(cookie, sessionIdParam) {
 	var email 			= cookie.email;
 	var username 		= cookie.username;
 	var displayName 	= cookie.displayName;
@@ -45,7 +46,7 @@ function  generateToken(cookie) {
 	var tokBoxRole 		= (membershipLevel === 9) ? 'moderator' : 'publisher';
 	console.log( 'Token Generated:', '\nEmail: ' + email, '\nUsername: ' + username, '\nDisplayName: ' + displayName, '\nMembershipLevel: ' + membershipLevel, '\nTokBox Role: ' + tokBoxRole );
 
-	var token = opentok.generateToken(sessionId,({
+	var token = opentok.generateToken(sessionIdParam,({
 		role : 			tokBoxRole,
 		expireTime : 	(new Date().getTime() / 1000)+ 60*120, // in 2 hours
 		data : 			JSON.stringify( { email: email, 'username' : username, displayName : displayName, 'membershipLevel' : membershipLevel, role: tokBoxRole } )
@@ -94,7 +95,7 @@ function serveClientView(request, reply) {
 		}
 		else {
 			// generate TokBox token,
-			var token = generateToken(s2m_api);
+			var token = generateToken(s2m_api, sessionId);
 			// assemble local variables for view template
 			var locals = {	apiKey: apiKey,
 							sessionId: sessionId,
@@ -145,7 +146,7 @@ function serveSecureView(request, reply) {
 		}
 		else {
 			// generate TokBox token,
-			var token = generateToken(s2m_api);
+			var token = generateToken(s2m_api, sessionId);
 			// assemble local variables for view template
 			var locals = {	apiKey: apiKey,
 							sessionId: sessionId,
@@ -158,6 +159,12 @@ function serveSecureView(request, reply) {
 						};
 			if (s2m_api.membershipLevel === 9) {
 				console.log('Serving instructor view');
+				// add locals for instructor archiving session
+				var archiveToken = generateToken(s2m_api, archiveSessionId);
+
+				locals.archiveSessionId = archiveSessionId;
+				locals.archiveToken = archiveToken;
+
 				return reply.view('instructor', locals);
 			}
 			else if (s2m_api.membershipLevel === 10) {
@@ -237,9 +244,10 @@ function bothCookiesHandler(request, reply) {
 	else if (googleEmail.toLowerCase() !== s2MemberEmail.toLowerCase()) {
 		// fail! emails don't match
 		console.error('s2m API email and googleEmail don\'t match!');
+		console.log(googleEmail.toLowerCase(), '!==', s2MemberEmail.toLowerCase());
 		request.session.clear('s2m_api');
 		request.auth.session.clear();
-		return reply.view('invalidUser', { alert_error: 'Error during secure login. Email addresses do not match.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
+		return reply.view('invalidUser', { alert_error: 'Error during secure login. Email addresses do not match.\nReturn to mummyworkouts.com and try again.\nIf issue persists, please contact support.' });
 	}
 	else {
 		// email addresses match!
