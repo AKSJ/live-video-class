@@ -255,6 +255,7 @@ function bothCookiesHandler(request, reply) {
 		serveSecureView(request, reply);
 
 		// TODO fix secondary login check for case where capitalisation doesnt match
+		// TODO -remove secondary check! not reliable, possible difs between email addresses...
 
 		// make a second s2member API query to check googleEmail is still a valid instructor
 		// not possbile to check against original values, as they're only record is s2m_api, which is what we're fallback checking
@@ -509,7 +510,7 @@ module.exports = {
 						return reply(err).statusCode(500);
 					}
 					else {
-						console.log("new archive:" + archive.id);
+						console.log('new archive: ' + archive.id);
 						console.dir(archive);
 						return reply(archive.id);
 					}
@@ -529,16 +530,23 @@ module.exports = {
 				console.log(request.payload);
 				var archiveIdToStop = request.payload.archiveId;
 				opentok.stopArchive(archiveIdToStop, function(err, archive) {
-  					if (err) {
-  						console.error(err);
-  						return reply(err).statusCode(500);
-  					}
-  					else {
-  						console.log("Stopped archive:" + archive.id);
-  						return reply("Stopped archive:" + archive.id);
-  					}
+					if (err) {
+						console.error(err);
+						return reply(err).statusCode(500);
+					}
+					else {
+						console.log('Stopped archive: ' + archive.id);
+						return reply('Stopped archive: ' + archive.id);
+					}
 				});
 			}
+		}
+	},
+
+	logArchive: {
+		auth: false,
+		handler: function (request, reply ){
+			console.log(request.payload);
 		}
 	}
 };

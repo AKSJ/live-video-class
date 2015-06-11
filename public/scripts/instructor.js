@@ -41,12 +41,13 @@ var archivePublisherOptions = {
 							// width: '100%',
 							// height: '100%',
 							// resolution: '1280x720', // recording is always 640x480 == default res
+							insertMode: 'append',
 							frameRate: 30, //30 is max possible frame rate
 							style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
 						};
 
-// Initialize a second publisher to be recorded, and append to DOM (default -> null)
-var archivePublisher = OT.initPublisher(null, archivePublisherOptions );
+// Initialize a second publisher to be recorded -appended to hidden div, so not visible
+var archivePublisher = OT.initPublisher('archive-publisher', archivePublisherOptions );
 
 //////////////////
 // Data Object //
@@ -498,10 +499,10 @@ archiveSession.on({
 	sessionConnected: function(event) {
 		console.log(event);
 		console.log('Archive Session Connection data:');
-		console.log(session.connection);
+		console.log(archiveSession.connection);
 		console.log('Arhive Publisher properties:');
 		console.log(archivePublisher);
-		session.publish(archivePublisher);
+		archiveSession.publish(archivePublisher);
 	},
 
 	connectionCreated: function(event) {
@@ -512,7 +513,7 @@ archiveSession.on({
 		if (ownConnection) {
 			$.post('/start', {sessionId: archiveSessionId, name: displayName})
 			.done(function(data){
-				console.log('Archive Started');
+				console.log('Archive Started. id: '+ data);
 				archiveId = data;
 			})
 			.fail(function(){
@@ -531,18 +532,6 @@ archiveSession.connect(archiveToken);
 ////////////////////////////////
 
 
-// Instructor video toggles -currently removed
-// $('#stopStream').click(function(){
-// 	session.unpublish(publisher);
-// 	// publisher.publishVideo(false);
-// 	// publisher.publishAudio(false);
-// });
-
-// $('#startStream').click(function(){
-// 	session.publish(publisher);
-// 	// publisher.publishVideo(true);
-// 	// publisher.publishAudio(true);
-// });
 
 /////////////
 //  Timer  //
@@ -790,3 +779,17 @@ $(document).on('click', '.OT_subscriber', function(){
 		});
 	}
 });
+
+
+// Instructor video toggles -currently removed
+// $('#stopStream').click(function(){
+// 	session.unpublish(publisher);
+// 	// publisher.publishVideo(false);
+// 	// publisher.publishAudio(false);
+// });
+
+// $('#startStream').click(function(){
+// 	session.publish(publisher);
+// 	// publisher.publishVideo(true);
+// 	// publisher.publishAudio(true);
+// });

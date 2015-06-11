@@ -93,6 +93,10 @@ button {
 	margin-bottom: 4px;
 }
 
+#archive-publisher {
+	display:none;
+}
+
 .hidden {
 	display: none;
 }
