@@ -37,7 +37,7 @@ var publisherOptions = {
 var publisher = OT.initPublisher('publisher', publisherOptions );
 
 
-//
+// Initialize a second publisher to be recorded -appended to hidden div, so not visible
 var archivePublisherOptions = {
 							name: displayName,
 							// width: '100%',
@@ -49,8 +49,7 @@ var archivePublisherOptions = {
 							// style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
 						};
 
-// Initialize a second publisher to be recorded -appended to hidden div, so not visible
-// var archivePublisher = OT.initPublisher('archive-publisher', archivePublisherOptions );
+var archivePublisher = OT.initPublisher('archive-publisher', archivePublisherOptions );
 
 //////////////////
 // Data Object //
@@ -502,8 +501,8 @@ archiveSession.on({
 		console.log('Archive Session Connection data:');
 		console.log(archiveSession.connection);
 		console.log('Arhive Publisher properties:');
-		// console.log(archivePublisher);
-		archiveSession.publish(publisher);  //!!!
+		console.log(archivePublisher);
+		archiveSession.publish(archivePublisher);
 	},
 
 	connectionCreated: function(event) {
@@ -514,11 +513,11 @@ archiveSession.on({
 		if (ownConnection) {
 			$.post('/start', {sessionId: archiveSessionId, name: displayName})
 			.done(function(data){
-				console.log('Archive Started. id: '+ data);
+				console.log('Archive Started. id: ' + data);
 				archiveId = data;
 			})
-			.fail(function(){
-				console.log('Archive Start FAILED');
+			.fail(function(data){
+				console.log('Archive Start FAILED: ' + data);
 			});
 		}
 	},
@@ -688,8 +687,8 @@ $('#endClass').click(function(){
 				console.log('Archive Stopped');
 				// window.location.replace('/logout');
 			})
-			.fail(function(){
-				console.log('Archive Stop FAILED');
+			.fail(function(data){
+				console.log('Archive Stop FAILED: ' + data );
 				// leave window anyway. Archive will time out after 60 seconds
 				// window.location.replace('/logout');
 			});
@@ -717,8 +716,8 @@ $('#logOut').click(function(){
 				console.log('Archive Stopped');
 				// window.location.replace('/logout');
 			})
-			.fail(function(){
-				console.log('Archive Stop FAILED');
+			.fail(function(data){
+				console.log('Archive Stop FAILED: ' + data );
 				// leave window anyway. Archive will time out after 60 seconds
 				// window.location.replace('/logout');
 			});

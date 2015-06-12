@@ -548,7 +548,11 @@ module.exports = {
 	logArchive: {
 		auth: false,
 		handler: function (request, reply ){
-			console.log('Archive Status Changed:\n', request.payload);
+			console.log('Archive Status Changed:',
+						'\nArchiveId: ' + request.payload.id,
+						'\nName: ' + request.payload.name,
+						'\nStatus: ' + request.payload.status,
+						'\nreason: ' + request.payload.reason);
 			reply('PONG');
 		}
 	}
