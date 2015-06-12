@@ -31,7 +31,6 @@
     "mongoose": "^4.0.5",
     "nodemon": "^1.3.7",
     "opentok": "^2.3.0",
-    "request": "^2.57.0",
     "superagent": "^1.2.0",
     "wreck": "^5.5.1",
     "yar": "^3.0.3"

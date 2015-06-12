@@ -28,7 +28,7 @@ var publisherOptions = {
 							width: '100%',
 							height: '100%',
 							// resolution choices: "1280x720", "640x480" (default), "320x240"
-							resolution: '320x240',
+							resolution: '640x480',
 							// framerate choices: 30, 15, 7, 1
 							// frameRate: 30,
 							style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/}
@@ -42,9 +42,10 @@ var archivePublisherOptions = {
 							name: displayName,
 							// width: '100%',
 							// height: '100%',
-							resolution: '320x240', // recording is always 640x480 == default res
+							resolution: '640x480', // recording is always 640x480 (== default res)
 							insertMode: 'append' //,
-							// frameRate: 30, //30 is max possible frame rate
+							// framerate choices: 30, 15, 7, 1
+							// frameRate: 30,
 							// style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
 						};
 
