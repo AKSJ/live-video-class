@@ -396,7 +396,7 @@ session.on({
 		//////////////////
 		// /////////////////
 		if (ownConnection) {
-			$.post('/start', {sessionId: SessionId, name: displayName})
+			$.post('/start', {sessionId: sessionId, name: displayName})
 			.done(function(data){
 				console.log('Archive Started. id: ' + data);
 				archiveId = data;
