@@ -502,7 +502,7 @@ archiveSession.on({
 		console.log('Archive Session Connection data:');
 		console.log(archiveSession.connection);
 		console.log('Arhive Publisher properties:');
-		console.log(archivePublisher);
+		// console.log(archivePublisher);
 		archiveSession.publish(publisher);  //!!!
 	},
 
