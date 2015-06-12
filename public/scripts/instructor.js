@@ -543,7 +543,7 @@ archiveSession.on({
 // Session Connect!
 ///////////////////////////////
 session.connect(token);
-// archiveSession.connect(archiveToken);
+archiveSession.connect(archiveToken);
 ////////////////////////////////
 
 
