@@ -27,8 +27,10 @@ var publisherOptions = {
 							name: displayName,
 							width: '100%',
 							height: '100%',
-							resolution: '1280x720', // '1280x720' is max possible resolution -default 640x480
-							frameRate: 30, //30 is max possible frame rate
+							// resolution choices: "1280x720", "640x480" (default), "320x240"
+							resolution: '320x240',
+							// framerate choices: 30, 15, 7, 1
+							// frameRate: 30,
 							style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/}
 						};
 
@@ -40,10 +42,10 @@ var archivePublisherOptions = {
 							name: displayName,
 							// width: '100%',
 							// height: '100%',
-							// resolution: '1280x720', // recording is always 640x480 == default res
-							insertMode: 'append',
-							frameRate: 30, //30 is max possible frame rate
-							style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
+							resolution: '320x240', // recording is always 640x480 == default res
+							insertMode: 'append' //,
+							// frameRate: 30, //30 is max possible frame rate
+							// style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
 						};
 
 // Initialize a second publisher to be recorded -appended to hidden div, so not visible
