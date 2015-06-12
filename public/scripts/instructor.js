@@ -50,7 +50,7 @@ var archivePublisherOptions = {
 						};
 
 // Initialize a second publisher to be recorded -appended to hidden div, so not visible
-var archivePublisher = OT.initPublisher('archive-publisher', archivePublisherOptions );
+// var archivePublisher = OT.initPublisher('archive-publisher', archivePublisherOptions );
 
 //////////////////
 // Data Object //
