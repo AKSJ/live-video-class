@@ -507,7 +507,8 @@ module.exports = {
 				opentok.startArchive(sessionIdToArchive, archiveOptions , function(err, archive) {
 					if (err) {
 						console.error(err);
-						return reply(err).statusCode(500);
+						// problem setting status code of error! complains opentok error has no method .statusCode!
+						return reply(err);
 					}
 					else {
 						console.log('new archive: ' + archive.id);
@@ -529,10 +530,11 @@ module.exports = {
 			if (request.auth.isAuthenticated && s2m_api) {
 				console.log(request.payload);
 				var archiveIdToStop = request.payload.archiveId;
+
 				opentok.stopArchive(archiveIdToStop, function(err, archive) {
 					if (err) {
 						console.error(err);
-						return reply(err).statusCode(500);
+						return reply(err);
 					}
 					else {
 						console.log('Stopped archive: ' + archive.id);
@@ -547,6 +549,7 @@ module.exports = {
 		auth: false,
 		handler: function (request, reply ){
 			console.log(request.payload);
+			reply('PONG');
 		}
 	}
 };

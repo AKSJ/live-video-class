@@ -15,7 +15,7 @@ console.log('Display Name: ' + displayName);
 console.log('MembershipLevel: ' + membershipLevel);
 console.log('Role: ' + role);
 
-// OT.setLogLevel(OT.DEBUG); // <- VERY verbose logging
+OT.setLogLevel(OT.LOG); // <- or OT.DEBUG for VERY verbose logging
 
 // Initialize an OpenTok Session object
 var session = OT.initSession(apiKey, sessionId);
@@ -376,7 +376,7 @@ session.on({
 		var mummyId = makeMummyId(connectionData.email);
 		var role = connectionData.role;
 		var displayName = connectionData.displayName;
-		// check if receving own connection created event
+		// check if recieving own connection created event
 		var ownConnection = false;
 		if (event.target.connection.connectionId === session.connection.connectionId) ownConnection = true;
 		if (!mummyData.hasOwnProperty(mummyId) && !ownConnection ) {
@@ -396,7 +396,6 @@ session.on({
 		console.log(event);
 
 		var stream = event.stream;
-		// var streamId = stream.streamId;  //not used?
 		var connectionData = JSON.parse(stream.connection.data);
 		var mummyId = makeMummyId(connectionData.email);
 		var role = connectionData.role;
@@ -428,7 +427,6 @@ session.on({
 		event.preventDefault();
 
 		var destroyedStream = event.stream;
-		var destroyedStreamId = event.stream.streamId;
 		var connectionData = JSON.parse(destroyedStream.connection.data);
 		var mummyId = makeMummyId(connectionData.email);
 		// If stream subscribed, unsub (remove dom)

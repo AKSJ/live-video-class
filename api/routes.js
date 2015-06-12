@@ -9,6 +9,6 @@ module.exports = [
 	{path: '/loggedout',				method: 'GET',		config: controller.loggedoutView},
 	{path: '/start',					method: 'POST',		config: controller.startArchive},
 	{path: '/stop',						method: 'POST',		config: controller.stopArchive},
-	{path: '/log',						method: 'POST',		config: controller.logArchive}
+	{path: '/log',					method: ['GET','POST'],	config: controller.logArchive}
 ];
 
