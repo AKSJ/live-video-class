@@ -19,8 +19,9 @@ OT.setLogLevel(OT.LOG); // <- or OT.DEBUG for VERY verbose logging
 
 // Initialize an OpenTok Session object
 var session = OT.initSession(apiKey, sessionId);
+
 // Initialize a second OpenTok Session object to be recorded
-// var archiveSession = OT.initSession(apiKey, archiveSessionId);
+var archiveSession = OT.initSession(apiKey, archiveSessionId);
 
 // Initialize a Publisher, and place it into the element with id='publisher'
 var publisherOptions = {
@@ -38,18 +39,19 @@ var publisher = OT.initPublisher('publisher', publisherOptions );
 
 
 // Initialize a second publisher to be recorded -appended to hidden div, so not visible
-// var archivePublisherOptions = {
-// 							name: displayName,
-// 							// width: '100%',
-// 							// height: '100%',
-// 							resolution: '640x480', // recording is always 640x480 (== default res)
-// 							insertMode: 'append' //,
-// 							// framerate choices: 30, 15, 7, 1
-// 							// frameRate: 30,
-// 							// style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
-// 						};
 
-// var archivePublisher = OT.initPublisher('archive-publisher', archivePublisherOptions );
+var archivePublisherOptions = {
+							name: displayName,
+							// width: '100%',
+							// height: '100%',
+							resolution: '640x480', // recording is always 640x480 (== default res)
+							insertMode: 'append' //,
+							// framerate choices: 30, 15, 7, 1
+							// frameRate: 30,
+							// style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
+						};
+
+var archivePublisher = OT.initPublisher('archive-publisher', archivePublisherOptions );
 
 //////////////////
 // Data Object //
@@ -392,19 +394,19 @@ session.on({
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies();
 		}
-
-		//////////////////
-		// /////////////////
-		if (ownConnection) {
-			$.post('/start', {sessionId: sessionId, name: displayName})
-			.done(function(data){
-				console.log('Archive Started. id: ' + data);
-				archiveId = data;
-			})
-			.fail(function(data){
-				console.log('Archive Start FAILED: ' + data);
-			});
-		}
+		/////////////////////
+		// Code to archive main session
+		///////////////////
+		// if (ownConnection) {
+		// 	$.post('/start', {sessionId: sessionId, name: displayName})
+		// 	.done(function(data){
+		// 		console.log('Archive Started. id: ' + data);
+		// 		archiveId = data;
+		// 	})
+		// 	.fail(function(data){
+		// 		console.log('Archive Start FAILED: ' + data);
+		// 	});
+		// }
 	},
 
 	streamCreated: function(event) {
@@ -507,35 +509,35 @@ OT.on('exception', function(event){
 });
 
 
-// archiveSession.on({
+archiveSession.on({
 
-// 	sessionConnected: function(event) {
-// 		console.log(event);
-// 		console.log('Archive Session Connection data:');
-// 		console.log(archiveSession.connection);
-// 		console.log('Arhive Publisher properties:');
-// 		console.log(archivePublisher);
-// 		archiveSession.publish(archivePublisher);
-// 	},
+	sessionConnected: function(event) {
+		console.log(event);
+		console.log('Archive Session Connection data:');
+		console.log(archiveSession.connection);
+		console.log('Arhive Publisher properties:');
+		console.log(archivePublisher);
+		archiveSession.publish(archivePublisher);
+	},
 
-// 	connectionCreated: function(event) {
-// 		// leave ownConnetion check, to prevent sending extra requests if other instructors join by mistakr
-// 		var ownConnection = false;
-// 		if (event.target.connection.connectionId === archiveSession.connection.connectionId) ownConnection = true;
+	connectionCreated: function(event) {
+		// leave ownConnetion check, to prevent sending extra requests if other instructors join by mistakr
+		var ownConnection = false;
+		if (event.target.connection.connectionId === archiveSession.connection.connectionId) ownConnection = true;
 
-// 		if (ownConnection) {
-// 			$.post('/start', {sessionId: archiveSessionId, name: displayName})
-// 			.done(function(data){
-// 				console.log('Archive Started. id: ' + data);
-// 				archiveId = data;
-// 			})
-// 			.fail(function(data){
-// 				console.log('Archive Start FAILED: ' + data);
-// 			});
-// 		}
-// 	},
+		if (ownConnection) {
+			$.post('/start', {sessionId: archiveSessionId, name: displayName})
+			.done(function(data){
+				console.log('Archive Started. id: ' + data);
+				archiveId = data;
+			})
+			.fail(function(data){
+				console.log('Archive Start FAILED: ' + data);
+			});
+		}
+	},
 
-// });
+});
 
 ////////////////////////////////
 // Session Connect!
