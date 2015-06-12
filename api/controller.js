@@ -493,7 +493,7 @@ module.exports = {
 			var s2m_api = request.session.get('s2m_api');
 			// double auth required as only instructor should be accessing these routes
 			if (request.auth.isAuthenticated && s2m_api) {
-				console.log(request.payload);
+				// console.log(request.payload);
 				var sessionIdToArchive = request.payload.sessionId;
 				var instructorName = request.payload.name;
 				var classDate = new Date().toString();
@@ -528,7 +528,7 @@ module.exports = {
 			var s2m_api = request.session.get('s2m_api');
 			// double auth required as only instructor should be accessing these routes
 			if (request.auth.isAuthenticated && s2m_api) {
-				console.log(request.payload);
+				// console.log(request.payload);
 				var archiveIdToStop = request.payload.archiveId;
 
 				opentok.stopArchive(archiveIdToStop, function(err, archive) {
