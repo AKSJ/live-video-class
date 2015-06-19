@@ -9,7 +9,7 @@ var s2m 	= require('./s2member.js');
 
 var config 			= require('./config');
 var sessionId 		= config.openTok.sessionId;
-var archiveSessionId = config.openTok.archiveSessionId;
+var fallbackArchiveSessionId = config.openTok.archiveSessionId;
 var apiKey 			= config.openTok.key;
 
 // NOTES //
@@ -157,16 +157,32 @@ function serveSecureView(request, reply) {
 							email: s2m_api.email,
 							displayName: s2m_api.displayName,
 						};
+
 			if (s2m_api.membershipLevel === 9) {
 				console.log('Serving instructor view');
 				// add locals for instructor archiving session
-				var archiveToken = generateToken(s2m_api, archiveSessionId);
+				var archiveToken;
+				// attempt to generate new session id for archiving purposes
+				// (prevents instructor overlap issues)
+				openTok.createSession({mediaMode: 'routed'}, function(err, session) {
+					if (err) {
+						console.error(err);
+						archiveToken = generateToken(s2m_api, fallbackArchiveSessionId);
+						locals.archiveSessionId = fallbackArchiveSessionId;
+						locals.archiveToken = archiveToken;
 
-				locals.archiveSessionId = archiveSessionId;
-				locals.archiveToken = archiveToken;
+						return reply.view('instructor', locals);
+					}
+					else if (session) {
+						archiveToken = generateToken(s2m_api, session.sessionId);
+						locals.archiveSessionId = session.sessionId;
+						locals.archiveToken = archiveToken;
 
-				return reply.view('instructor', locals);
+						return reply.view('instructor', locals);
+					}
+				});
 			}
+
 			else if (s2m_api.membershipLevel === 10) {
 				console.log('Serving administrator view');
 				// NB Admin view currently just client view

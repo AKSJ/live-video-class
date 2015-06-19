@@ -21,7 +21,8 @@ OT.setLogLevel(OT.LOG); // <- or OT.DEBUG for VERY verbose logging
 var session = OT.initSession(apiKey, sessionId);
 
 // Initialize a second OpenTok Session object to be recorded
-var archiveSession = OT.initSession(apiKey, archiveSessionId);
+
+// var archiveSession = OT.initSession(apiKey, archiveSessionId);
 
 // Initialize a Publisher, and place it into the element with id='publisher'
 var publisherOptions = {
@@ -29,9 +30,9 @@ var publisherOptions = {
 							width: '100%',
 							height: '100%',
 							// resolution choices: "1280x720", "640x480" (default), "320x240"
-							resolution: '640x480',
+							resolution: '1280x720',
 							// framerate choices: 30, 15, 7, 1
-							// frameRate: 30,
+							frameRate: 30,
 							style: {nameDisplayMode: 'on', /*buttonDisplayMode: 'on'*/}
 						};
 
@@ -40,18 +41,18 @@ var publisher = OT.initPublisher('publisher', publisherOptions );
 
 // Initialize a second publisher to be recorded -appended to hidden div, so not visible
 
-var archivePublisherOptions = {
-							name: displayName,
-							// width: '100%',
-							// height: '100%',
-							resolution: '640x480', // recording is always 640x480 (== default res)
-							insertMode: 'append' //,
-							// framerate choices: 30, 15, 7, 1
-							// frameRate: 30,
-							// style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
-						};
+// var archivePublisherOptions = {
+// 							name: displayName,
+// 							// width: '100%',
+// 							// height: '100%',
+// 							resolution: '640x480', // recording is always 640x480 (== default res)
+// 							insertMode: 'append' //,
+// 							// framerate choices: 30, 15, 7, 1
+// 							// frameRate: 30,
+// 							// style: {nameDisplayMode: 'off', buttonDisplayMode: 'off'}
+// 						};
 
-var archivePublisher = OT.initPublisher('archive-publisher', archivePublisherOptions );
+// var archivePublisher = OT.initPublisher('archive-publisher', archivePublisherOptions );
 
 //////////////////
 // Data Object //
@@ -509,41 +510,41 @@ OT.on('exception', function(event){
 });
 
 
-archiveSession.on({
+// archiveSession.on({
 
-	sessionConnected: function(event) {
-		console.log(event);
-		console.log('Archive Session Connection data:');
-		console.log(archiveSession.connection);
-		console.log('Arhive Publisher properties:');
-		console.log(archivePublisher);
-		archiveSession.publish(archivePublisher);
-	},
+// 	sessionConnected: function(event) {
+// 		console.log(event);
+// 		console.log('Archive Session Connection data:');
+// 		console.log(archiveSession.connection);
+// 		console.log('Arhive Publisher properties:');
+// 		console.log(archivePublisher);
+// 		archiveSession.publish(archivePublisher);
+// 	},
 
-	connectionCreated: function(event) {
-		// leave ownConnetion check, to prevent sending extra requests if other instructors join by mistakr
-		var ownConnection = false;
-		if (event.target.connection.connectionId === archiveSession.connection.connectionId) ownConnection = true;
+// 	connectionCreated: function(event) {
+// 		// leave ownConnetion check, to prevent sending extra requests if other instructors join by mistakr
+// 		var ownConnection = false;
+// 		if (event.target.connection.connectionId === archiveSession.connection.connectionId) ownConnection = true;
 
-		if (ownConnection) {
-			$.post('/start', {sessionId: archiveSessionId, name: displayName})
-			.done(function(data){
-				console.log('Archive Started. id: ' + data);
-				archiveId = data;
-			})
-			.fail(function(data){
-				console.log('Archive Start FAILED: ' + data);
-			});
-		}
-	},
+// 		if (ownConnection) {
+// 			$.post('/start', {sessionId: archiveSessionId, name: displayName})
+// 			.done(function(data){
+// 				console.log('Archive Started. id: ' + data);
+// 				archiveId = data;
+// 			})
+// 			.fail(function(data){
+// 				console.log('Archive Start FAILED: ' + data);
+// 			});
+// 		}
+// 	},
 
-});
+// });
 
 ////////////////////////////////
 // Session Connect!
 ///////////////////////////////
 session.connect(token);
-archiveSession.connect(archiveToken);
+// archiveSession.connect(archiveToken);
 ////////////////////////////////
 
 
@@ -703,7 +704,8 @@ $('#endClass').click(function(){
 				// window.location.replace('/logout');
 			})
 			.fail(function(data){
-				console.log('Archive Stop FAILED: ' + data );
+				console.log('Archive Stop FAILED:');
+				console.log(data);
 				// leave window anyway. Archive will time out after 60 seconds
 				// window.location.replace('/logout');
 			});
@@ -732,7 +734,8 @@ $('#logOut').click(function(){
 				// window.location.replace('/logout');
 			})
 			.fail(function(data){
-				console.log('Archive Stop FAILED: ' + data );
+				console.log('Archive Stop FAILED:');
+				console.log(data);
 				// leave window anyway. Archive will time out after 60 seconds
 				// window.location.replace('/logout');
 			});
