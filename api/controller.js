@@ -164,7 +164,7 @@ function serveSecureView(request, reply) {
 				var archiveToken;
 				// attempt to generate new session id for archiving purposes
 				// (prevents instructor overlap issues)
-				openTok.createSession({mediaMode: 'routed'}, function(err, session) {
+				opentok.createSession({mediaMode: 'routed'}, function(err, session) {
 					if (err) {
 						console.error(err);
 						archiveToken = generateToken(s2m_api, fallbackArchiveSessionId);
