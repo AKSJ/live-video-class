@@ -4,7 +4,7 @@
 // var members = require('./models/members.js');
 
 var crypto = require('crypto');
-var opentok = require('./opentok');
+var openTok = require('./opentok');
 var s2m 	= require('./s2member.js');
 
 var config 			= require('./config');
@@ -46,7 +46,7 @@ function  generateToken(cookie, sessionIdParam) {
 	var tokBoxRole 		= (membershipLevel === 9) ? 'moderator' : 'publisher';
 	console.log( 'Token Generated:', '\nEmail: ' + email, '\nUsername: ' + username, '\nDisplayName: ' + displayName, '\nMembershipLevel: ' + membershipLevel, '\nTokBox Role: ' + tokBoxRole );
 
-	var token = opentok.generateToken(sessionIdParam,({
+	var token = openTok.generateToken(sessionIdParam,({
 		role : 			tokBoxRole,
 		expireTime : 	(new Date().getTime() / 1000)+ 60*120, // in 2 hours
 		data : 			JSON.stringify( { email: email, 'username' : username, displayName : displayName, 'membershipLevel' : membershipLevel, role: tokBoxRole } )
@@ -164,7 +164,7 @@ function serveSecureView(request, reply) {
 				var archiveToken;
 				// attempt to generate new session id for archiving purposes
 				// (prevents instructor overlap issues)
-				opentok.createSession({mediaMode: 'routed'}, function(err, session) {
+				openTok.createSession({mediaMode: 'routed'}, function(err, session) {
 					if (err) {
 						console.error(err);
 						archiveToken = generateToken(s2m_api, fallbackArchiveSessionId);
@@ -520,10 +520,10 @@ module.exports = {
 					outputMode: 'individual'
 				};
 
-				opentok.startArchive(sessionIdToArchive, archiveOptions , function(err, archive) {
+				openTok.startArchive(sessionIdToArchive, archiveOptions , function(err, archive) {
 					if (err) {
 						console.error(err);
-						// problem setting status code of error! complains opentok error has no method .statusCode!
+						// problem setting status code of error! complains openTok error has no method .statusCode!
 						return reply(err);
 					}
 					else {
@@ -547,7 +547,7 @@ module.exports = {
 				// console.log(request.payload);
 				var archiveIdToStop = request.payload.archiveId;
 
-				opentok.stopArchive(archiveIdToStop, function(err, archive) {
+				openTok.stopArchive(archiveIdToStop, function(err, archive) {
 					if (err) {
 						console.error(err);
 						return reply(err);
