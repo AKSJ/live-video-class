@@ -499,7 +499,7 @@ publisher.on({
 
 	streamCreated: function(event) {
 		console.log(event);
-		$.post('/start', {sessionId: sessionId, name: displayName, streamId: event.stream.id + 'OR' + publisher.streamId})
+		$.post('/start', {sessionId: sessionId, name: displayName, streamId: event.stream.id} )
 		.done(function(data){
 			console.log('Archive Started, id: ' + data);
 			archiveId = data;
