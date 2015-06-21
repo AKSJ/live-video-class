@@ -398,20 +398,20 @@ session.on({
 		/////////////////////
 		// Code to archive main session
 		///////////////////
-		if (ownConnection) {
-			console.log('POST');
-			console.log(publisher);
-			console.log(publisher.streamId);
-			console.log(publisher.stream.id);
-			$.post('/start', {sessionId: sessionId, name: displayName, streamId: publisher.streamId})
-			.done(function(data){
-				console.log('Archive Started, id: ' + data);
-				archiveId = data;
-			})
-			.fail(function(data){
-				console.log('Archive Start FAILED: ' + data);
-			});
-		}
+		// if (ownConnection) {
+		// 	console.log('POST');
+		// 	console.log(publisher);
+		// 	console.log(publisher.streamId);
+		// 	console.log(publisher.stream.id);
+		// 	$.post('/start', {sessionId: sessionId, name: displayName, streamId: publisher.streamId})
+		// 	.done(function(data){
+		// 		console.log('Archive Started, id: ' + data);
+		// 		archiveId = data;
+		// 	})
+		// 	.fail(function(data){
+		// 		console.log('Archive Start FAILED: ' + data);
+		// 	});
+		// }
 	},
 
 	streamCreated: function(event) {
@@ -496,13 +496,26 @@ session.on({
 });
 
 publisher.on({
+
+	streamCreated: function(event) {
+		console.log(event);
+		$.post('/start', {sessionId: sessionId, name: displayName, streamId: event.stream.id})
+		.done(function(data){
+			console.log('Archive Started, id: ' + data);
+			archiveId = data;
+		})
+		.fail(function(data){
+			console.log('Archive Start FAILED: ' + data);
+		});
+	},
+
 	streamDestroyed: function(event) {
 		// Check if stream is our own. We want to leave it in place if so.
-		console.log('Publisher Event:');
-		console.log(event);
+		// console.log('Publisher Event:');
+		// console.log(event);
 		// TODO add 'if session/ if session hasOWnProerpty connection to prevent not defined error whenown connection breaks
 		if (event.stream.connection.connectionId === session.connection.connectionId) {
-			console.log('ConnectionId match');
+			// console.log('ConnectionId match');
 			event.preventDefault();
 		}
 	}
