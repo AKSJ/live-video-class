@@ -402,6 +402,7 @@ session.on({
 			console.log('POST');
 			console.log(publisher);
 			console.log(publisher.streamId);
+			console.log(publisher.stream.id);
 			$.post('/start', {sessionId: sessionId, name: displayName, streamId: publisher.streamId})
 			.done(function(data){
 				console.log('Archive Started, id: ' + data);
