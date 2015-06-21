@@ -399,6 +399,9 @@ session.on({
 		// Code to archive main session
 		///////////////////
 		if (ownConnection) {
+			console.log('POST');
+			console.log(publisher);
+			console.log(publisher.streamId);
 			$.post('/start', {sessionId: sessionId, name: displayName, streamId: publisher.streamId})
 			.done(function(data){
 				console.log('Archive Started, id: ' + data);
