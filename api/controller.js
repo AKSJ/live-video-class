@@ -513,7 +513,7 @@ module.exports = {
 				var sessionIdToArchive = request.payload.sessionId;
 				var instructorName = request.payload.name;
 				var instructorStreamId = request.payload.streamId;
-				var archiveName = instructorName + ' - ' + instructorStreamId;
+				var archiveName = instructorName + ' : ' + instructorStreamId;
 
 				var archiveOptions = {
 					name: archiveName,
