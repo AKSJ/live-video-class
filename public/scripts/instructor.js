@@ -398,16 +398,16 @@ session.on({
 		/////////////////////
 		// Code to archive main session
 		///////////////////
-		// if (ownConnection) {
-		// 	$.post('/start', {sessionId: sessionId, name: displayName})
-		// 	.done(function(data){
-		// 		console.log('Archive Started. id: ' + data);
-		// 		archiveId = data;
-		// 	})
-		// 	.fail(function(data){
-		// 		console.log('Archive Start FAILED: ' + data);
-		// 	});
-		// }
+		if (ownConnection) {
+			$.post('/start', {sessionId: sessionId, name: displayName, streamId: publisher.streamId})
+			.done(function(data){
+				console.log('Archive Started, id: ' + data);
+				archiveId = data;
+			})
+			.fail(function(data){
+				console.log('Archive Start FAILED: ' + data);
+			});
+		}
 	},
 
 	streamCreated: function(event) {
@@ -481,6 +481,14 @@ session.on({
 		// remove mummies-list entry
 		removeMummy(mummyId);
 	},
+
+	archiveStarted: function(event) {
+		console.log(event);
+	},
+
+	archiveStoped: function(event) {
+		console.log(event);
+	}
 });
 
 publisher.on({
