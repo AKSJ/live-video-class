@@ -32,7 +32,7 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 #button-div {
 	position: absolute;
 	width: 50%;
-	height: 30px; /* px to match buttons, % can get to small, pushes buttons off bottom of page*/
+	height: 30px; /* px to match buttons, % can get too small, pushes buttons off bottom of page*/
 	bottom: 1%;
 	right: 0.5%;
 	z-index: 12;
@@ -44,12 +44,6 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 #streamtoggle, #help, #logOut {
 	margin-right: 4px;
 }
-
-/*no longer needed, as logOut now a button*/
-
-/*#logOut {
-	margin-left: 4px;
-}*/
 
 #publisher {
 	position: absolute;
@@ -86,4 +80,9 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 
 .modal-title {
 	text-align: center;
+}
+
+/*Hide archive light*/
+.OT_archiving {
+	display: none !important;
 }
