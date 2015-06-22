@@ -80,7 +80,7 @@ function serveClientView(request, reply) {
 	// check for yar cookie
 	if (s2m_api) {
 		// check if membership is level 0. MW.com access only, no live classes
-		if (s2m_api.membershipLevel === 0) {
+		if (s2m_api.membershipLevel === 0 || s2m_api.membershipLevel === 1) {
 			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
 			request.session.clear('s2m_api');
 			console.error('serveClientView() failed - membership expired');
@@ -131,9 +131,9 @@ function serveSecureView(request, reply) {
 	if (s2m_api && request.auth.isAuthenticated) {
 		// check if membership is level 0. MW.com access only, no live classes
 		// TODO - this step is redundant, as serveSecureView only called if mlevel ==9/10. double check and remove
-		if (s2m_api.membershipLevel === 0 ) {
+		if (s2m_api.membershipLevel === 0 || s2m_api.membershipLevel === 1) {
 			// Checking membership status here (rather than homeView) so we can send lapsed users to a specific page.
-			console.error('serveSecureView() failed - membershipLevel 0');
+			console.error('serveSecureView() failed - membershipLevel 0 or 1');
 			return reply.view('invalidUser', { alert_error: 'Your Live Class access has expired.' });
 		}
 		// check for missing Instructor or Administrator membership level
@@ -269,44 +269,6 @@ function bothCookiesHandler(request, reply) {
 		// email addresses match!
 		console.log('s2m API email and googleEmail match!');
 		serveSecureView(request, reply);
-
-		// TODO fix secondary login check for case where capitalisation doesnt match
-		// TODO -remove secondary check! not reliable, possible difs between email addresses...
-
-		// make a second s2member API query to check googleEmail is still a valid instructor
-		// not possbile to check against original values, as they're only record is s2m_api, which is what we're fallback checking
-		// Reasoning: s2m_api cookie could be faked? (DOES THIS MAKE SENSE??) Defense in depth, fallback in case we did something stupid elsewhere!
-		// s2m.getMember(googleEmail, function(err, memberData){
-		// 	console.log('Double checking s2m API for googleEmail credentials');
-		// 	if (err) {
-		// 		console.error('s2m API error: ', err);
-		// 		request.session.clear('s2m_api');
-		// 		request.auth.session.clear();
-		// 		return reply.view('invalidUser', { alert_error: 'Error during secure login. Email verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
-		// 	}
-		// 	else if (memberData) {
-		// 		// bool to check contents of s2member query with googleEmail still valid for secure view
-		// 		var membershipLevelCheck = (memberData.level === 10 || memberData.level === 9) ? true : false;
-		// 		if ( membershipLevelCheck ) {
-		// 			console.log('googleEmail membershipLevel confirmation succesful!');
-		// 			// attempt to serve Instructor/Administrator view
-		// 			serveSecureView(request, reply);
-		// 		}
-		// 		else {
-		// 			// member somehow lacks correct membershipLevel
-		// 			console.error('googleEmail membershipLevel confirmation failed! - member not Instructor/Administrator');
-		// 			request.auth.session.clear();
-		// 			return reply.redirect('/');
-		// 		}
-		// 	}
-		// 	else {
-		// 		// member somehow not found. hax!!
-		// 		console.error('googleEmail membershipLevel confirmation failed! - member not found');
-		// 		request.session.clear('s2m_api');
-		// 		request.auth.session.clear();
-		// 		return reply.view('invalidUser', { alert_error: 'Error during secure login. Secondary account verfication failed.\nReturn to mummyworkouts.com and try again.\nIf issue persits, please contact support.' });
-		// 	}
-		// });
 	}
 }
 
