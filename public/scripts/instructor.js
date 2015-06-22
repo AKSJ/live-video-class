@@ -395,23 +395,6 @@ session.on({
 			newMummy.appendTo($('#mummies-list'));
 			sortMummies();
 		}
-		/////////////////////
-		// Code to archive main session
-		///////////////////
-		// if (ownConnection) {
-		// 	console.log('POST');
-		// 	console.log(publisher);
-		// 	console.log(publisher.streamId);
-		// 	console.log(publisher.stream.id);
-		// 	$.post('/start', {sessionId: sessionId, name: displayName, streamId: publisher.streamId})
-		// 	.done(function(data){
-		// 		console.log('Archive Started, id: ' + data);
-		// 		archiveId = data;
-		// 	})
-		// 	.fail(function(data){
-		// 		console.log('Archive Start FAILED: ' + data);
-		// 	});
-		// }
 	},
 
 	streamCreated: function(event) {
