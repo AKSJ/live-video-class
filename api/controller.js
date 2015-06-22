@@ -160,27 +160,37 @@ function serveSecureView(request, reply) {
 
 			if (s2m_api.membershipLevel === 9) {
 				console.log('Serving instructor view');
-				// add locals for instructor archiving session
-				var archiveToken;
-				// attempt to generate new session id for archiving purposes
-				// (prevents instructor overlap issues)
-				openTok.createSession({mediaMode: 'routed'}, function(err, session) {
-					if (err) {
-						console.error(err);
-						archiveToken = generateToken(s2m_api, fallbackArchiveSessionId);
-						locals.archiveSessionId = fallbackArchiveSessionId;
-						locals.archiveToken = archiveToken;
 
-						return reply.view('instructor', locals);
-					}
-					else if (session) {
-						archiveToken = generateToken(s2m_api, session.sessionId);
-						locals.archiveSessionId = session.sessionId;
-						locals.archiveToken = archiveToken;
+				// currently only using one session to archive, so pass fallbackarchivesessionid and token
+				// TODO comment out/remove refs to these vars client side, then stop passing them
 
-						return reply.view('instructor', locals);
-					}
-				});
+				archiveToken = generateToken(s2m_api, fallbackArchiveSessionId);
+				locals.archiveSessionId = fallbackArchiveSessionId;
+				locals.archiveToken = archiveToken;
+
+				return reply.view('instructor', locals);
+
+				// // add locals for instructor archiving session
+				// var archiveToken;
+				// // attempt to generate new session id for archiving purposes
+				// // (prevents instructor overlap issues)
+				// openTok.createSession({mediaMode: 'routed'}, function(err, session) {
+				// 	if (err) {
+				// 		console.error(err);
+				// 		archiveToken = generateToken(s2m_api, fallbackArchiveSessionId);
+				// 		locals.archiveSessionId = fallbackArchiveSessionId;
+				// 		locals.archiveToken = archiveToken;
+
+				// 		return reply.view('instructor', locals);
+				// 	}
+				// 	else if (session) {
+				// 		archiveToken = generateToken(s2m_api, session.sessionId);
+				// 		locals.archiveSessionId = session.sessionId;
+				// 		locals.archiveToken = archiveToken;
+
+				// 		return reply.view('instructor', locals);
+				// 	}
+				// });
 			}
 
 			else if (s2m_api.membershipLevel === 10) {
