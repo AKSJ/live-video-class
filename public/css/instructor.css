@@ -100,3 +100,7 @@ button {
 .hidden {
 	display: none;
 }
+
+.OT_archiving {
+	display: none;
+}
