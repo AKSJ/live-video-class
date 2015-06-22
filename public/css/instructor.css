@@ -102,5 +102,5 @@ button {
 }
 
 .OT_archiving {
-	display: none;
+	display: none !important;
 }
