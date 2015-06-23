@@ -372,6 +372,8 @@ session.on({
 		console.log('Publisher properties:');
 		console.log(publisher);
 		session.publish(publisher);
+		console.log('Publisher Width: ', publisher.videoWidth());
+		console.log('Publisher Height: ', publisher.videoHeight());
 	},
 
 	connectionCreated: function(event) {
