@@ -484,6 +484,8 @@ publisher.on({
 
 	streamCreated: function(event) {
 		console.log(event);
+		console.log('Stream Dimensions:');
+		console.log(event.stream.videoDimensions);
 		$.post('/start', {sessionId: sessionId, name: displayName, streamId: event.stream.id} )
 		.done(function(data){
 			console.log('Archive Started, id: ' + data);
