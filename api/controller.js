@@ -223,7 +223,6 @@ function setS2MemberCookie(userEmail, request, reply) {
 		else if (memberData) {
 			// set yar cookie 's2m_api' key
 			var s2mData = {
-				// membershipStatus: memberData.status_name,
 				membershipLevel: memberData.level,
 				displayName: memberData.data.display_name,
 				username: memberData.data.user_login,
