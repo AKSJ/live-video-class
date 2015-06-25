@@ -91,6 +91,8 @@ session.on({
 		}
 	},
 
+	//TODO stop unsubscribing from eveyone when we're not subscribed in the first place!
+	// Why is default prevented here?
 	streamDestroyed: function (event) {
 		event.preventDefault();
 		var destroyedStream = event.stream;
@@ -127,7 +129,7 @@ publisher.on({
 		// Check if stream is our own. We want to leave it in place if so.
 		console.log('Publisher Event:');
 		console.log(event);
-		if ( event.reason != 'forceDisconnected' ) {
+		if ( event.reason !== 'forceDisconnected' ) {
 			if( event.stream.connection.connectionId === session.connection.connectionId) {
 				console.log('ConnectionId match');
 				event.preventDefault();

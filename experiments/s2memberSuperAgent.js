@@ -29,7 +29,7 @@ var op = {
 			op: 'get_user',
 			api_key: config.s2member.key,
 			data: {
-				user_email: 'testmummyfac1@gmail.com'
+				user_email: 'admin@mindmoodmommy.com'
 			}
 		};
 
