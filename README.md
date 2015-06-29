@@ -1,10 +1,9 @@
-# Mummy Workouts
 
-## Live video workout sessions
+## A live video class room
 
 ### Description
 
-A service to provide live workouts in the home.  
+A service to provide live class room sessions in the home.  
 
 The client sees a fullscreen video of the instructor, while the instructor sees five class members at a time, and can switch between them.
 

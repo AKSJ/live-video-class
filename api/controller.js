@@ -452,7 +452,7 @@ module.exports = {
 			// get s2m_api cookie
 			var s2m_api = request.session.get('s2m_api');
 
-			// check if oauth cookie and s2m_api is set
+			// check if oauth cookie and s2m_api are set
 			if (request.auth.isAuthenticated && s2m_api) {
 				// user has logged in with MW.com link and google oauth
 				console.log('s2m_api and auth Cookies BOTH Found');
@@ -463,7 +463,7 @@ module.exports = {
 				console.log('Only s2m_api Cookie Found');
 				s2mApiOnlyHandler(request, reply);
 			}
-			// else no cookies set
+			// else no cookies are set
 			else {
 				console.log('s2m_api Cookie NOT Found, oauth Cookie NOT found');
 				noCookieHandler(request, reply);
