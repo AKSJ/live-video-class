@@ -489,11 +489,13 @@ publisher.on({
 		console.log('Height: ', event.stream.videoDimensions.height);
 		$.post('/start', {sessionId: sessionId, name: displayName, streamId: event.stream.id} )
 		.done(function(data){
-			console.log('Archive Started, id: ' + data);
+			console.log('Archive Started:');
+			console.log(data);
 			archiveId = data;
 		})
 		.fail(function(data){
-			console.log('Archive Start FAILED: ' + data);
+			console.log('Archive Start FAILED:');
+			console.log(data);
 		});
 	},
 
