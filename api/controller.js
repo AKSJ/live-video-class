@@ -107,6 +107,7 @@ function serveClientView(request, reply) {
 							displayName: s2m_api.displayName,
 						};
 			console.log('Serving client view');
+			console.log('Sucessful Login! (Client) Name: ' + locals.displayName + 'Email: ' + locals.email);
 			return reply.view('mummies', locals);
 		}
 	}
@@ -160,7 +161,7 @@ function serveSecureView(request, reply) {
 
 			if (s2m_api.membershipLevel === 9) {
 				console.log('Serving instructor view');
-
+				console.log('Sucessful Login! (Instructor) Name: ' + locals.displayName + 'Email: ' + locals.email);
 				// currently only using one session to archive, so pass fallbackarchivesessionid and token
 				// TODO comment out/remove refs to these vars client side, then stop passing them
 
@@ -195,6 +196,7 @@ function serveSecureView(request, reply) {
 
 			else if (s2m_api.membershipLevel === 10) {
 				console.log('Serving administrator view');
+				console.log('Sucessful Login! (Admin) Name: ' + locals.displayName + 'Email: ' + locals.email);
 				// NB Admin view currently just client view
 				return reply.view('mummies', locals);
 			}
