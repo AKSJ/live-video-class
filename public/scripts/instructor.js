@@ -487,16 +487,16 @@ publisher.on({
 		console.log('Stream Dimensions:');
 		console.log('Width: ', event.stream.videoDimensions.width);
 		console.log('Height: ', event.stream.videoDimensions.height);
-		$.post('/start', {sessionId: sessionId, name: displayName, streamId: event.stream.id} )
-		.done(function(data){
-			console.log('Archive Started:');
-			console.log(data);
-			archiveId = data;
-		})
-		.fail(function(data){
-			console.log('Archive Start FAILED:');
-			console.log(data);
-		});
+		// $.post('/start', {sessionId: sessionId, name: displayName, streamId: event.stream.id} )
+		// .done(function(data){
+		// 	console.log('Archive Started:');
+		// 	console.log(data);
+		// 	archiveId = data;
+		// })
+		// .fail(function(data){
+		// 	console.log('Archive Start FAILED:');
+		// 	console.log(data);
+		// });
 	},
 
 	streamDestroyed: function(event) {
@@ -711,20 +711,22 @@ $('#endClass').click(function(){
 		mummyData = {};
 		// added a redirect here, the idea being to make sure the instructor can't stay in the class somehow. Maybe by refreshing their browser
 		// if we keep this, can remove the DOM/data clearing above, but should keep session.disconnect() to make sure we're pplaying nicely with the TokBox session, maybe.
-		if (archiveId) {
-			$.post('/stop', {archiveId: archiveId})
-			.done(function(){
-				archiveId = null;
-				console.log('Archive Stopped');
-				// window.location.replace('/logout');
-			})
-			.fail(function(data){
-				console.log('Archive Stop FAILED:');
-				console.log(data);
-				// leave window anyway. Archive will time out after 60 seconds
-				// window.location.replace('/logout');
-			});
-		}
+
+		// if (archiveId) {
+		// 	$.post('/stop', {archiveId: archiveId})
+		// 	.done(function(){
+		// 		archiveId = null;
+		// 		console.log('Archive Stopped');
+		// 		// window.location.replace('/logout');
+		// 	})
+		// 	.fail(function(data){
+		// 		console.log('Archive Stop FAILED:');
+		// 		console.log(data);
+		// 		// leave window anyway. Archive will time out after 60 seconds
+		// 		// window.location.replace('/logout');
+		// 	});
+		// }
+
 		// leave window without waiting for AJAX reply - not needed unless debugging
 		// using location.replace as it effectively disables the back button, encouraging clients to rejoin the class via MW.com
 		// NB - auth cookies cleared by server
@@ -741,20 +743,22 @@ $('#logOut').click(function(){
 						'\n\nThis will only log you out. It will NOT end the class.' +
 						'\n\n\'Cancel\' to remain in the class.\n\'OK\' to exit.');
 	if(exit){
-		if (archiveId) {
-			$.post('/stop', {archiveId: archiveId})
-			.done(function(){
-				archiveId = null;
-				console.log('Archive Stopped');
-				// window.location.replace('/logout');
-			})
-			.fail(function(data){
-				console.log('Archive Stop FAILED:');
-				console.log(data);
-				// leave window anyway. Archive will time out after 60 seconds
-				// window.location.replace('/logout');
-			});
-		}
+
+		// if (archiveId) {
+		// 	$.post('/stop', {archiveId: archiveId})
+		// 	.done(function(){
+		// 		archiveId = null;
+		// 		console.log('Archive Stopped');
+		// 		// window.location.replace('/logout');
+		// 	})
+		// 	.fail(function(data){
+		// 		console.log('Archive Stop FAILED:');
+		// 		console.log(data);
+		// 		// leave window anyway. Archive will time out after 60 seconds
+		// 		// window.location.replace('/logout');
+		// 	});
+		// }
+
 		// leave window without waiting for AJAX reply - not needed unless debugging
 		// using location.replace as it effectively disables the back button, encouraging clients to rejoin the class via MW.com
 		// NB - auth cookies cleared by server
