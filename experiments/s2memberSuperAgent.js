@@ -45,7 +45,7 @@ var formData = 's2member_pro_remote_op=' + php.urlencode(serialisedOp); // <- st
 
 console.log(formData);
 
-request.post('https://mummyworkouts.com/?s2member_pro_remote_op=1')
+request.post('https://heyworkout.com/?s2member_pro_remote_op=1')
 	.send(formData)
 	.end(function(err,res){
 		if (err) {
@@ -84,7 +84,7 @@ var formData2 = 's2member_pro_remote_op=' + php.urlencode(serialisedOp2); // <- 
 
 console.log(formData2);
 
-request.post('https://mummyworkouts.com/?s2member_pro_remote_op=1')
+request.post('https://heyworkout.com/?s2member_pro_remote_op=1')
 	.send(formData2)
 	.end(function(err,res){
 		if (err) {

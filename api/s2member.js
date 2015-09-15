@@ -18,7 +18,7 @@ function getMember(email, callback) {
 	// s2member API requires urlencoded input (!== encodeURIcomponent), with 'remote_op' key string
 	payload = 's2member_pro_remote_op=' + php.urlencode(payload);
 
-	request.post('https://mummyworkouts.com/?s2member_pro_remote_op=1')
+	request.post('https://heyworkout.com/?s2member_pro_remote_op=1')
 		.send(payload)
 		.end(function(err, res){
 			if (err) {
