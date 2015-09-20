@@ -25,9 +25,13 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 	/*background-size: 100%*/
 	overflow : hidden;
 }
-/*.image img{
-	min-height: 100%;
-}*/
+
+.image img{
+	width: auto;
+	height : auto;
+	max-height: 100%;
+	max-width: 100%;
+}
 
 #button-div {
 	position: absolute;
