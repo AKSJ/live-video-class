@@ -274,7 +274,7 @@ function bothCookiesHandler(request, reply) {
 		console.log(googleEmail.toLowerCase(), '!==', s2MemberEmail.toLowerCase());
 		request.session.clear('s2m_api');
 		request.auth.session.clear();
-		return reply.view('invalidUser', { alert_error: 'Error during secure login. Email addresses do not match.\nReturn to mummyworkouts.com and try again.\nIf issue persists, please contact support.' });
+		return reply.view('invalidUser', { alert_error: 'Error during secure login. Email addresses do not match.\nReturn to heyworkout.com and try again.\nIf issue persists, please contact support.' });
 	}
 	else {
 		// email addresses match!
@@ -317,15 +317,15 @@ function noCookieHandler(request, reply) {
 	// fail if no query string token and no s2m_api cookie
 	if (!query.hasOwnProperty('hash') || !query.hash) {
 		console.error('No query string timehash found');
-		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
+		return reply.view('invalidUser', { alert_error: 'Please return to HeyWorkout and retry the join class button.' });
 	}
 	else if (!query.hasOwnProperty('time') || !query.time) {
 		console.error('No query string time found');
-		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
+		return reply.view('invalidUser', { alert_error: 'Please return to HeyWorkout and retry the join class button.' });
 	}
 	else if (!query.hasOwnProperty('token') || !query.token) { //double check to account for e.g. token: undefined
 		console.error('No query string email token found');
-		return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
+		return reply.view('invalidUser', { alert_error: 'Please return to HeyWorkout and retry the join class button.' });
 		// return reply.redirect('http://mummyworkouts.com');
 	}
 	// TODO: double check of props here is redundant. remove, make an else and remove fallback
@@ -359,13 +359,13 @@ function noCookieHandler(request, reply) {
 		}
 		else {
 			console.error('Link has expired, or wrong hmac secret');
-			return reply.view('invalidUser', { alert_error: 'Please return to Mummy Workouts and retry the join class button.' });
+			return reply.view('invalidUser', { alert_error: 'Please return to HeyWorkout and retry the join class button.' });
 		}
 	}
 	else {
 		// fallback
 		console.error('fallback! homeView() failed');
-		return reply.view('invalidUser', { alert_error: 'Login failed.\nPlease return to Mummy Workouts to try again.' });
+		return reply.view('invalidUser', { alert_error: 'Login failed.\nPlease return to HeyWorkout to try again.' });
 	}
 }
 
