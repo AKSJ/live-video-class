@@ -29,8 +29,8 @@ body, html, .container, .tabpanel, #classview, .tab-content, .container-fluid, .
 .image img{
 	width: auto;
 	height : auto;
-	min-height: 100%;
-	min-width: 100%;
+	/*min-height: 100%;
+	min-width: 100%;*/
 }
 
 #button-div {
